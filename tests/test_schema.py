@@ -17,6 +17,46 @@ class TestBool:
             node.validate(test_data)
 
 
+class TestCompilation:
+    class ExampleData:
+        pass
+
+    def test_init(self):
+        node = schema.Compilation({'spam': schema.Bool(),
+                                   'eggs': schema.Bool()})
+        assert len(node.subnodes) == 2
+        assert 'spam' in node.subnodes
+        assert 'eggs' in node.subnodes
+
+    def test_validate(self):
+        node = schema.Compilation({'spam': schema.Bool(),
+                                   'eggs': schema.Bool()})
+        test_data = self.ExampleData()
+        test_data.spam = True
+        test_data.eggs = False
+        node.validate(test_data)
+
+    def test_validate_fail_invalid(self):
+        node = schema.Compilation({'spam': schema.Bool(),
+                                   'eggs': schema.Bool()})
+        test_data = self.ExampleData()
+        test_data.spam = True
+        test_data.eggs = 42
+        with pytest.raises(schema.ValidationError) as err:
+            node.validate(test_data)
+        assert err.value.message == 'Invalid type/value.'
+
+    def test_validate_fail_missing(self):
+        node = schema.Compilation({'spam': schema.Bool(),
+                                   'eggs': schema.Bool()})
+        test_data = self.ExampleData()
+        test_data.spam = True
+        with pytest.raises(schema.ValidationError) as err:
+            node.validate(test_data)
+        assert err.value.message == 'Missing data attribute.'
+        assert err.value.expected == 'eggs'
+
+
 def test_validation_error():
     ve = schema.ValidationError('Error message.', 'foo', 'baz')
     assert ve.message == 'Error message.'
