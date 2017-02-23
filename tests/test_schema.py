@@ -4,6 +4,14 @@ from dsch import schema
 
 
 class TestBool:
+    def test_from_dict(self):
+        node = schema.Bool.from_dict({})
+        assert isinstance(node, schema.Bool)
+
+    def test_to_dict(self):
+        node = schema.Bool()
+        assert node.to_dict() == {}
+
     @pytest.mark.parametrize('test_data', (True, False))
     def test_validate(self, test_data):
         node = schema.Bool()

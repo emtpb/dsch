@@ -10,6 +10,21 @@ class Bool:
     No configuration is required.
     """
 
+    @classmethod
+    def from_dict(cls, node_dict):
+        return cls(**node_dict)
+
+    def to_dict(self):
+        """Return the node configuration as a dict.
+
+        Since :class:`Bool` has no configuration options, this always returns
+        ``{}``.
+
+        Returns:
+            dict: Dict-representation of the node configuration.
+        """
+        return {}
+
     def validate(self, test_data):
         """Validate given data against the node's constraints.
 
