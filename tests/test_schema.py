@@ -29,12 +29,51 @@ class TestCompilation:
     class ExampleData:
         pass
 
+    def test_from_dict(self):
+        node_dict = {'subnodes': {
+            'spam': {'node_type': 'Bool', 'config': {}},
+            'eggs': {'node_type': 'Bool', 'config': {}},
+        }}
+        node = schema.Compilation.from_dict(node_dict)
+        assert len(node.subnodes) == 2
+        assert 'spam' in node.subnodes
+        assert 'eggs' in node.subnodes
+
+    def test_from_dict_compilation_in_compilation(self):
+        node_dict = {'subnodes': {
+            'bacon': {
+                'node_type': 'Compilation',
+                'config': {
+                    'subnodes': {
+                        'spam': {'node_type': 'Bool', 'config': {}},
+                        'eggs': {'node_type': 'Bool', 'config': {}},
+                    }}}}}
+        node = schema.Compilation.from_dict(node_dict)
+        assert len(node.subnodes) == 1
+        assert 'bacon' in node.subnodes
+        assert len(node.subnodes['bacon'].subnodes) == 2
+        assert 'spam' in node.subnodes['bacon'].subnodes
+        assert 'eggs' in node.subnodes['bacon'].subnodes
+
     def test_init(self):
         node = schema.Compilation({'spam': schema.Bool(),
                                    'eggs': schema.Bool()})
         assert len(node.subnodes) == 2
         assert 'spam' in node.subnodes
         assert 'eggs' in node.subnodes
+
+    def test_to_dict(self):
+        node = schema.Compilation({'spam': schema.Bool(),
+                                   'eggs': schema.Bool()})
+        node_dict = node.to_dict()
+        assert 'subnodes' in node_dict
+        assert 'spam' in node_dict['subnodes']
+        assert 'eggs' in node_dict['subnodes']
+        for subnode_dict in node_dict['subnodes'].values():
+            assert 'node_type' in subnode_dict
+            assert 'config' in subnode_dict
+            assert subnode_dict['node_type'] == 'Bool'
+            assert subnode_dict['config'] == {}
 
     def test_validate(self):
         node = schema.Compilation({'spam': schema.Bool(),

@@ -70,6 +70,46 @@ class Compilation:
         """
         self.subnodes = subnodes
 
+    @classmethod
+    def from_dict(cls, node_dict):
+        """Create a new :class:`Compilation` from a dict.
+
+        This recursively creates all specified sub-nodes.
+
+        Args:
+            node_dict: Dict-representation to load.
+
+        Returns:
+            :class:`Compilation`: Created compilation object.
+        """
+        subnodes = {}
+        for subnode_name, subnode_dict in node_dict['subnodes'].items():
+            node_type = subnode_dict['node_type']
+            config = subnode_dict['config']
+            if node_type == 'Bool':
+                subnode_type = Bool
+            elif node_type == 'Compilation':
+                subnode_type = Compilation
+            else:
+                raise ValueError('Unknown node type.')
+            subnodes[subnode_name] = subnode_type.from_dict(config)
+        return cls(subnodes=subnodes)
+
+    def to_dict(self):
+        """Return the node configuration as a dict.
+
+        Returns:
+            dict: Dict-representation of the node configuration.
+        """
+        subnode_dict = {}
+        for node_name, node in self.subnodes.items():
+            subnode_dict[node_name] = {
+                'node_type': type(node).__name__,
+                'config': node.to_dict()
+            }
+        node_dict = {'subnodes': subnode_dict}
+        return node_dict
+
     def validate(self, test_data):
         """Validate given data against the node's constraints.
 
