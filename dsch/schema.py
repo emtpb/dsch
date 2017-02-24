@@ -1,11 +1,38 @@
 """dsch schema specification.
+
+In dsch, data is structured according to a given schema, which must be defined
+prior to working with the data (i.e. saving and loading). A schema is a
+tree-like hierarchical structure of nodes, each of which applies certain
+constraints to the data. In general, there are three different kinds of nodes:
+
+1. Item nodes
+    which represent a data point (e.g. a string or a NumPy array). These are
+    the leaves of the tree.
+2. Compilation nodes
+    which represent a compound of data made up from multiple named fields.
+    Each field is represented by another node and therefore supports its own
+    constraints.
+3. List nodes
+    which can contain multiple elements of the same type. The constraints are
+    described with a single sub-node, but then applied to all data elements.
+
+Compilations and lists both support all kinds of sub-nodes and can be nested.
+This allows to specify arbitrary hierarchically structured schemas.
+
+.. note::
+    The classes in this module are used to specify a schema. This specification
+    is different from what the user sees when interacting with the actual data.
+    For example, a list-type schema node only has a single sub-node. Since the
+    schema node only specifies the *constraints* to be applied to the data
+    elements, this is sufficient. When users interact with the data, however,
+    they are presented a list of multiple data elements.
 """
 
 
 class Bool:
     """Schema node for scalar boolean values.
 
-    This node type only accepts values of type `bool`.
+    This node type only accepts values of type :class:`bool`.
 
     No configuration is required.
     """
@@ -60,6 +87,8 @@ class Compilation:
     """Schema node for compound values composed from multiple named sub-nodes.
 
     Usually, a :class:`Compilation` is used to name and group related data.
+    Together with :class:`List`, this node type allows to build arbitrary
+    hierarchical schemas.
 
     The data described by the compilation is expected to be given as an object
     with attributes corresponding to the sub-node names.
