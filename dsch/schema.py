@@ -140,6 +140,80 @@ class Compilation:
             node.validate(data_value)
 
 
+class List:
+    """Schema node for lists of same-type elements.
+
+    A :class:`List` is used to represent multiple data items that must meet the
+    same constraints. It uses a single schema node to specify the constraints
+    for all entries.
+    Note that this behavior is different from regular python lists, which can
+    contain arbitrary entries.
+
+    Often, a :class:`List` is used with a :class:`Compilation` as its sub-node,
+    allowing to represent arbitrary hierarchical schemas.
+
+    Attributes:
+        subnode: A single schema node, used to validate all list entries.
+    """
+
+    def __init__(self, subnode):
+        """Initialize a List schema node.
+
+        Args:
+            subnode: A single schema node.
+        """
+        self.subnode = subnode
+
+    @classmethod
+    def from_dict(cls, node_dict):
+        """Create a new :class:`List` instance from a dict representation.
+
+        Args:
+            node_dict: dict-representation of the node to be loaded.
+
+        Returns:
+            :class:`List`: New list-type schema node.
+        """
+        if node_dict['node_type'] != 'List':
+            raise ValueError('Invalid node type in dict.')
+
+        subnode = _node_from_dict(node_dict['config']['subnode'])
+        return cls(subnode)
+
+    def to_dict(self):
+        """Return the node representation as a dict.
+
+        The representation dict includes a field ``node_type`` with the node
+        class name and a field ``config`` with a dict of the configuration
+        options.
+
+        Returns:
+            dict: dict-representation of the node.
+        """
+        node_dict = {'node_type': 'List', 'config': {
+            'subnode': self.subnode.to_dict()
+        }}
+        return node_dict
+
+    def validate(self, test_data):
+        """Validate given data against the node's constraints.
+
+        For :class:`List` nodes, this iterates over ``test_data`` and validates
+        each entry according to the schema node specified in :attr:`subnode`.
+
+        If validation succeeds, the method terminates silently. Otherwise, an
+        exception is raised.
+
+        Args:
+            test_data: Data to be validated.
+
+        Raises:
+            :exc:`.ValidationError`: if validation fails.
+        """
+        for data_item in test_data:
+            self.subnode.validate(data_item)
+
+
 class ValidationError(Exception):
     """Exception used when a schema node's validation fails.
 
@@ -166,6 +240,7 @@ class ValidationError(Exception):
 _node_types = {
     'Bool': Bool,
     'Compilation': Compilation,
+    'List': List,
 }
 
 

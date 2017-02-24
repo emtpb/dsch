@@ -118,6 +118,67 @@ class TestCompilation:
         assert err.value.expected == 'eggs'
 
 
+class TestList:
+    def test_from_dict(self):
+        node_dict = {'node_type': 'List', 'config': {
+            'subnode': {'node_type': 'Bool', 'config': {}}
+        }}
+        node = schema.List.from_dict(node_dict)
+        assert isinstance(node.subnode, schema.Bool)
+
+    def test_from_dict_compilation_in_list(self):
+        node_dict = {'node_type': 'List', 'config': {
+            'subnode': {
+                'node_type': 'Compilation',
+                'config': {
+                    'subnodes': {
+                        'spam': {'node_type': 'Bool', 'config': {}},
+                        'eggs': {'node_type': 'Bool', 'config': {}},
+                    }}}}}
+        node = schema.List.from_dict(node_dict)
+        assert isinstance(node.subnode, schema.Compilation)
+        assert len(node.subnode.subnodes) == 2
+        assert 'spam' in node.subnode.subnodes
+        assert 'eggs' in node.subnode.subnodes
+        assert isinstance(node.subnode.subnodes['spam'], schema.Bool)
+        assert isinstance(node.subnode.subnodes['eggs'], schema.Bool)
+
+    def test_from_dict_list_in_list(self):
+        node_dict = {'node_type': 'List', 'config': {
+            'subnode': {
+                'node_type': 'List',
+                'config': {
+                    'subnode': {'node_type': 'Bool', 'config': {}}
+                }}}}
+        node = schema.List.from_dict(node_dict)
+        assert isinstance(node.subnode, schema.List)
+        assert isinstance(node.subnode.subnode, schema.Bool)
+
+    def test_init(self):
+        node = schema.List(schema.Bool())
+        assert isinstance(node.subnode, schema.Bool)
+
+    def test_to_dict(self):
+        subnode = schema.Bool()
+        node = schema.List(subnode)
+        node_dict = node.to_dict()
+        assert 'node_type' in node_dict
+        assert node_dict['node_type'] == 'List'
+        assert 'config' in node_dict
+        assert 'subnode' in node_dict['config']
+        assert node_dict['config']['subnode'] == subnode.to_dict()
+
+    def test_validate(self):
+        node = schema.List(schema.Bool())
+        node.validate([True, False, False, True])
+
+    def test_validate_fail_invalid(self):
+        node = schema.List(schema.Bool())
+        with pytest.raises(schema.ValidationError) as err:
+            node.validate([True, False, 42, True])
+        assert err.value.message == 'Invalid type/value.'
+
+
 def test_validation_error():
     ve = schema.ValidationError('Error message.', 'foo', 'baz')
     assert ve.message == 'Error message.'
