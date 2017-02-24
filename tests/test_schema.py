@@ -5,12 +5,16 @@ from dsch import schema
 
 class TestBool:
     def test_from_dict(self):
-        node = schema.Bool.from_dict({})
+        node = schema.Bool.from_dict({'node_type': 'Bool', 'config': {}})
         assert isinstance(node, schema.Bool)
 
     def test_to_dict(self):
         node = schema.Bool()
-        assert node.to_dict() == {}
+        node_dict = node.to_dict()
+        assert 'node_type' in node_dict
+        assert node_dict['node_type'] == 'Bool'
+        assert 'config' in node_dict
+        assert node_dict['config'] == {}
 
     @pytest.mark.parametrize('test_data', (True, False))
     def test_validate(self, test_data):
@@ -30,30 +34,37 @@ class TestCompilation:
         pass
 
     def test_from_dict(self):
-        node_dict = {'subnodes': {
-            'spam': {'node_type': 'Bool', 'config': {}},
-            'eggs': {'node_type': 'Bool', 'config': {}},
-        }}
+        node_dict = {'node_type': 'Compilation', 'config': {
+            'subnodes': {
+                'spam': {'node_type': 'Bool', 'config': {}},
+                'eggs': {'node_type': 'Bool', 'config': {}},
+            }}}
         node = schema.Compilation.from_dict(node_dict)
         assert len(node.subnodes) == 2
         assert 'spam' in node.subnodes
         assert 'eggs' in node.subnodes
+        assert isinstance(node.subnodes['spam'], schema.Bool)
+        assert isinstance(node.subnodes['eggs'], schema.Bool)
 
     def test_from_dict_compilation_in_compilation(self):
-        node_dict = {'subnodes': {
-            'bacon': {
-                'node_type': 'Compilation',
-                'config': {
-                    'subnodes': {
-                        'spam': {'node_type': 'Bool', 'config': {}},
-                        'eggs': {'node_type': 'Bool', 'config': {}},
-                    }}}}}
+        node_dict = {'node_type': 'Compilation', 'config': {
+            'subnodes': {
+                'bacon': {
+                    'node_type': 'Compilation',
+                    'config': {
+                        'subnodes': {
+                            'spam': {'node_type': 'Bool', 'config': {}},
+                            'eggs': {'node_type': 'Bool', 'config': {}},
+                        }}}}}}
         node = schema.Compilation.from_dict(node_dict)
         assert len(node.subnodes) == 1
         assert 'bacon' in node.subnodes
+        assert isinstance(node.subnodes['bacon'], schema.Compilation)
         assert len(node.subnodes['bacon'].subnodes) == 2
         assert 'spam' in node.subnodes['bacon'].subnodes
         assert 'eggs' in node.subnodes['bacon'].subnodes
+        assert isinstance(node.subnodes['bacon'].subnodes['spam'], schema.Bool)
+        assert isinstance(node.subnodes['bacon'].subnodes['eggs'], schema.Bool)
 
     def test_init(self):
         node = schema.Compilation({'spam': schema.Bool(),
@@ -66,10 +77,13 @@ class TestCompilation:
         node = schema.Compilation({'spam': schema.Bool(),
                                    'eggs': schema.Bool()})
         node_dict = node.to_dict()
-        assert 'subnodes' in node_dict
-        assert 'spam' in node_dict['subnodes']
-        assert 'eggs' in node_dict['subnodes']
-        for subnode_dict in node_dict['subnodes'].values():
+        assert 'node_type' in node_dict
+        assert node_dict['node_type'] == 'Compilation'
+        assert 'config' in node_dict
+        assert 'subnodes' in node_dict['config']
+        assert 'spam' in node_dict['config']['subnodes']
+        assert 'eggs' in node_dict['config']['subnodes']
+        for subnode_dict in node_dict['config']['subnodes'].values():
             assert 'node_type' in subnode_dict
             assert 'config' in subnode_dict
             assert subnode_dict['node_type'] == 'Bool'

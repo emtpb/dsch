@@ -12,18 +12,29 @@ class Bool:
 
     @classmethod
     def from_dict(cls, node_dict):
-        return cls(**node_dict)
+        """Create a new :class:`Bool` instance from a dict representation.
 
-    def to_dict(self):
-        """Return the node configuration as a dict.
-
-        Since :class:`Bool` has no configuration options, this always returns
-        ``{}``.
+        Args:
+            node_dict: dict-representation of the node to be loaded.
 
         Returns:
-            dict: Dict-representation of the node configuration.
+            :class:`Bool`: New bool-type schema node.
         """
-        return {}
+        if node_dict['node_type'] != 'Bool':
+            raise ValueError('Invalid node type in dict.')
+        return cls(**node_dict['config'])
+
+    def to_dict(self):
+        """Return the node representation as a dict.
+
+        The representation dict includes a field ``node_type`` with the node
+        class name and a field ``config`` with a dict of the configuration
+        options.
+
+        Returns:
+            dict: dict-representation of the node.
+        """
+        return {'node_type': 'Bool', 'config': {}}
 
     def validate(self, test_data):
         """Validate given data against the node's constraints.
@@ -72,43 +83,37 @@ class Compilation:
 
     @classmethod
     def from_dict(cls, node_dict):
-        """Create a new :class:`Compilation` from a dict.
-
-        This recursively creates all specified sub-nodes.
+        """Create a new :class:`Compilation` instance from a dict
+        representation.
 
         Args:
-            node_dict: Dict-representation to load.
+            node_dict: dict-representation of the node to be loaded.
 
         Returns:
-            :class:`Compilation`: Created compilation object.
+            :class:`Compilation`: New compilation-type schema node.
         """
-        subnodes = {}
-        for subnode_name, subnode_dict in node_dict['subnodes'].items():
-            node_type = subnode_dict['node_type']
-            config = subnode_dict['config']
-            if node_type == 'Bool':
-                subnode_type = Bool
-            elif node_type == 'Compilation':
-                subnode_type = Compilation
-            else:
-                raise ValueError('Unknown node type.')
-            subnodes[subnode_name] = subnode_type.from_dict(config)
+        if node_dict['node_type'] != 'Compilation':
+            raise ValueError('Invalid node type in dict.')
+
+        subnodes = {name: _node_from_dict(node_config) for name, node_config in
+                    node_dict['config']['subnodes'].items()}
         return cls(subnodes=subnodes)
 
     def to_dict(self):
-        """Return the node configuration as a dict.
+        """Return the node representation as a dict.
+
+        The representation dict includes a field ``node_type`` with the node
+        class name and a field ``config`` with a dict of the configuration
+        options.
 
         Returns:
-            dict: Dict-representation of the node configuration.
+            dict: dict-representation of the node.
         """
-        subnode_dict = {}
-        for node_name, node in self.subnodes.items():
-            subnode_dict[node_name] = {
-                'node_type': type(node).__name__,
-                'config': node.to_dict()
-            }
-        node_dict = {'subnodes': subnode_dict}
-        return node_dict
+        subnode_dict = {name: node.to_dict() for name, node in
+                        self.subnodes.items()}
+        return {'node_type': 'Compilation', 'config': {
+            'subnodes': subnode_dict
+        }}
 
     def validate(self, test_data):
         """Validate given data against the node's constraints.
@@ -156,3 +161,27 @@ class ValidationError(Exception):
         self.message = message
         self.expected = expected
         self.got = got
+
+
+_node_types = {
+    'Bool': Bool,
+    'Compilation': Compilation,
+}
+
+
+def _node_from_dict(node_dict):
+    """Create a new node from its ``node_dict``.
+
+    This is effectively a shorthand for choosing the correct node class and
+    then calling its ``from_dict`` method.
+
+    Args:
+        node_dict (dict): dict-representation of the node.
+
+    Returns:
+        New schema node with the specified type and configuration.
+    """
+    if node_dict['node_type'] not in _node_types:
+        raise ValueError('Invalid node type specified.')
+    node_type = _node_types[node_dict['node_type']]
+    return node_type.from_dict(node_dict)
