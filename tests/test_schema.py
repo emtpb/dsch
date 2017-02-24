@@ -66,6 +66,20 @@ class TestCompilation:
         assert isinstance(node.subnodes['bacon'].subnodes['spam'], schema.Bool)
         assert isinstance(node.subnodes['bacon'].subnodes['eggs'], schema.Bool)
 
+    def test_from_dict_list_in_compilation(self):
+        node_dict = {'node_type': 'Compilation', 'config': {
+            'subnodes': {
+                'bacon': {
+                    'node_type': 'List',
+                    'config': {
+                        'subnode': {'node_type': 'Bool', 'config': {}}
+                    }}}}}
+        node = schema.Compilation.from_dict(node_dict)
+        assert len(node.subnodes) == 1
+        assert 'bacon' in node.subnodes
+        assert isinstance(node.subnodes['bacon'], schema.List)
+        assert isinstance(node.subnodes['bacon'].subnode, schema.Bool)
+
     def test_init(self):
         node = schema.Compilation({'spam': schema.Bool(),
                                    'eggs': schema.Bool()})
