@@ -265,13 +265,6 @@ class ValidationError(Exception):
         self.got = got
 
 
-_node_types = {
-    'Bool': Bool,
-    'Compilation': Compilation,
-    'List': List,
-}
-
-
 def _node_from_dict(node_dict):
     """Create a new node from its ``node_dict``.
 
@@ -284,7 +277,9 @@ def _node_from_dict(node_dict):
     Returns:
         New schema node with the specified type and configuration.
     """
-    if node_dict['node_type'] not in _node_types:
+    node_types = {name: cls for name, cls in globals().items()
+                  if not name.startswith('_') and name != 'ValidationError'}
+    if node_dict['node_type'] not in node_types:
         raise ValueError('Invalid node type specified.')
-    node_type = _node_types[node_dict['node_type']]
+    node_type = node_types[node_dict['node_type']]
     return node_type.from_dict(node_dict)
