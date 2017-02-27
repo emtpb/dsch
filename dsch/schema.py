@@ -123,7 +123,7 @@ class Compilation:
         if node_dict['node_type'] != 'Compilation':
             raise ValueError('Invalid node type in dict.')
 
-        subnodes = {name: _node_from_dict(node_config) for name, node_config in
+        subnodes = {name: node_from_dict(node_config) for name, node_config in
                     node_dict['config']['subnodes'].items()}
         return cls(subnodes=subnodes)
 
@@ -205,7 +205,7 @@ class List:
         if node_dict['node_type'] != 'List':
             raise ValueError('Invalid node type in dict.')
 
-        subnode = _node_from_dict(node_dict['config']['subnode'])
+        subnode = node_from_dict(node_dict['config']['subnode'])
         return cls(subnode)
 
     def to_dict(self):
@@ -265,7 +265,7 @@ class ValidationError(Exception):
         self.got = got
 
 
-def _node_from_dict(node_dict):
+def node_from_dict(node_dict):
     """Create a new node from its ``node_dict``.
 
     This is effectively a shorthand for choosing the correct node class and
@@ -278,7 +278,8 @@ def _node_from_dict(node_dict):
         New schema node with the specified type and configuration.
     """
     node_types = {name: cls for name, cls in globals().items()
-                  if not name.startswith('_') and name != 'ValidationError'}
+                  if not name.startswith('_') and
+                  name not in ('ValidationError', 'node_from_dict')}
     if node_dict['node_type'] not in node_types:
         raise ValueError('Invalid node type specified.')
     node_type = node_types[node_dict['node_type']]
