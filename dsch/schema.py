@@ -39,7 +39,7 @@ class Bool:
 
     @classmethod
     def from_dict(cls, node_dict):
-        """Create a new :class:`Bool` instance from a dict representation.
+        """Create a new instance from a dict representation.
 
         Args:
             node_dict: dict-representation of the node to be loaded.
@@ -112,8 +112,7 @@ class Compilation:
 
     @classmethod
     def from_dict(cls, node_dict):
-        """Create a new :class:`Compilation` instance from a dict
-        representation.
+        """Create a new instance from a dict representation.
 
         Args:
             node_dict: dict-representation of the node to be loaded.
@@ -195,7 +194,7 @@ class List:
 
     @classmethod
     def from_dict(cls, node_dict):
-        """Create a new :class:`List` instance from a dict representation.
+        """Create a new instance from a dict representation.
 
         Args:
             node_dict: dict-representation of the node to be loaded.
