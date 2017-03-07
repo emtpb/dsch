@@ -167,7 +167,7 @@ class Compilation:
                 data_value = getattr(test_data, node_name)
             except AttributeError:
                 raise ValidationError('Missing data attribute.', node_name)
-            node.validate(data_value)
+            node.validate(data_value.value)
 
 
 class List:
@@ -241,7 +241,7 @@ class List:
             :exc:`.ValidationError`: if validation fails.
         """
         for data_item in test_data:
-            self.subnode.validate(data_item)
+            self.subnode.validate(data_item.value)
 
 
 class ValidationError(Exception):

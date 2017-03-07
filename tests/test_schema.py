@@ -3,6 +3,10 @@ import pytest
 from dsch import schema
 
 
+class ExampleData:
+    pass
+
+
 class TestBool:
     def test_from_dict(self):
         node = schema.Bool.from_dict({'node_type': 'Bool', 'config': {}})
@@ -30,9 +34,6 @@ class TestBool:
 
 
 class TestCompilation:
-    class ExampleData:
-        pass
-
     def test_from_dict(self):
         node_dict = {'node_type': 'Compilation', 'config': {
             'subnodes': {
@@ -106,17 +107,21 @@ class TestCompilation:
     def test_validate(self):
         node = schema.Compilation({'spam': schema.Bool(),
                                    'eggs': schema.Bool()})
-        test_data = self.ExampleData()
-        test_data.spam = True
-        test_data.eggs = False
+        test_data = ExampleData()
+        test_data.spam = ExampleData()
+        test_data.spam.value = True
+        test_data.eggs = ExampleData()
+        test_data.eggs.value = False
         node.validate(test_data)
 
     def test_validate_fail_invalid(self):
         node = schema.Compilation({'spam': schema.Bool(),
                                    'eggs': schema.Bool()})
-        test_data = self.ExampleData()
-        test_data.spam = True
-        test_data.eggs = 42
+        test_data = ExampleData()
+        test_data.spam = ExampleData()
+        test_data.spam.value = True
+        test_data.eggs = ExampleData()
+        test_data.eggs.value = 42
         with pytest.raises(schema.ValidationError) as err:
             node.validate(test_data)
         assert err.value.message == 'Invalid type/value.'
@@ -124,8 +129,9 @@ class TestCompilation:
     def test_validate_fail_missing(self):
         node = schema.Compilation({'spam': schema.Bool(),
                                    'eggs': schema.Bool()})
-        test_data = self.ExampleData()
-        test_data.spam = True
+        test_data = ExampleData()
+        test_data.spam = ExampleData()
+        test_data.spam.value = True
         with pytest.raises(schema.ValidationError) as err:
             node.validate(test_data)
         assert err.value.message == 'Missing data attribute.'
@@ -184,12 +190,18 @@ class TestList:
 
     def test_validate(self):
         node = schema.List(schema.Bool())
-        node.validate([True, False, False, True])
+        test_data = [ExampleData(), ExampleData()]
+        test_data[0].value = True
+        test_data[1].value = False
+        node.validate(test_data)
 
     def test_validate_fail_invalid(self):
         node = schema.List(schema.Bool())
+        test_data = [ExampleData(), ExampleData()]
+        test_data[0].value = True
+        test_data[1].value = 42
         with pytest.raises(schema.ValidationError) as err:
-            node.validate([True, False, 42, True])
+            node.validate(test_data)
         assert err.value.message == 'Invalid type/value.'
 
 
