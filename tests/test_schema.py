@@ -205,6 +205,64 @@ class TestList:
         assert err.value.message == 'Invalid type/value.'
 
 
+class TestString:
+    @pytest.mark.parametrize('config,expected', (
+        ({}, {'min_length': None, 'max_length': None}),
+        ({'min_length': 3}, {'min_length': 3, 'max_length': None}),
+        ({'max_length': 5}, {'min_length': None, 'max_length': 5}),
+        ({'min_length': 3, 'max_length': 5},
+         {'min_length': 3, 'max_length': 5}),
+    ))
+    def test_from_dict(self, config, expected):
+        node_dict = {'node_type': 'String', 'config': config}
+        node = schema.String.from_dict(node_dict)
+        for attr, value in expected.items():
+            assert getattr(node, attr) == value
+
+    def test_to_dict(self):
+        node = schema.String(min_length=3, max_length=5)
+        node_dict = node.to_dict()
+        assert 'node_type' in node_dict
+        assert node_dict['node_type'] == 'String'
+        assert 'config' in node_dict
+        assert 'min_length' in node_dict['config']
+        assert 'max_length' in node_dict['config']
+        assert node_dict['config']['min_length'] == 3
+        assert node_dict['config']['max_length'] == 5
+
+    @pytest.mark.parametrize('config', (
+        {}, {'min_length': 3}, {'max_length': 5},
+        {'min_length': 3, 'max_length': 5}
+    ))
+    def test_validate(self, config):
+        node_dict = {'node_type': 'String', 'config': config}
+        node = schema.String.from_dict(node_dict)
+        node.validate('spam')
+
+    @pytest.mark.parametrize('test_data', (0, [23, 42], True, b'spam'))
+    def test_validate_fail_type(self, test_data):
+        node = schema.String()
+        with pytest.raises(schema.ValidationError) as err:
+            node.validate(test_data)
+        assert err.value.message == 'Invalid type/value.'
+
+    def test_validate_fail_max_length(self):
+        node = schema.String(max_length=3)
+        with pytest.raises(schema.ValidationError) as err:
+            node.validate('abcd')
+        assert err.value.message == 'Maximum string length exceeded.'
+        assert err.value.expected == 3
+        assert err.value.got == 4
+
+    def test_validate_fail_min_length(self):
+        node = schema.String(min_length=3)
+        with pytest.raises(schema.ValidationError) as err:
+            node.validate('ab')
+        assert err.value.message == 'Minimum string length undercut.'
+        assert err.value.expected == 3
+        assert err.value.got == 2
+
+
 def test_validation_error():
     ve = schema.ValidationError('Error message.', 'foo', 'baz')
     assert ve.message == 'Error message.'

@@ -244,6 +244,81 @@ class List:
             self.subnode.validate(data_item.value)
 
 
+class String:
+    """Schema node for string values.
+
+    This node type accepts regular Python strings, i.e. :class:`str` objects.
+    Constraints can be optionally configured for minimum and maximum string
+    length.
+
+    Attributes:
+        min_length (int): Minimum allowed string length.
+        max_length (int): Maximum allowed string length.
+    """
+
+    def __init__(self, min_length=None, max_length=None):
+        """Initialize string-type schema node.
+
+        Args:
+            min_length (int): Minimum allowed string length.
+            max_length (int): Maximum allowed string length.
+        """
+        self.min_length = min_length
+        self.max_length = max_length
+
+    @classmethod
+    def from_dict(cls, node_dict):
+        """Create a new instance from a dict representation.
+
+        Args:
+            node_dict: dict-representation of the node to be loaded.
+
+        Returns:
+            :class:`String`: New string-type schema node.
+        """
+        if node_dict['node_type'] != 'String':
+            raise ValueError('Invalid node type in dict.')
+        return cls(**node_dict['config'])
+
+    def to_dict(self):
+        """Return the node representation as a dict.
+
+        The representation dict includes a field ``node_type`` with the node
+        class name and a field ``config`` with a dict of the configuration
+        options.
+
+        Returns:
+            dict: dict-representation of the node.
+        """
+        config = {'min_length': self.min_length, 'max_length': self.max_length}
+        return {'node_type': 'String', 'config': config}
+
+    def validate(self, test_data):
+        """Validate given data against the node's constraints.
+
+        For :class:`Bool` nodes, this ensures that the given data type is of
+        type :class:`bool`.
+
+        If validation succeeds, the method terminates silently. Otherwise, an
+        exception is raised.
+
+        Args:
+            test_data: Data to be validated.
+
+        Raises:
+            :exc:`.ValidationError`: if validation fails.
+        """
+        if not type(test_data) == str:
+            raise ValidationError('Invalid type/value.', 'str',
+                                  type(test_data))
+        if self.max_length and len(test_data) > self.max_length:
+            raise ValidationError('Maximum string length exceeded.',
+                                  self.max_length, len(test_data))
+        if self.min_length and len(test_data) < self.min_length:
+            raise ValidationError('Minimum string length undercut.',
+                                  self.min_length, len(test_data))
+
+
 class ValidationError(Exception):
     """Exception used when a schema node's validation fails.
 
