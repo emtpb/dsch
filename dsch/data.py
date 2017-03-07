@@ -84,6 +84,10 @@ class ItemNode:
     functionality and the common interface. Subclasses may add functionality
     depending on the node type and backend (e.g. compression settings).
 
+    Note that this is only the base class for item nodes, i.e. nodes that
+    directly hold data. Collection nodes, i.e. :class:`Compilation` and
+    :class:`List` are *not* based on this class.
+
     Attributes:
         schema_node: The schema node that this data node is based on.
         storage: Backend-specific data storage object. This usually has a
