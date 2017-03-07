@@ -27,6 +27,7 @@ This allows to specify arbitrary hierarchically structured schemas.
     the schema node only specifies the constraints to be applied to the data.
     When users interact with the data, however, they use *data nodes*, which,
     in the case of lists, can contain multiple sub-nodes.
+    Data nodes are defined in the :mod:`dsch.data` module.
 """
 
 
