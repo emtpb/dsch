@@ -9,6 +9,7 @@ The data nodes are also responsible for storing the data. Since dsch is built
 to support multiple storage backends, there are specific data node classes
 implementing the respective functionality. The classes in this module provide
 common functionality and are intended to be used as base classes.
+Different backends are implemented in the ``backends`` package.
 """
 import importlib
 
