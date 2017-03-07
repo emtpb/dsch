@@ -136,6 +136,80 @@ class ItemNode:
         raise NotImplementedError('To be implemented in subclass.')
 
 
+class List:
+    """List-type data node.
+
+    :class:`List` is the base class for list-type data nodes, providing common
+    functionality and the common interface. Subclasses may add functionality
+    depending on the backend.
+
+    Attributes:
+        schema_node: The schema node that this data node is based on.
+    """
+
+    def __init__(self, schema_node):
+        """Initialize list node from a given schema node.
+
+        Args:
+            schema_node: Schema node to create the data node for.
+        """
+        self.schema_node = schema_node
+        self._subnodes = []
+
+    def append(self, value):
+        """Append a new value to the list.
+
+        Note: This works with actual data values!
+
+        Args:
+            value: Value to be added to the list.
+        """
+        subnode = data_node_from_schema(self.schema_node.subnode,
+                                        self.__module__)
+        subnode.replace(value)
+        self._subnodes.append(subnode)
+
+    def clear(self):
+        """Clear all subnodes.
+        """
+        self._subnodes.clear()
+
+    def __getitem__(self, item):
+        """Return subnodes via the brackets syntax.
+
+        This returns the entire sub-node object, not just the node value.
+        """
+        return self._subnodes[item]
+
+    def __len__(self):
+        """Return the length of the List, i.e. the number of subnodes."""
+        return len(self._subnodes)
+
+    def replace(self, new_value):
+        """Replace the current list entries with the given list of entries.
+
+        For :class:`List`, this is effectively a shorthand for calling
+        :meth:`clear` and then, for each of the new entries, :meth:`append`.
+
+        Args:
+            new_value (list): New entries to put into the List.
+        """
+        self.clear()
+        for item in new_value:
+            self.append(item)
+
+    def validate(self):
+        """Validate the subnode values against the schema node specification.
+
+        If validation succeeds, the method terminates silently. Otherwise, an
+        exception is raised.
+
+        Raises:
+            :exc:`dsch.schema.ValidationError`: if validation fails.
+        """
+        self.schema_node.validate(self)
+
+
 def data_node_from_schema(schema_node, module_name):
     """Create a new data node from a given schema node.
 
