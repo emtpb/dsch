@@ -4,8 +4,9 @@ This backend provides support for NumPy's npz format. For details, see
 :func:`numpy.savez`, :func:`numpy.load` and the `corresponding NumPy
 enhancement proposal <https://docs.scipy.org/doc/numpy/neps/npy-format.html>`_.
 """
+import json
 import numpy as np
-from .. import data
+from .. import data, helpers, schema
 
 
 class Bool(data.ItemNode):
@@ -85,6 +86,81 @@ class Compilation(data.Compilation):
         for name, node in self._subnodes.items():
             data_storage[name] = node.save()
         return data_storage
+
+
+class NPZFile:
+    """Interface to ``.npz`` files.
+
+    Provides access to an ``.npz`` file via dsch, i.e. reading from and writing
+    to such a file.
+
+    Attributes:
+        schema_node: The top-level schema node for the file.
+        data: The top-level data node, corresponding to :attr:`schema_node`.
+    """
+
+    def __init__(self, file_name=None, schema_node=None):
+        """Initialize the ``.npz`` file interface.
+
+        The interface can be initialized with either a path to a file which is
+        then loaded, or with a top-level schema node to be applied so that a
+        new (empty) data structure is created.
+
+        Args:
+            file_name (str): Path to the file to be loaded
+            schema_node: Top-level schema node to set for the file.
+        """
+        if file_name and not schema_node:
+            self.load(file_name)
+        elif schema_node and not file_name:
+            self.schema_node = schema_node
+            self.data = data.data_node_from_schema(schema_node,
+                                                   self.__module__)
+        else:
+            raise ValueError('Must initialize with either a file name or '
+                             'a top-level schema node.')
+
+    def load(self, file_name):
+        """Load the contents of a given file into the :class:`NPZFile` object.
+
+        Note: This sets :attr:`schema_node` according to the file, possibly
+        overwriting a value previously set by the user.
+
+        Args:
+            file_name (str): Path to the file to be loaded.
+        """
+        with np.load(file_name) as file_:
+            schema_data = json.loads(file_['_schema'][()])
+            stored_data = helpers.inflate_dotted(file_)
+        schema_node = schema.node_from_dict(schema_data)
+        data_node = data.data_node_from_schema(schema_node, self.__module__)
+
+        if isinstance(schema_node, schema.Compilation):
+            del stored_data['_schema']
+            data_node.load(stored_data)
+        else:
+            # If the top-level node is not a Compilation, the default name
+            # 'data' is used for the node.
+            data_node.load(stored_data['data'])
+        self.data = data_node
+
+    def save(self, file_name):
+        """Save the current data to a file.
+
+        Note: This does not perform any validation, so the created file is
+        explicitly not guaranteed to fulfill the schema's constraints.
+
+        Args:
+            file_name (str): Path to the file to write to.
+        """
+        schema_str = json.dumps(self.schema_node.to_dict(), sort_keys=True)
+        if isinstance(self.schema_node, schema.Compilation):
+            store_data = helpers.flatten_dotted(self.data.save())
+        else:
+            # If the top-level node is not a Compilation, the default name
+            # 'data' is used for the node.
+            store_data = helpers.flatten_dotted({'data': self.data.save()})
+        np.savez(file_name, _schema=schema_str, **store_data)
 
 
 class List(data.List):
