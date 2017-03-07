@@ -164,3 +164,18 @@ class TestList:
         assert len(data_storage) == 2
         assert data_storage['item_0'] == np.array([True])
         assert data_storage['item_1'] == np.array([False])
+
+
+class TestString:
+    def test_load(self):
+        data_node = npz.String(schema.String())
+        data_storage = np.array('spam', dtype='U')
+        data_node.load(data_storage)
+        assert data_node.storage == data_storage
+        assert data_node.value == 'spam'
+
+    def test_replace(self):
+        data_node = npz.String(schema.String())
+        data_node.replace('spam')
+        assert isinstance(data_node.storage, np.ndarray)
+        assert data_node.storage == np.array('spam', dtype='U')

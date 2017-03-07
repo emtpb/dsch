@@ -195,3 +195,50 @@ class List(data.List):
         for idx, node in enumerate(self._subnodes):
             data_storage['item_{}'.format(idx)] = node.save()
         return data_storage
+
+
+class String(data.ItemNode):
+    """String-type data node for the npz backend."""
+
+    def load(self, data_storage):
+        """Import the given data storage object.
+
+        Data storage depends on the current backend, so a compatible argument
+        must be given.
+
+        Args:
+            data_storage: Data storage object to be imported.
+        """
+        self.storage = data_storage
+
+    def replace(self, new_value):
+        """Completely replace the current node value.
+
+        Instead of changing parts of the data (e.g. via numpy array slicing),
+        replace the entire data object for this node.
+
+        Args:
+            new_value: New value to apply to the node, independent of the
+                backend in use.
+        """
+        self.storage = np.array(new_value, dtype='U')
+
+    def save(self):
+        """Export the node data as a data storage object.
+
+        Returns:
+            dict: Data storage object with the node's data.
+        """
+        return self.storage
+
+    @property
+    def value(self):
+        """Return the actual node data, independent of the backend in use.
+
+        This representation of the data only depends on the corresponding
+        schema node, not on the selected backend.
+
+        Returns:
+            Node data.
+        """
+        return str(self.storage)

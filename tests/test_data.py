@@ -161,3 +161,26 @@ class TestList:
         data_subnode.replace(False)
         data_node._subnodes.append(data_subnode)
         data_node.validate()
+
+
+class TestString:
+    def test_init(self, backend):
+        schema_node = schema.String()
+        data_node = backend.String(schema_node)
+        assert data_node.schema_node == schema_node
+        assert data_node.storage is None
+
+    def test_replace(self, backend):
+        data_node = backend.String(schema.String())
+        data_node.replace('spam')
+        assert data_node.value == 'spam'
+
+    def test_validate(self, backend):
+        data_node = backend.String(schema.String())
+        data_node.replace('spam')
+        data_node.validate()
+
+    def test_value(self, backend):
+        data_node = backend.String(schema.String())
+        data_node.replace('spam')
+        assert isinstance(data_node.value, str)
