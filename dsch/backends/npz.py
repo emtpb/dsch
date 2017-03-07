@@ -34,3 +34,15 @@ class Bool(data.ItemNode):
             Node data.
         """
         return bool(self.storage)
+
+
+class Compilation(data.Compilation):
+    """Compilation-type data node for the npz backend."""
+
+    pass
+
+
+class List(data.List):
+    """List-type data node for the npz backend."""
+
+    pass
