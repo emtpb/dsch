@@ -13,6 +13,70 @@ common functionality and are intended to be used as base classes.
 import importlib
 
 
+class Compilation:
+    """Compilation data node.
+
+    :class:`Compilation` is the base class for compilation-type data nodes,
+    providing common functionality and the common interface. Subclasses may add
+    functionality depending on the backend.
+
+    Attributes:
+        schema_node: The schema node that this data node is based on.
+    """
+
+    def __init__(self, schema_node):
+        """Initialize compilation node from a given schema node.
+
+        Args:
+            schema_node: Schema node to create the data node for.
+        """
+        self.schema_node = schema_node
+        self._subnodes = {}
+        for node_name, node in schema_node.subnodes.items():
+            self._subnodes[node_name] = data_node_from_schema(
+                node, self.__module__)
+
+    def __dir__(self):
+        """Include sub-nodes in :meth:`dir`."""
+        attrs = super().__dir__()
+        attrs.extend(self._subnodes.keys())
+        return attrs
+
+    def __getattr__(self, attr_name):
+        """Return sub-nodes via the dot-attribute syntax.
+
+        This returns the entire sub-node object, not just the node value.
+        """
+        return self._subnodes[attr_name]
+
+    def replace(self, new_value):
+        """Replace the current compilation values with new ones.
+
+        The new values must be specified as a :class:`dict`, where the key
+        corresponds to the compilation field name.
+
+        For :class:`Compilation`, this method is effectively a shorthand for
+        calling :meth:`ItemNode.replace` on all fields specified in the given
+        dict.
+
+        Args:
+            new_value (dict): Mapping of field names to new values.
+        """
+        for key, value in new_value.items():
+            self._subnodes[key].replace(value)
+
+    def validate(self):
+        """Validate the subnode values against the schema node specification.
+
+        If validation succeeds, the method terminates silently. Otherwise, an
+        exception is raised.
+
+        Raises:
+            :exc:`dsch.schema.ValidationError`: if validation fails.
+        """
+        self.schema_node.validate(self)
+
+
 class ItemNode:
     """Generic data node.
 
