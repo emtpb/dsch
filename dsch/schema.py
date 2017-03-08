@@ -92,9 +92,11 @@ class Compilation:
     Together with :class:`List`, this node type allows to build arbitrary
     hierarchical schemas.
 
-    The data described by the compilation is expected to be given as an object
-    with attributes corresponding to the sub-node names.
-    While the functionality is more similar to a dict, the object
+    The corresponding data node is a subclass of :class:`dsch.data.Compilation`
+    and provides attributes corresponding to the schema node's sub-node names.
+    Each of those attributes then represents a data node.
+
+    While the general functionality is more similar to a dict, the object
     representation is preferred because of the more compact "dotted" notation.
     This is especially relevant when nesting compilations, e.g.
     ``measurement.sampling.frequency`` vs.
