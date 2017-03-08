@@ -88,7 +88,7 @@ class Compilation(data.Compilation):
         return data_storage
 
 
-class NPZFile:
+class Storage:
     """Interface to ``.npz`` files.
 
     Provides access to an ``.npz`` file via dsch, i.e. reading from and writing
@@ -121,7 +121,7 @@ class NPZFile:
                              'a top-level schema node.')
 
     def load(self, file_name):
-        """Load the contents of a given file into the :class:`NPZFile` object.
+        """Load the contents of a given file into the :class:`Storage` object.
 
         Note: This sets :attr:`schema_node` according to the file, possibly
         overwriting a value previously set by the user.

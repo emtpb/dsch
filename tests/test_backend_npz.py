@@ -44,7 +44,7 @@ class TestCompilation:
         assert data_storage['eggs'] == np.array([False])
 
 
-class TestNPZFile:
+class TestStorage:
     def test_load_compilation(self, tmpdir):
         schema_node = schema.Compilation({'spam': schema.Bool(),
                                           'eggs': schema.Bool()})
@@ -55,7 +55,7 @@ class TestNPZFile:
                      '_schema': schema_data}
         np.savez(file_name, **test_data)
 
-        npz_file = npz.NPZFile(file_name=file_name)
+        npz_file = npz.Storage(storage_path=file_name)
         assert hasattr(npz_file, 'data')
         assert hasattr(npz_file.data, 'spam')
         assert hasattr(npz_file.data, 'eggs')
@@ -71,7 +71,7 @@ class TestNPZFile:
         test_data = {'data': True, '_schema': schema_data}
         np.savez(file_name, **test_data)
 
-        npz_file = npz.NPZFile(file_name=file_name)
+        npz_file = npz.Storage(storage_path=file_name)
         assert hasattr(npz_file, 'data')
         assert isinstance(npz_file.data, npz.Bool)
         assert npz_file.data.value is True
@@ -84,7 +84,7 @@ class TestNPZFile:
                      '_schema': schema_data}
         np.savez(file_name, **test_data)
 
-        npz_file = npz.NPZFile(file_name=file_name)
+        npz_file = npz.Storage(storage_path=file_name)
         assert hasattr(npz_file, 'data')
         assert isinstance(npz_file.data, npz.List)
         assert npz_file.data[0].value is True
@@ -93,7 +93,7 @@ class TestNPZFile:
     def test_save_compilation(self, tmpdir):
         schema_node = schema.Compilation({'spam': schema.Bool(),
                                           'eggs': schema.Bool()})
-        npz_file = npz.NPZFile(schema_node=schema_node)
+        npz_file = npz.Storage(schema_node=schema_node)
         data_storage = {'spam': {'data': np.array([True])},
                         'eggs': {'data': np.array([False])}}
         npz_file.data.load(data_storage)
@@ -113,7 +113,7 @@ class TestNPZFile:
 
     def test_save_item(self, tmpdir):
         schema_node = schema.Bool()
-        npz_file = npz.NPZFile(schema_node=schema_node)
+        npz_file = npz.Storage(schema_node=schema_node)
         npz_file.data.replace(True)
         file_name = str(tmpdir.join('test_save_item.npz'))
         npz_file.save(file_name)
@@ -128,7 +128,7 @@ class TestNPZFile:
 
     def test_save_list(self, tmpdir):
         schema_node = schema.List(schema.Bool())
-        npz_file = npz.NPZFile(schema_node=schema_node)
+        npz_file = npz.Storage(schema_node=schema_node)
         npz_file.data.replace([True, False])
         file_name = str(tmpdir.join('test_save_list.npz'))
         npz_file.save(file_name)
