@@ -104,39 +104,6 @@ class TestCompilation:
             assert subnode_dict['node_type'] == 'Bool'
             assert subnode_dict['config'] == {}
 
-    def test_validate(self):
-        node = schema.Compilation({'spam': schema.Bool(),
-                                   'eggs': schema.Bool()})
-        test_data = ExampleData()
-        test_data.spam = ExampleData()
-        test_data.spam.value = True
-        test_data.eggs = ExampleData()
-        test_data.eggs.value = False
-        node.validate(test_data)
-
-    def test_validate_fail_invalid(self):
-        node = schema.Compilation({'spam': schema.Bool(),
-                                   'eggs': schema.Bool()})
-        test_data = ExampleData()
-        test_data.spam = ExampleData()
-        test_data.spam.value = True
-        test_data.eggs = ExampleData()
-        test_data.eggs.value = 42
-        with pytest.raises(schema.ValidationError) as err:
-            node.validate(test_data)
-        assert err.value.message == 'Invalid type/value.'
-
-    def test_validate_fail_missing(self):
-        node = schema.Compilation({'spam': schema.Bool(),
-                                   'eggs': schema.Bool()})
-        test_data = ExampleData()
-        test_data.spam = ExampleData()
-        test_data.spam.value = True
-        with pytest.raises(schema.ValidationError) as err:
-            node.validate(test_data)
-        assert err.value.message == 'Missing data attribute.'
-        assert err.value.expected == 'eggs'
-
 
 class TestList:
     def test_from_dict(self):
@@ -187,22 +154,6 @@ class TestList:
         assert 'config' in node_dict
         assert 'subnode' in node_dict['config']
         assert node_dict['config']['subnode'] == subnode.to_dict()
-
-    def test_validate(self):
-        node = schema.List(schema.Bool())
-        test_data = [ExampleData(), ExampleData()]
-        test_data[0].value = True
-        test_data[1].value = False
-        node.validate(test_data)
-
-    def test_validate_fail_invalid(self):
-        node = schema.List(schema.Bool())
-        test_data = [ExampleData(), ExampleData()]
-        test_data[0].value = True
-        test_data[1].value = 42
-        with pytest.raises(schema.ValidationError) as err:
-            node.validate(test_data)
-        assert err.value.message == 'Invalid type/value.'
 
 
 class TestString:

@@ -67,7 +67,7 @@ class Compilation:
             self._subnodes[key].replace(value)
 
     def validate(self):
-        """Validate the subnode values against the schema node specification.
+        """Recursively validate all sub-node values.
 
         If validation succeeds, the method terminates silently. Otherwise, an
         exception is raised.
@@ -75,7 +75,8 @@ class Compilation:
         Raises:
             :exc:`dsch.schema.ValidationError`: if validation fails.
         """
-        self.schema_node.validate(self)
+        for node in self._subnodes.values():
+            node.validate()
 
 
 class ItemNode:
@@ -204,7 +205,7 @@ class List:
             self.append(item)
 
     def validate(self):
-        """Validate the subnode values against the schema node specification.
+        """Recursively validate all sub-node values.
 
         If validation succeeds, the method terminates silently. Otherwise, an
         exception is raised.
@@ -212,7 +213,8 @@ class List:
         Raises:
             :exc:`dsch.schema.ValidationError`: if validation fails.
         """
-        self.schema_node.validate(self)
+        for node in self._subnodes:
+            node.validate()
 
 
 def data_node_from_schema(schema_node, module_name):

@@ -145,30 +145,6 @@ class Compilation:
             'subnodes': subnode_dict
         }}
 
-    def validate(self, test_data):
-        """Validate given data against the node's constraints.
-
-        For :class:`Compilation` nodes, this ensures that the ``test_data``
-        is an object that has attributes according to the sub-node names.
-        Then, the attribute values are individually (and recursively) validated
-        through the corresponding sub-nodes.
-
-        If validation succeeds, the method terminates silently. Otherwise, an
-        exception is raised.
-
-        Args:
-            test_data: Data to be validated.
-
-        Raises:
-            :exc:`.ValidationError`: if validation fails.
-        """
-        for node_name, node in self.subnodes.items():
-            try:
-                data_value = getattr(test_data, node_name)
-            except AttributeError:
-                raise ValidationError('Missing data attribute.', node_name)
-            node.validate(data_value.value)
-
 
 class List:
     """Schema node for lists of same-type elements.
@@ -224,24 +200,6 @@ class List:
             'subnode': self.subnode.to_dict()
         }}
         return node_dict
-
-    def validate(self, test_data):
-        """Validate given data against the node's constraints.
-
-        For :class:`List` nodes, this iterates over ``test_data`` and validates
-        each entry according to the schema node specified in :attr:`subnode`.
-
-        If validation succeeds, the method terminates silently. Otherwise, an
-        exception is raised.
-
-        Args:
-            test_data: Data to be validated.
-
-        Raises:
-            :exc:`.ValidationError`: if validation fails.
-        """
-        for data_item in test_data:
-            self.subnode.validate(data_item.value)
 
 
 class String:
