@@ -162,8 +162,12 @@ class List:
         self.schema_node = schema_node
         self._subnodes = []
 
-    def append(self, value):
-        """Append a new value to the list.
+    def append(self, value=None):
+        """Append a new data node to the list.
+
+        If a ``value`` is given, it is automatically applied to the new data
+        node. Otherwise, an empty data node is created, which can be useful
+        especially for Lists of Compilations.
 
         Note: This works with actual data values!
 
@@ -172,8 +176,9 @@ class List:
         """
         subnode = data_node_from_schema(self.schema_node.subnode,
                                         self.__module__)
-        subnode.replace(value)
         self._subnodes.append(subnode)
+        if value is not None:
+            subnode.replace(value)
 
     def clear(self):
         """Clear all subnodes.
