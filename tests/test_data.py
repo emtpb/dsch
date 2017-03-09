@@ -1,12 +1,10 @@
-import importlib
 import pytest
-from dsch import schema
+from dsch import backends, helpers, schema
 
 
-@pytest.fixture(params=('npz',))
+@pytest.fixture(params=backends.available_backends)
 def backend(request):
-    backend_module = importlib.import_module('dsch.backends.' + request.param)
-    return backend_module
+    return helpers.backend_module(request.param)
 
 
 class TestBool:

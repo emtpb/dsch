@@ -11,7 +11,7 @@ created.
 The user front end in this module provides a convenient, backend-independent
 interface for loading from existing dsch storages and creating new ones.
 """
-import importlib
+from . import helpers
 
 
 def create(storage_path, schema_node, backend=None):
@@ -43,9 +43,8 @@ def create(storage_path, schema_node, backend=None):
     """
     if not backend:
         backend = _autodetect_backend(storage_path)
-    backend_module = importlib.import_module('dsch.backends.' + backend)
-    return backend_module.Storage(storage_path=storage_path,
-                                  schema_node=schema_node)
+    return helpers.backend_module(backend).Storage(storage_path=storage_path,
+                                                   schema_node=schema_node)
 
 
 def load(storage_path, backend=None):
@@ -65,8 +64,7 @@ def load(storage_path, backend=None):
     """
     if not backend:
         backend = _autodetect_backend(storage_path)
-    backend_module = importlib.import_module('dsch.backends.' + backend)
-    return backend_module.Storage(storage_path=storage_path)
+    return helpers.backend_module(backend).Storage(storage_path=storage_path)
 
 
 def _autodetect_backend(storage_path):
