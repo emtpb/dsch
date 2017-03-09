@@ -154,6 +154,7 @@ class Storage:
             data_node.load(stored_data['data'])
 
         self.storage_path = storage_path
+        self.schema_node = schema_node
         self.data = data_node
 
     def save(self, storage_path=None):
