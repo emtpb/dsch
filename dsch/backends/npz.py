@@ -89,6 +89,40 @@ class Compilation(data.Compilation):
         return data_storage
 
 
+class List(data.List):
+    """List-type data node for the npz backend."""
+
+    def load(self, data_storage):
+        """Import the given data storage object.
+
+        Data storage depends on the current backend, so a compatible argument
+        must be given.
+
+        Args:
+            data_storage (list): Data storage object to be imported.
+        """
+        for name, node_storage in sorted(data_storage.items()):
+            node = data.data_node_from_schema(self.schema_node.subnode,
+                                              self.__module__)
+            node.load(node_storage)
+            self._subnodes.append(node)
+
+    def save(self):
+        """Export the node data as a data storage object.
+
+        For :class:`List`, data is represented as a :class:`dict` containing
+        the sub-node's data storage objects as values and keys of the form
+        ``item_X``, where ``X`` is the list index.
+
+        Returns:
+            dict: Data storage object with the node's data.
+        """
+        data_storage = {}
+        for idx, node in enumerate(self._subnodes):
+            data_storage['item_{}'.format(idx)] = node.save()
+        return data_storage
+
+
 class Storage:
     """Interface to ``.npz`` files.
 
@@ -181,40 +215,6 @@ class Storage:
             store_data = helpers.flatten_dotted({'data': self.data.save()})
         np.savez(storage_path, _schema=schema_str, **store_data)
         self.storage_path = storage_path
-
-
-class List(data.List):
-    """List-type data node for the npz backend."""
-
-    def load(self, data_storage):
-        """Import the given data storage object.
-
-        Data storage depends on the current backend, so a compatible argument
-        must be given.
-
-        Args:
-            data_storage (list): Data storage object to be imported.
-        """
-        for name, node_storage in sorted(data_storage.items()):
-            node = data.data_node_from_schema(self.schema_node.subnode,
-                                              self.__module__)
-            node.load(node_storage)
-            self._subnodes.append(node)
-
-    def save(self):
-        """Export the node data as a data storage object.
-
-        For :class:`List`, data is represented as a :class:`dict` containing
-        the sub-node's data storage objects as values and keys of the form
-        ``item_X``, where ``X`` is the list index.
-
-        Returns:
-            dict: Data storage object with the node's data.
-        """
-        data_storage = {}
-        for idx, node in enumerate(self._subnodes):
-            data_storage['item_{}'.format(idx)] = node.save()
-        return data_storage
 
 
 class String(data.ItemNode):
