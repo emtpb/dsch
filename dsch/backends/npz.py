@@ -13,17 +13,6 @@ from .. import data, helpers, schema
 class Bool(data.ItemNode):
     """Bool-type data node for the npz backend."""
 
-    def load(self, data_storage):
-        """Import the given data storage object.
-
-        Data storage depends on the current backend, so a compatible argument
-        must be given.
-
-        Args:
-            data_storage: Data storage object to be imported.
-        """
-        self.storage = data_storage
-
     def replace(self, new_value):
         """Completely replace the current node value.
 
@@ -60,19 +49,6 @@ class Bool(data.ItemNode):
 class Compilation(data.Compilation):
     """Compilation-type data node for the npz backend."""
 
-    def load(self, data_storage):
-        """Import the given data storage object.
-
-        Data storage depends on the current backend, so a compatible argument
-        must be given.
-
-        Args:
-            data_storage (dict): Data storage object to be imported.
-        """
-        for name, node in self._subnodes.items():
-            if name in data_storage:
-                node.load(data_storage[name])
-
     def save(self):
         """Export the node data as a data storage object.
 
@@ -91,21 +67,6 @@ class Compilation(data.Compilation):
 
 class List(data.List):
     """List-type data node for the npz backend."""
-
-    def load(self, data_storage):
-        """Import the given data storage object.
-
-        Data storage depends on the current backend, so a compatible argument
-        must be given.
-
-        Args:
-            data_storage (list): Data storage object to be imported.
-        """
-        for name, node_storage in sorted(data_storage.items()):
-            node = data.data_node_from_schema(self.schema_node.subnode,
-                                              self.__module__)
-            node.load(node_storage)
-            self._subnodes.append(node)
 
     def save(self):
         """Export the node data as a data storage object.
@@ -209,17 +170,6 @@ class Storage:
 
 class String(data.ItemNode):
     """String-type data node for the npz backend."""
-
-    def load(self, data_storage):
-        """Import the given data storage object.
-
-        Data storage depends on the current backend, so a compatible argument
-        must be given.
-
-        Args:
-            data_storage: Data storage object to be imported.
-        """
-        self.storage = data_storage
 
     def replace(self, new_value):
         """Completely replace the current node value.

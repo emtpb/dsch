@@ -50,6 +50,24 @@ class Compilation:
         """
         return self._subnodes[attr_name]
 
+    def load(self, data_storage):
+        """Recursively import the given data storage object.
+
+        This implementation expects a dict of data storage objects, with keys
+        matching the Compilation's sub-node names and the corresponding data
+        storage objects as values. Backend-specific subclasses may change
+        this, if required.
+
+        Note: Data storage depends on the current backend, so a compatible
+        argument must be given.
+
+        Args:
+            data_storage (dict): Data storage object to be imported.
+        """
+        for name, node in self._subnodes.items():
+            if name in data_storage:
+                node.load(data_storage[name])
+
     def replace(self, new_value):
         """Replace the current compilation values with new ones.
 
@@ -105,6 +123,22 @@ class ItemNode:
         """
         self.schema_node = schema_node
         self.storage = None
+
+    def load(self, data_storage):
+        """Import the given data storage object.
+
+        This implementation assumes that the given ``data_storage`` can be
+        directly applied to the :attr:`storage` attribute. This should be the
+        default for most backends, but backend-specific subclasses may add
+        further processing, if required.
+
+        Note: Data storage depends on the current backend, so a compatible
+        argument must be given.
+
+        Args:
+            data_storage: Data storage object to be imported.
+        """
+        self.storage = data_storage
 
     def replace(self, new_value):
         """Completely replace the current node value.
@@ -195,6 +229,26 @@ class List:
     def __len__(self):
         """Return the length of the List, i.e. the number of subnodes."""
         return len(self._subnodes)
+
+    def load(self, data_storage):
+        """Recursively import the given data storage object.
+
+        This implementation expects a dict of data storage objects, with keys
+        "item_X" (where X is the list index) and the corresponding item's data
+        storage objects as values. Backend-specific subclasses may change
+        this, if required.
+
+        Note: Data storage depends on the current backend, so a compatible
+        argument must be given.
+
+        Args:
+            data_storage (dict): Data storage object to be imported.
+        """
+        for name, node_storage in sorted(data_storage.items()):
+            node = data_node_from_schema(self.schema_node.subnode,
+                                         self.__module__)
+            node.load(node_storage)
+            self._subnodes.append(node)
 
     def replace(self, new_value):
         """Replace the current list entries with the given list of entries.
