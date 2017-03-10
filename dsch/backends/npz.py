@@ -191,21 +191,12 @@ class Storage:
         self.schema_node = schema_node
         self.data = data_node
 
-    def save(self, storage_path=None):
+    def save(self):
         """Save the current data to a file.
 
         Note: This does not perform any validation, so the created file is
         explicitly not guaranteed to fulfill the schema's constraints.
-
-        Args:
-            storage_path (str): Path to the file to write to. Defaults to
-                :attr:`storage_path`, if that is set.
         """
-        if not storage_path:
-            if self.storage_path:
-                storage_path = self.storage_path
-            else:
-                raise RuntimeError('File name is undefined.')
         schema_str = json.dumps(self.schema_node.to_dict(), sort_keys=True)
         if isinstance(self.schema_node, schema.Compilation):
             store_data = helpers.flatten_dotted(self.data.save())
@@ -213,8 +204,7 @@ class Storage:
             # If the top-level node is not a Compilation, the default name
             # 'data' is used for the node.
             store_data = helpers.flatten_dotted({'data': self.data.save()})
-        np.savez(storage_path, _schema=schema_str, **store_data)
-        self.storage_path = storage_path
+        np.savez(self.storage_path, _schema=schema_str, **store_data)
 
 
 class String(data.ItemNode):
