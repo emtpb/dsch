@@ -97,21 +97,20 @@ class TestStorage:
         storage_path = str(tmpdir.join('test_save_compilation.npz'))
         npz_file = npz.Storage(storage_path=storage_path,
                                schema_node=schema_node)
-        data_storage = {'spam': {'data': np.array([True])},
-                        'eggs': {'data': np.array([False])}}
-        npz_file.data.load(data_storage)
+        npz_file.data.spam.replace(True)
+        npz_file.data.eggs.replace(False)
         npz_file.save()
 
         with np.load(storage_path) as file_:
             assert '_schema' in file_
             assert file_['_schema'][()] == json.dumps(schema_node.to_dict(),
                                                       sort_keys=True)
-            assert 'spam.data' in file_
-            assert file_['spam.data'].dtype == 'bool'
-            assert file_['spam.data'][0]
-            assert 'eggs.data' in file_
-            assert file_['eggs.data'].dtype == 'bool'
-            assert not file_['eggs.data'][0]
+            assert 'spam' in file_
+            assert file_['spam'].dtype == 'bool'
+            assert file_['spam'][0]
+            assert 'eggs' in file_
+            assert file_['eggs'].dtype == 'bool'
+            assert not file_['eggs'][0]
 
     def test_save_item(self, tmpdir):
         schema_node = schema.Bool()
