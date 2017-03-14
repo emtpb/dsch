@@ -25,17 +25,29 @@ class Compilation:
         schema_node: The schema node that this data node is based on.
     """
 
-    def __init__(self, schema_node):
+    def __init__(self, schema_node, data_storage=None, new_params=None):
         """Initialize compilation node from a given schema node.
+
+        When ``data_storage`` is given, the Compilation and all its sub-nodes
+        are created from that data storage object, i.e. loading existing data.
+        Otherwise, a new Compilation is created with empty sub-nodes, possibly
+        using optional ``new_params`` for creation.
+        Note that the data node instances for the sub-nodes are created in both
+        cases.
+
+        Note: Both ``data_storage`` and ``new_params`` are backend-specific.
 
         Args:
             schema_node: Schema node to create the data node for.
+            data_storage: Backend-specific data storage object to load.
+            new_params: Backend-specific metadata for data node creation.
         """
         self.schema_node = schema_node
         self._subnodes = {}
-        for node_name, node in schema_node.subnodes.items():
-            self._subnodes[node_name] = data_node_from_schema(
-                node, self.__module__)
+        if data_storage:
+            self._init_from_storage(data_storage)
+        else:
+            self._init_new(new_params)
 
     def __dir__(self):
         """Include sub-nodes in :meth:`dir`."""
@@ -50,23 +62,36 @@ class Compilation:
         """
         return self._subnodes[attr_name]
 
-    def load(self, data_storage):
-        """Recursively import the given data storage object.
+    def _init_from_storage(self, data_storage):
+        """Initialize Compilation from the given data storage object.
 
-        This implementation expects a dict of data storage objects, with keys
-        matching the Compilation's sub-node names and the corresponding data
-        storage objects as values. Backend-specific subclasses may change
-        this, if required.
+        This recursively initializes data nodes for all sub-nodes, using the
+        given data storage object.
 
-        Note: Data storage depends on the current backend, so a compatible
-        argument must be given.
+        The default implementation expects a dict, where keys are the
+        Compilation's sub-node names and values are the corresponding data
+        storage objects. Backend-specific subclasses may change this, if
+        required.
 
         Args:
-            data_storage (dict): Data storage object to be imported.
+            data_storage (dict): Backend-specific data storage object to load.
         """
-        for name, node in self._subnodes.items():
-            if name in data_storage:
-                node.load(data_storage[name])
+        for node_name, subnode in self.schema_node.subnodes.items():
+            self._subnodes[node_name] = data_node_from_schema(
+                subnode, self.__module__, data_storage=data_storage[node_name])
+
+    def _init_new(self, new_params):
+        """Initialize new, empty Compilation.
+
+        This recursively initializes new data nodes for all sub-nodes, but does
+        not import any existing data.
+
+        Args:
+            new_params: Backend-specific metadata for data node creation.
+        """
+        for node_name, subnode in self.schema_node.subnodes.items():
+            self._subnodes[node_name] = data_node_from_schema(
+                subnode, self.__module__)
 
     def replace(self, new_value):
         """Replace the current compilation values with new ones.
@@ -115,30 +140,47 @@ class ItemNode:
         value: Actual node data, independent of the backend in use.
     """
 
-    def __init__(self, schema_node):
+    def __init__(self, schema_node, data_storage=None, new_params=None):
         """Initialize data node from a given schema node.
+
+        Note: Both ``data_storage`` and ``new_params`` are backend-specific.
 
         Args:
             schema_node: Schema node to create the data node for.
+            data_storage: Backend-specific data storage object to load.
+            new_params: Backend-specific metadata for data node creation.
         """
         self.schema_node = schema_node
         self.storage = None
+        if data_storage:
+            self._init_from_storage(data_storage)
+        else:
+            self._init_new(new_params)
 
-    def load(self, data_storage):
-        """Import the given data storage object.
+    def _init_from_storage(self, data_storage):
+        """Create a new data node from a data storage object.
 
-        This implementation assumes that the given ``data_storage`` can be
-        directly applied to the :attr:`storage` attribute. This should be the
-        default for most backends, but backend-specific subclasses may add
-        further processing, if required.
+        This initializes the data node using the given data storage object.
 
-        Note: Data storage depends on the current backend, so a compatible
-        argument must be given.
+        The default implementation simply assigns ``data_storage`` to
+        :attr:`storage`, which should work for most backends. Specific
+        subclasses may override this behaviour, if required.
 
         Args:
-            data_storage: Data storage object to be imported.
+            data_storage: Backend-specific data storage object to load.
         """
         self.storage = data_storage
+
+    def _init_new(self, new_params):
+        """Initialize new, empty data node.
+
+        The default implementation does nothing. It is provided for interface
+        consistency and for possible overriding by backend-specific subclasses.
+
+        Args:
+            new_params: Backend-specific metadata for data node creation.
+        """
+        pass
 
     def replace(self, new_value):
         """Completely replace the current node value.
@@ -187,14 +229,22 @@ class List:
         schema_node: The schema node that this data node is based on.
     """
 
-    def __init__(self, schema_node):
+    def __init__(self, schema_node, data_storage=None, new_params=None):
         """Initialize list node from a given schema node.
+
+        Note: Both ``data_storage`` and ``new_params`` are backend-specific.
 
         Args:
             schema_node: Schema node to create the data node for.
+            data_storage: Backend-specific data storage object to load.
+            new_params: Backend-specific metadata for data node creation.
         """
         self.schema_node = schema_node
         self._subnodes = []
+        if data_storage:
+            self._init_from_storage(data_storage)
+        else:
+            self._init_new(new_params)
 
     def append(self, value=None):
         """Append a new data node to the list.
@@ -230,25 +280,36 @@ class List:
         """Return the length of the List, i.e. the number of subnodes."""
         return len(self._subnodes)
 
-    def load(self, data_storage):
-        """Recursively import the given data storage object.
+    def _init_from_storage(self, data_storage):
+        """Initialize List from the given data storage object.
 
-        This implementation expects a dict of data storage objects, with keys
-        "item_X" (where X is the list index) and the corresponding item's data
-        storage objects as values. Backend-specific subclasses may change
-        this, if required.
+        This recursively initializes data nodes for all sub-nodes, using the
+        given data storage object.
 
-        Note: Data storage depends on the current backend, so a compatible
-        argument must be given.
+        The default implementation expects a dict, where keys are of the form
+        "item_X", with X the list index, and values are the corresponding data
+        storage objects. Backend-specific subclasses may change this, if
+        required.
 
         Args:
-            data_storage (dict): Data storage object to be imported.
+            data_storage (dict): Backend-specific data storage object to load.
         """
         for name, node_storage in sorted(data_storage.items()):
-            node = data_node_from_schema(self.schema_node.subnode,
-                                         self.__module__)
-            node.load(node_storage)
-            self._subnodes.append(node)
+            subnode = data_node_from_schema(self.schema_node.subnode,
+                                            self.__module__,
+                                            data_storage=node_storage)
+            self._subnodes.append(subnode)
+
+    def _init_new(self, new_params):
+        """Initialize new, empty List data node.
+
+        The default implementation does nothing. It is provided for interface
+        consistency and for possible overriding by backend-specific subclasses.
+
+        Args:
+            new_params: Backend-specific metadata for data node creation.
+        """
+        pass
 
     def replace(self, new_value):
         """Replace the current list entries with the given list of entries.
@@ -276,16 +337,24 @@ class List:
             node.validate()
 
 
-def data_node_from_schema(schema_node, module_name):
+def data_node_from_schema(schema_node, module_name, data_storage=None,
+                          new_params=None):
     """Create a new data node from a given schema node.
 
     Finds the data node class corresponding to the given schema node and
     creates an instance. However, the module containing the data node class
     must be given, which allows to select the desired storage backend.
 
+    If ``data_storage`` is given, the new data node is initialized from that
+    storage object. Otherwise, a new data node with a new storage object is
+    created. Backends may use a ``new_params`` object to supply parameters
+    for new data node creation.
+
     Args:
         schema_node: Schema node instance to create a data node for.
         module_name (str): The full module name of the data storage backend.
+        data_storage: Backend-specific data storage object to load.
+        new_params: Backend-specific metadata for data node creation.
 
     Returns:
         Data node corresponding to the given schema node.
@@ -293,4 +362,5 @@ def data_node_from_schema(schema_node, module_name):
     backend_module = importlib.import_module(module_name)
     node_type_name = type(schema_node).__name__
     data_node_type = getattr(backend_module, node_type_name)
-    return data_node_type(schema_node)
+    return data_node_type(schema_node, data_storage=data_storage,
+                          new_params=new_params)

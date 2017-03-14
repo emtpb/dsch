@@ -5,9 +5,8 @@ from dsch.backends import npz
 
 
 class TestBool:
-    def test_load(self):
-        data_node = npz.Bool(schema.Bool())
-        data_node.load(np.array([True]))
+    def test_init_from_storage(self):
+        data_node = npz.Bool(schema.Bool(), data_storage=np.array([True]))
         assert data_node.storage == np.array([True])
         assert data_node.value is True
 
@@ -24,13 +23,12 @@ class TestBool:
 
 
 class TestCompilation:
-    def test_load(self):
+    def test_init_from_storage(self):
         schema_node = schema.Compilation({'spam': schema.Bool(),
                                           'eggs': schema.Bool()})
-        data_node = npz.Compilation(schema_node)
         data_storage = {'spam': np.array([True]),
                         'eggs': np.array([False])}
-        data_node.load(data_storage)
+        data_node = npz.Compilation(schema_node, data_storage=data_storage)
         assert data_node.spam.value is True
         assert data_node.eggs.value is False
 
@@ -152,11 +150,11 @@ class TestStorage:
 
 
 class TestList:
-    def test_load(self):
-        data_node = npz.List(schema.List(schema.Bool()))
+    def test_init_from_storage(self):
         data_storage = {'item_0': np.array([True]),
                         'item_1': np.array([False])}
-        data_node.load(data_storage)
+        data_node = npz.List(schema.List(schema.Bool()),
+                             data_storage=data_storage)
         assert data_node[0].value is True
         assert data_node[1].value is False
 
@@ -171,10 +169,10 @@ class TestList:
 
 
 class TestString:
-    def test_load(self):
-        data_node = npz.String(schema.String())
+    def test_init_from_storage(self):
         data_storage = np.array('spam', dtype='U')
-        data_node.load(data_storage)
+        data_node = npz.String(schema.String(),
+                               data_storage=data_storage)
         assert data_node.storage == data_storage
         assert data_node.value == 'spam'
 

@@ -138,15 +138,16 @@ class Storage:
             schema_data = json.loads(file_['_schema'][()])
             stored_data = helpers.inflate_dotted(file_)
         schema_node = schema.node_from_dict(schema_data)
-        data_node = data.data_node_from_schema(schema_node, self.__module__)
 
         if isinstance(schema_node, schema.Compilation):
-            del stored_data['_schema']
-            data_node.load(stored_data)
+            data_storage = {k: v for k, v in stored_data.items()
+                            if k != '_schema'}
         else:
             # If the top-level node is not a Compilation, the default name
             # 'data' is used for the node.
-            data_node.load(stored_data['data'])
+            data_storage = stored_data['data']
+        data_node = data.data_node_from_schema(schema_node, self.__module__,
+                                               data_storage=data_storage)
 
         self.storage_path = storage_path
         self.schema_node = schema_node
