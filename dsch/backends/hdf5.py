@@ -5,8 +5,7 @@ the interface.
 """
 import h5py
 import json
-import os
-from .. import data, schema
+from .. import data, schema, storage
 
 
 class _ItemNode(data.ItemNode):
@@ -101,7 +100,7 @@ class Compilation(data.Compilation):
                 subnode, self.__module__, new_params=new_params_sub)
 
 
-class Storage:
+class Storage(storage.FileStorage):
     """Interface to HDF5 files.
 
     Provides access to an HDF5 file via dsch, i.e. reading from and writing
@@ -114,54 +113,41 @@ class Storage:
         data: The top-level data node, corresponding to :attr:`schema_node`.
     """
 
-    def __init__(self, storage_path, schema_node=None):
-        """Initialize the HDF5 file interface.
-
-        To create a new file, ``storage_path`` and ``schema_node`` must be
-        specified. Note that, although the file is created immediately, data
-        is not written to disk until :meth:`save` is called.
-
-        To open an existing file, ``storage_path`` must be specified. If
-        ``schema_node`` is specified additionally, it is overwritten with the
-        schema node from the file during initialization.
-
-        Args:
-            storage_path (str): Path to the file to be loaded
-            schema_node: Top-level schema node to set for the file.
-        """
-        if os.path.exists(storage_path):
-            self.storage = h5py.File(storage_path)
-            schema_data = json.loads(self.storage.attrs['dsch_schema'])
-            self.schema_node = schema.node_from_dict(schema_data)
-            if isinstance(self.schema_node, schema.Compilation):
-                data_storage = self.storage
-            else:
-                # If the top-level node is not a Compilation, apply the default
-                # name 'dsch_data'.
-                data_storage = self.storage['dsch_data']
-            self.data = data.data_node_from_schema(self.schema_node,
-                                                   self.__module__,
-                                                   data_storage=data_storage)
+    def _load(self):
+        """Load an existing file from :attr:`storage_path`."""
+        self.storage = h5py.File(self.storage_path)
+        schema_data = json.loads(self.storage.attrs['dsch_schema'])
+        self.schema_node = schema.node_from_dict(schema_data)
+        if isinstance(self.schema_node, schema.Compilation):
+            data_storage = self.storage
         else:
-            self.storage = h5py.File(storage_path, 'x')
-            schema_data = json.dumps(schema_node.to_dict(), sort_keys=True)
-            self.storage.attrs['dsch_schema'] = schema_data
-            self.schema_node = schema_node
-            if isinstance(self.schema_node, schema.Compilation):
-                new_params = {'name': '', 'parent': self.storage}
-            else:
-                # If the top-level node is not a Compilation, apply the default
-                # name 'dsch_data'.
-                new_params = {'name': 'dsch_data', 'parent': self.storage}
-            self.data = data.data_node_from_schema(self.schema_node,
-                                                   self.__module__,
-                                                   new_params=new_params)
+            # If the top-level node is not a Compilation, apply the default
+            # name 'dsch_data'.
+            data_storage = self.storage['dsch_data']
+        self.data = data.data_node_from_schema(self.schema_node,
+                                               self.__module__,
+                                               data_storage=data_storage)
+
+    def _new(self):
+        """Create a new file at :attr:`storage_path`."""
+        self.storage = h5py.File(self.storage_path, 'x')
+        schema_data = json.dumps(self.schema_node.to_dict(), sort_keys=True)
+        self.storage.attrs['dsch_schema'] = schema_data
+        if isinstance(self.schema_node, schema.Compilation):
+            new_params = {'name': '', 'parent': self.storage}
+        else:
+            # If the top-level node is not a Compilation, apply the default
+            # name 'dsch_data'.
+            new_params = {'name': 'dsch_data', 'parent': self.storage}
+        self.data = data.data_node_from_schema(self.schema_node,
+                                               self.__module__,
+                                               new_params=new_params)
 
     def save(self):
-        """Save the current data to a file.
+        """Save the current data to the file in :attr:`storage_path`.
 
         Note: This does not perform any validation, so the created file is
-        explicitly not guaranteed to fulfill the schema's constraints.
+        *not* guaranteed to fulfill the schema's constraints.
         """
         self.storage.flush()
 

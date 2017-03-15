@@ -6,8 +6,7 @@ enhancement proposal <https://docs.scipy.org/doc/numpy/neps/npy-format.html>`_.
 """
 import json
 import numpy as np
-import os
-from .. import data, helpers, schema
+from .. import data, helpers, schema, storage
 
 
 class Bool(data.ItemNode):
@@ -84,80 +83,46 @@ class List(data.List):
         return data_storage
 
 
-class Storage:
+class Storage(storage.FileStorage):
     """Interface to ``.npz`` files.
 
     Provides access to an ``.npz`` file via dsch, i.e. reading from and writing
     to such a file.
 
     Attributes:
-        storage_path: Path to the current storage file. This gets set
-            automatically when loading from or saving to a new target file.
-        schema_node: The top-level schema node for the file.
-        data: The top-level data node, corresponding to :attr:`schema_node`.
+        storage_path (str): Path to the current storage.
+        schema_node: Top-level schema node used for the stored data.
+        data: Top-level data node, providing access to all managed data.
     """
 
-    def __init__(self, storage_path=None, schema_node=None):
-        """Initialize the ``.npz`` file interface.
+    def _new(self):
+        """Create a new file at :attr:`storage_path`."""
+        self.data = data.data_node_from_schema(self.schema_node,
+                                               self.__module__)
 
-        To create a new file, ``schema_node`` must be specified. Note, however,
-        that the file is not automatically written to disk, but requires a call
-        to :meth:`save`. If the ``storage_path`` is given additionally, the
-        path is predefined, but :meth:`save` still must be called.
-
-        To open an existing file, ``storage_path`` must be specified. If
-        ``schema_node`` is specified additionally, it is overwritten with the
-        schema node from the file during initialization.
-
-        Args:
-            storage_path (str): Path to the file to be loaded
-            schema_node: Top-level schema node to set for the file.
-        """
-        if storage_path and os.path.exists(storage_path):
-            self.load(storage_path)
-        else:
-            self.storage_path = storage_path
-            if schema_node:
-                self.schema_node = schema_node
-                self.data = data.data_node_from_schema(schema_node,
-                                                       self.__module__)
-            else:
-                raise ValueError('Must initialize with either a file name or '
-                                 'a top-level schema node.')
-
-    def load(self, storage_path):
-        """Load the contents of a given file into the :class:`Storage` object.
-
-        Note: This sets :attr:`schema_node` according to the file, possibly
-        overwriting a value previously set by the user.
-
-        Args:
-            storage_path (str): Path to the file to be loaded.
-        """
-        with np.load(storage_path) as file_:
+    def _load(self):
+        """Load an existing file from :attr:`storage_path`."""
+        with np.load(self.storage_path) as file_:
             schema_data = json.loads(file_['_schema'][()])
             stored_data = helpers.inflate_dotted(file_)
-        schema_node = schema.node_from_dict(schema_data)
+        self.schema_node = schema.node_from_dict(schema_data)
 
-        if isinstance(schema_node, schema.Compilation):
+        if isinstance(self.schema_node, schema.Compilation):
             data_storage = {k: v for k, v in stored_data.items()
                             if k != '_schema'}
         else:
             # If the top-level node is not a Compilation, the default name
             # 'data' is used for the node.
             data_storage = stored_data['data']
-        data_node = data.data_node_from_schema(schema_node, self.__module__,
+        self.data = data.data_node_from_schema(self.schema_node,
+                                               self.__module__,
                                                data_storage=data_storage)
 
-        self.storage_path = storage_path
-        self.schema_node = schema_node
-        self.data = data_node
-
     def save(self):
-        """Save the current data to a file.
+        """Save the current data to the file in :attr:`storage_path`.
 
         Note: This does not perform any validation, so the created file is
-        explicitly not guaranteed to fulfill the schema's constraints.
+        *not* guaranteed to fulfill the schema's constraints.
         """
         schema_str = json.dumps(self.schema_node.to_dict(), sort_keys=True)
         if isinstance(self.schema_node, schema.Compilation):
