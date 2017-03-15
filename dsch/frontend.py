@@ -81,6 +81,8 @@ def _autodetect_backend(storage_path):
     """
     if storage_path.endswith('.npz'):
         return 'npz'
+    elif storage_path.endswith(('.h5', '.hdf5')):
+        return 'hdf5'
     else:
         raise ValueError('Could not automatically detect backend for '
                          '"{}".'.format(storage_path))
