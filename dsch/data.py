@@ -135,8 +135,6 @@ class ItemNode:
 
     Attributes:
         schema_node: The schema node that this data node is based on.
-        storage: Backend-specific data storage object. This usually has a
-            different type than the actual data value.
         value: Actual node data, independent of the backend in use.
     """
 
@@ -151,7 +149,7 @@ class ItemNode:
             new_params: Backend-specific metadata for data node creation.
         """
         self.schema_node = schema_node
-        self.storage = None
+        self._storage = None
         if data_storage:
             self._init_from_storage(data_storage)
         else:
@@ -162,14 +160,14 @@ class ItemNode:
 
         This initializes the data node using the given data storage object.
 
-        The default implementation simply assigns ``data_storage`` to
-        :attr:`storage`, which should work for most backends. Specific
-        subclasses may override this behaviour, if required.
+        The default implementation simply assigns ``data_storage`` as the data
+        item's data storage object, which should work for most backends.
+        Specific subclasses may override this behaviour, if required.
 
         Args:
             data_storage: Backend-specific data storage object to load.
         """
-        self.storage = data_storage
+        self._storage = data_storage
 
     def _init_new(self, new_params):
         """Initialize new, empty data node.

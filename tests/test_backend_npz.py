@@ -7,14 +7,14 @@ from dsch.backends import npz
 class TestBool:
     def test_init_from_storage(self):
         data_node = npz.Bool(schema.Bool(), data_storage=np.array([True]))
-        assert data_node.storage == np.array([True])
+        assert data_node._storage == np.array([True])
         assert data_node.value is True
 
     def test_replace(self):
         data_node = npz.Bool(schema.Bool())
         data_node.replace(False)
-        assert isinstance(data_node.storage, np.ndarray)
-        assert data_node.storage == np.array([False])
+        assert isinstance(data_node._storage, np.ndarray)
+        assert data_node._storage == np.array([False])
 
     def test_save(self):
         data_node = npz.Bool(schema.Bool())
@@ -172,14 +172,14 @@ class TestString:
         data_storage = np.array('spam', dtype='U')
         data_node = npz.String(schema.String(),
                                data_storage=data_storage)
-        assert data_node.storage == data_storage
+        assert data_node._storage == data_storage
         assert data_node.value == 'spam'
 
     def test_replace(self):
         data_node = npz.String(schema.String())
         data_node.replace('spam')
-        assert isinstance(data_node.storage, np.ndarray)
-        assert data_node.storage == np.array('spam', dtype='U')
+        assert isinstance(data_node._storage, np.ndarray)
+        assert data_node._storage == np.array('spam', dtype='U')
 
     def test_save(self):
         data_node = npz.String(schema.String())

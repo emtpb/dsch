@@ -16,7 +16,7 @@ class TestBool:
 
         schema_node = schema.Bool()
         data_node = hdf5.Bool(schema_node, data_storage=hdf5file['test_bool'])
-        assert data_node.storage == hdf5file['test_bool']
+        assert data_node._storage == hdf5file['test_bool']
         assert data_node.value is True
 
     def test_init_new(self, hdf5file):
@@ -25,7 +25,7 @@ class TestBool:
                                                        'parent': hdf5file})
         assert 'test_bool' in hdf5file
         assert isinstance(hdf5file['test_bool'], h5py.Dataset)
-        assert data_node.storage == hdf5file['test_bool']
+        assert data_node._storage == hdf5file['test_bool']
 
     def test_replace(self, hdf5file):
         hdf5file.create_dataset('test_bool', data=True)
@@ -33,8 +33,8 @@ class TestBool:
         schema_node = schema.Bool()
         data_node = hdf5.Bool(schema_node, data_storage=hdf5file['test_bool'])
         data_node.replace(False)
-        assert isinstance(data_node.storage, h5py.Dataset)
-        assert data_node.storage == hdf5file['test_bool']
+        assert isinstance(data_node._storage, h5py.Dataset)
+        assert data_node._storage == hdf5file['test_bool']
         assert data_node.value is False
 
 
@@ -201,7 +201,7 @@ class TestString:
         schema_node = schema.String()
         data_node = hdf5.String(schema_node,
                                 data_storage=hdf5file['test_string'])
-        assert data_node.storage == hdf5file['test_string']
+        assert data_node._storage == hdf5file['test_string']
         assert data_node.value == 'spam'
 
     def test_init_new(self, hdf5file):
@@ -210,7 +210,7 @@ class TestString:
                                                        'parent': hdf5file})
         assert 'test_string' in hdf5file
         assert isinstance(hdf5file['test_string'], h5py.Dataset)
-        assert data_node.storage == hdf5file['test_string']
+        assert data_node._storage == hdf5file['test_string']
 
     def test_replace(self, hdf5file):
         hdf5file.create_dataset('test_string', data='spam')
@@ -219,6 +219,6 @@ class TestString:
         data_node = hdf5.String(schema_node,
                                 data_storage=hdf5file['test_string'])
         data_node.replace('eggs')
-        assert isinstance(data_node.storage, h5py.Dataset)
-        assert data_node.storage == hdf5file['test_string']
+        assert isinstance(data_node._storage, h5py.Dataset)
+        assert data_node._storage == hdf5file['test_string']
         assert data_node.value == 'eggs'

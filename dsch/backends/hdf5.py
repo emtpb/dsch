@@ -34,8 +34,8 @@ class _ItemNode(data.ItemNode):
                 backend in use.
         """
         del self._parent[self._dataset_name]
-        self.storage = self._parent.create_dataset(self._dataset_name,
-                                                   data=new_value)
+        self._storage = self._parent.create_dataset(self._dataset_name,
+                                                    data=new_value)
 
 
 class Bool(_ItemNode):
@@ -54,8 +54,8 @@ class Bool(_ItemNode):
         """
         self._dataset_name = new_params['name']
         self._parent = new_params['parent']
-        self.storage = self._parent.create_dataset(self._dataset_name,
-                                                   dtype='bool', shape=())
+        self._storage = self._parent.create_dataset(self._dataset_name,
+                                                    dtype='bool', shape=())
 
     @property
     def value(self):
@@ -67,7 +67,7 @@ class Bool(_ItemNode):
         Returns:
             Node data.
         """
-        return bool(self.storage.value)
+        return bool(self._storage.value)
 
 
 class Compilation(data.Compilation):
@@ -114,28 +114,28 @@ class Storage(storage.FileStorage):
 
     def _load(self):
         """Load an existing file from :attr:`storage_path`."""
-        self.storage = h5py.File(self.storage_path)
-        self._schema_from_json(self.storage.attrs['dsch_schema'])
+        self._storage = h5py.File(self.storage_path)
+        self._schema_from_json(self._storage.attrs['dsch_schema'])
         if isinstance(self.schema_node, schema.Compilation):
-            data_storage = self.storage
+            data_storage = self._storage
         else:
             # If the top-level node is not a Compilation, apply the default
             # name 'dsch_data'.
-            data_storage = self.storage['dsch_data']
+            data_storage = self._storage['dsch_data']
         self.data = data.data_node_from_schema(self.schema_node,
                                                self.__module__,
                                                data_storage=data_storage)
 
     def _new(self):
         """Create a new file at :attr:`storage_path`."""
-        self.storage = h5py.File(self.storage_path, 'x')
-        self.storage.attrs['dsch_schema'] = self._schema_to_json()
+        self._storage = h5py.File(self.storage_path, 'x')
+        self._storage.attrs['dsch_schema'] = self._schema_to_json()
         if isinstance(self.schema_node, schema.Compilation):
-            new_params = {'name': '', 'parent': self.storage}
+            new_params = {'name': '', 'parent': self._storage}
         else:
             # If the top-level node is not a Compilation, apply the default
             # name 'dsch_data'.
-            new_params = {'name': 'dsch_data', 'parent': self.storage}
+            new_params = {'name': 'dsch_data', 'parent': self._storage}
         self.data = data.data_node_from_schema(self.schema_node,
                                                self.__module__,
                                                new_params=new_params)
@@ -146,7 +146,7 @@ class Storage(storage.FileStorage):
         Note: This does not perform any validation, so the created file is
         *not* guaranteed to fulfill the schema's constraints.
         """
-        self.storage.flush()
+        self._storage.flush()
 
 
 class List(data.List):
@@ -207,8 +207,8 @@ class String(_ItemNode):
         """
         self._dataset_name = new_params['name']
         self._parent = new_params['parent']
-        self.storage = self._parent.create_dataset(self._dataset_name,
-                                                   data='')
+        self._storage = self._parent.create_dataset(self._dataset_name,
+                                                    data='')
 
     @property
     def value(self):
@@ -220,4 +220,4 @@ class String(_ItemNode):
         Returns:
             Node data.
         """
-        return self.storage.value
+        return self._storage.value

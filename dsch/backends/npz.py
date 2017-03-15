@@ -21,7 +21,7 @@ class Bool(data.ItemNode):
             new_value: New value to apply to the node, independent of the
                 backend in use.
         """
-        self.storage = np.array([new_value], dtype='bool')
+        self._storage = np.array([new_value], dtype='bool')
 
     def save(self):
         """Export the node data as a data storage object.
@@ -29,7 +29,7 @@ class Bool(data.ItemNode):
         Returns:
             dict: Data storage object with the node's data.
         """
-        return self.storage
+        return self._storage
 
     @property
     def value(self):
@@ -41,7 +41,7 @@ class Bool(data.ItemNode):
         Returns:
             Node data.
         """
-        return bool(self.storage)
+        return bool(self._storage)
 
 
 class Compilation(data.Compilation):
@@ -145,7 +145,7 @@ class String(data.ItemNode):
             new_value: New value to apply to the node, independent of the
                 backend in use.
         """
-        self.storage = np.array(new_value, dtype='U')
+        self._storage = np.array(new_value, dtype='U')
 
     def save(self):
         """Export the node data as a data storage object.
@@ -153,7 +153,7 @@ class String(data.ItemNode):
         Returns:
             dict: Data storage object with the node's data.
         """
-        return self.storage
+        return self._storage
 
     @property
     def value(self):
@@ -165,4 +165,4 @@ class String(data.ItemNode):
         Returns:
             Node data.
         """
-        return str(self.storage)
+        return str(self._storage)
