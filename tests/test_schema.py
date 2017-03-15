@@ -3,10 +3,6 @@ import pytest
 from dsch import schema
 
 
-class ExampleData:
-    pass
-
-
 class TestBool:
     def test_from_dict(self):
         node = schema.Bool.from_dict({'node_type': 'Bool', 'config': {}})
