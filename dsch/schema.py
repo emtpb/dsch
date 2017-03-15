@@ -256,8 +256,8 @@ class String:
     def validate(self, test_data):
         """Validate given data against the node's constraints.
 
-        For :class:`Bool` nodes, this ensures that the given data type is of
-        type :class:`bool`.
+        For :class:`String` nodes, this ensures that the given data type is of
+        type :class:`str`, and that the string length is within the limits.
 
         If validation succeeds, the method terminates silently. Otherwise, an
         exception is raised.
