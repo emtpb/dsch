@@ -1,4 +1,5 @@
 from collections import namedtuple
+import h5py
 import pytest
 from dsch import helpers, schema
 
@@ -6,9 +7,12 @@ from dsch import helpers, schema
 backend_data = namedtuple('backend_data', ('module', 'new_params'))
 
 
-@pytest.fixture(params=('npz',))
+@pytest.fixture(params=('hdf5', 'npz'))
 def backend(request, tmpdir):
-    if request.param == 'npz':
+    if request.param == 'hdf5':
+        hdf5file = h5py.File(str(tmpdir.join('hdf5test.h5')))
+        new_params = {'name': 'test_data', 'parent': hdf5file['/']}
+    elif request.param == 'npz':
         new_params = None
     return backend_data(module=helpers.backend_module(request.param),
                         new_params=new_params)
