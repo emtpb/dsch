@@ -4,7 +4,6 @@ This backend provides support for the HDF5 file format. :mod:`h5py` is used as
 the interface.
 """
 import h5py
-import json
 from .. import data, schema, storage
 
 
@@ -116,8 +115,7 @@ class Storage(storage.FileStorage):
     def _load(self):
         """Load an existing file from :attr:`storage_path`."""
         self.storage = h5py.File(self.storage_path)
-        schema_data = json.loads(self.storage.attrs['dsch_schema'])
-        self.schema_node = schema.node_from_dict(schema_data)
+        self._schema_from_json(self.storage.attrs['dsch_schema'])
         if isinstance(self.schema_node, schema.Compilation):
             data_storage = self.storage
         else:
@@ -131,8 +129,7 @@ class Storage(storage.FileStorage):
     def _new(self):
         """Create a new file at :attr:`storage_path`."""
         self.storage = h5py.File(self.storage_path, 'x')
-        schema_data = json.dumps(self.schema_node.to_dict(), sort_keys=True)
-        self.storage.attrs['dsch_schema'] = schema_data
+        self.storage.attrs['dsch_schema'] = self._schema_to_json()
         if isinstance(self.schema_node, schema.Compilation):
             new_params = {'name': '', 'parent': self.storage}
         else:

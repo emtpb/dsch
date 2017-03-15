@@ -4,7 +4,6 @@ This backend provides support for NumPy's npz format. For details, see
 :func:`numpy.savez`, :func:`numpy.load` and the `corresponding NumPy
 enhancement proposal <https://docs.scipy.org/doc/numpy/neps/npy-format.html>`_.
 """
-import json
 import numpy as np
 from .. import data, helpers, schema, storage
 
@@ -103,9 +102,8 @@ class Storage(storage.FileStorage):
     def _load(self):
         """Load an existing file from :attr:`storage_path`."""
         with np.load(self.storage_path) as file_:
-            schema_data = json.loads(file_['_schema'][()])
+            self._schema_from_json(file_['_schema'][()])
             stored_data = helpers.inflate_dotted(file_)
-        self.schema_node = schema.node_from_dict(schema_data)
 
         if isinstance(self.schema_node, schema.Compilation):
             data_storage = {k: v for k, v in stored_data.items()
@@ -124,14 +122,14 @@ class Storage(storage.FileStorage):
         Note: This does not perform any validation, so the created file is
         *not* guaranteed to fulfill the schema's constraints.
         """
-        schema_str = json.dumps(self.schema_node.to_dict(), sort_keys=True)
         if isinstance(self.schema_node, schema.Compilation):
             store_data = helpers.flatten_dotted(self.data.save())
         else:
             # If the top-level node is not a Compilation, the default name
             # 'data' is used for the node.
             store_data = helpers.flatten_dotted({'data': self.data.save()})
-        np.savez(self.storage_path, _schema=schema_str, **store_data)
+        np.savez(self.storage_path, _schema=self._schema_to_json(),
+                 **store_data)
 
 
 class String(data.ItemNode):
