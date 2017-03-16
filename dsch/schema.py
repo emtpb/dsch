@@ -502,6 +502,76 @@ class String:
                                   self.min_length, len(test_data))
 
 
+class Time:
+    """Schema node for time values.
+
+    This node type accepts regular Python times, i.e. :class:`datetime.time`
+    objects.
+
+    If :attr:`set_on_create` is set to ``True``, the node value is
+    automatically set to the current time whenever a new data node is created.
+
+    Attributes:
+        set_on_create (bool): Automatically apply the current time on data node
+            creation.
+    """
+
+    def __init__(self, set_on_create=False):
+        """Initialize time-type schema node.
+
+        Args:
+            set_on_create (bool): Automatically apply the current time on data
+                node creation.
+        """
+        self.set_on_create = set_on_create
+
+    @classmethod
+    def from_dict(cls, node_dict):
+        """Create a new instance from a dict representation.
+
+        Args:
+            node_dict: dict-representation of the node to be loaded.
+
+        Returns:
+            :class:`Time`: New string-type schema node.
+        """
+        if node_dict['node_type'] != 'Time':
+            raise ValueError('Invalid node type in dict.')
+        return cls(**node_dict['config'])
+
+    def to_dict(self):
+        """Return the node representation as a dict.
+
+        The representation dict includes a field ``node_type`` with the node
+        class name and a field ``config`` with a dict of the configuration
+        options.
+
+        Returns:
+            dict: dict-representation of the node.
+        """
+        config = {'set_on_create': self.set_on_create}
+        return {'node_type': 'Time', 'config': config}
+
+    def validate(self, test_data):
+        """Validate given data against the node's constraints.
+
+        For :class:`Time` nodes, this ensures that the given data type is of
+        type :class:`datetime.time`.
+
+        If validation succeeds, the method terminates silently. Otherwise, an
+        exception is raised.
+
+        Args:
+            test_data: Data to be validated.
+
+        Raises:
+            :exc:`.ValidationError`: if validation fails.
+        """
+        if type(test_data) != datetime.time:
+            raise ValidationError('Invalid type/value.', 'datetime.time',
+                                  type(test_data))
+
+
 class ValidationError(Exception):
     """Exception used when a schema node's validation fails.
 
