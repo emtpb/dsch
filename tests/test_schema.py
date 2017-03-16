@@ -21,6 +21,11 @@ class TestArray:
         assert node.max_value == 42
         assert node.min_value == 23
 
+    def test_from_dict_fail(self):
+        with pytest.raises(ValueError) as err:
+            schema.Array.from_dict({'node_type': 'SPAM', 'config': {}})
+        assert err.value.args[0] == 'Invalid node type in dict.'
+
     def test_init_defaults(self):
         node = schema.Array(dtype='int')
         assert node.dtype == 'int'
@@ -121,6 +126,11 @@ class TestBool:
         node = schema.Bool.from_dict({'node_type': 'Bool', 'config': {}})
         assert isinstance(node, schema.Bool)
 
+    def test_from_dict_fail(self):
+        with pytest.raises(ValueError) as err:
+            schema.Bool.from_dict({'node_type': 'SPAM', 'config': {}})
+        assert err.value.args[0] == 'Invalid node type in dict.'
+
     def test_to_dict(self):
         node = schema.Bool()
         node_dict = node.to_dict()
@@ -190,6 +200,11 @@ class TestCompilation:
         assert isinstance(node.subnodes['bacon'], schema.List)
         assert isinstance(node.subnodes['bacon'].subnode, schema.Bool)
 
+    def test_from_dict_fail(self):
+        with pytest.raises(ValueError) as err:
+            schema.Compilation.from_dict({'node_type': 'SPAM', 'config': {}})
+        assert err.value.args[0] == 'Invalid node type in dict.'
+
     def test_init(self):
         node = schema.Compilation({'spam': schema.Bool(),
                                    'eggs': schema.Bool()})
@@ -250,6 +265,11 @@ class TestList:
         assert isinstance(node.subnode, schema.List)
         assert isinstance(node.subnode.subnode, schema.Bool)
 
+    def test_from_dict_fail(self):
+        with pytest.raises(ValueError) as err:
+            schema.List.from_dict({'node_type': 'SPAM', 'config': {}})
+        assert err.value.args[0] == 'Invalid node type in dict.'
+
     def test_init(self):
         node = schema.List(schema.Bool())
         assert isinstance(node.subnode, schema.Bool)
@@ -278,6 +298,11 @@ class TestString:
         node = schema.String.from_dict(node_dict)
         for attr, value in expected.items():
             assert getattr(node, attr) == value
+
+    def test_from_dict_fail(self):
+        with pytest.raises(ValueError) as err:
+            schema.String.from_dict({'node_type': 'SPAM', 'config': {}})
+        assert err.value.args[0] == 'Invalid node type in dict.'
 
     def test_to_dict(self):
         node = schema.String(min_length=3, max_length=5)
