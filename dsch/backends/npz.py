@@ -8,6 +8,42 @@ import numpy as np
 from .. import data, helpers, schema, storage
 
 
+class Array(data.ItemNode):
+    """Array-type data node for the npz backend."""
+
+    def replace(self, new_value):
+        """Completely replace the current node value.
+
+        Instead of changing parts of the data (e.g. via numpy array slicing),
+        replace the entire data object for this node.
+
+        Args:
+            new_value: New value to apply to the node, independent of the
+                backend in use.
+        """
+        self._storage = new_value
+
+    def save(self):
+        """Export the node data as a data storage object.
+
+        Returns:
+            dict: Data storage object with the node's data.
+        """
+        return self._storage
+
+    @property
+    def value(self):
+        """Return the actual node data, independent of the backend in use.
+
+        This representation of the data only depends on the corresponding
+        schema node, not on the selected backend.
+
+        Returns:
+            Node data.
+        """
+        return self._storage
+
+
 class Bool(data.ItemNode):
     """Bool-type data node for the npz backend."""
 

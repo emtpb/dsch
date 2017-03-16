@@ -4,6 +4,25 @@ from dsch import schema
 from dsch.backends import npz
 
 
+class TestArray:
+    def test_init_from_storage(self):
+        data_node = npz.Array(schema.Array(dtype='int'),
+                              data_storage=np.array([23, 42]))
+        assert np.all(data_node._storage == np.array([23, 42]))
+        assert np.all(data_node.value == np.array([23, 42]))
+
+    def test_replace(self):
+        data_node = npz.Array(schema.Array(dtype='int'))
+        data_node.replace(np.array([23, 42]))
+        assert isinstance(data_node._storage, np.ndarray)
+        assert np.all(data_node._storage == np.array([23, 42]))
+
+    def test_save(self):
+        data_node = npz.Array(schema.Array(dtype='int'))
+        data_node.replace(np.array([23, 42]))
+        assert np.all(data_node.save() == np.array([23, 42]))
+
+
 class TestBool:
     def test_init_from_storage(self):
         data_node = npz.Bool(schema.Bool(), data_storage=np.array([True]))

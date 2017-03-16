@@ -1,5 +1,6 @@
 from collections import namedtuple
 import h5py
+import numpy as np
 import pytest
 from dsch import helpers, schema
 
@@ -16,6 +17,32 @@ def backend(request, tmpdir):
         new_params = None
     return backend_data(module=helpers.backend_module(request.param),
                         new_params=new_params)
+
+
+class TestArray:
+    def test_init(self, backend):
+        schema_node = schema.Array(dtype='int')
+        data_node = backend.module.Array(schema_node,
+                                         new_params=backend.new_params)
+        assert data_node.schema_node == schema_node
+
+    def test_replace(self, backend):
+        data_node = backend.module.Array(schema.Array(dtype='int'),
+                                         new_params=backend.new_params)
+        data_node.replace(np.array([23, 42]))
+        assert np.all(data_node.value == np.array([23, 42]))
+
+    def test_validate(self, backend):
+        data_node = backend.module.Array(schema.Array(dtype='int'),
+                                         new_params=backend.new_params)
+        data_node.replace(np.array([23, 42]))
+        data_node.validate()
+
+    def test_value(self, backend):
+        data_node = backend.module.Array(schema.Array(dtype='int'),
+                                         new_params=backend.new_params)
+        data_node.replace(np.array([23, 42]))
+        assert isinstance(data_node.value, np.ndarray)
 
 
 class TestBool:
