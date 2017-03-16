@@ -29,6 +29,153 @@ This allows to specify arbitrary hierarchically structured schemas.
     in the case of lists, can contain multiple sub-nodes.
     Data nodes are defined in the :mod:`dsch.data` module.
 """
+import numpy as np
+
+
+class Array:
+    """Schema node for NumPy ndarray values.
+
+    This node type accepts values of type :class:`numpy.ndarray`.
+
+    In addition to the actual value(s), Arrays contain metadata:
+
+    * The unit of the physical quantity that is represented by the values,
+      e.g. 'V' for volts.
+
+    Also, Arrays support various constraints:
+
+    * NumPy data type (:class:`numpy.dtype`). This directly validates the
+      array's ``dtype``. Note that the data type is always matched exactly, so
+      one cannot require "any of the int-dtypes".
+      This attribute is non-optional, since many backends require knowledge of
+      the data type for efficient storage.
+    * Minimum and maximum array shape. Like :attr:`numpy.ndarray.shape`, this
+      tuples limit the size of each dimension of the array. In addition, the
+      length of the tuples implicitly defines the allowed number of dimensions.
+      :attr:`max_shape` and :attr:`min_shape` do not need to be of the same
+      length, allowing a range of dimensionalities (see also
+      :attr:`numpy.ndarray.ndim`).
+    * Minimum and maximum array values. This constraint is applied to each
+      individual value in the array, meaning that a single array element value
+      outside the given boundaries causes validation to fail.
+
+    All of the constraint parameters, except :attr:`dtype`, default to
+    ``None``, effectively disabling the corresponding validation step.
+
+    Attributes:
+        dtype (:class:`numpy.dtype` or :class:`str`): Required NumPy dtype.
+        unit (str): Unit of the physical quantity, e.g. 'V' for volts. Unit
+            (and values) should be given without any SI prefixes.
+        max_shape (tuple): Maximum allowed array shape.
+        min_shape (tuple): Minimum allowed array shape.
+        max_value: Maximum allowed value for any element.
+        min_value: Minimum allowed value for any element.
+    """
+
+    def __init__(self, dtype, unit='', max_shape=None, min_shape=None,
+                 max_value=None, min_value=None):
+        """Initialize array-type schema node.
+
+        Args:
+            dtype (:class:`numpy.dtype` or str): Required NumPy dtype.
+            unit (str): Unit of the physical quantity, e.g. 'V' for volts. Unit
+                (and values) should be given without any SI prefixes.
+            max_shape (tuple): Maximum allowed array shape.
+            min_shape (tuple): Minimum allowed array shape.
+            max_value: Maximum allowed value for any element.
+            min_value: Minimum allowed value for any element.
+        """
+        self.dtype = dtype
+        self.unit = unit
+        self.max_shape = max_shape
+        self.min_shape = min_shape
+        self.max_value = max_value
+        self.min_value = min_value
+
+    @classmethod
+    def from_dict(cls, node_dict):
+        """Create a new instance from a dict representation.
+
+        Args:
+            node_dict: dict-representation of the node to be loaded.
+
+        Returns:
+            :class:`Array`: New array-type schema node.
+        """
+        if node_dict['node_type'] != 'Array':
+            raise ValueError('Invalid node type in dict.')
+        return cls(**node_dict['config'])
+
+    def to_dict(self):
+        """Return the node representation as a dict.
+
+        The representation dict includes a field ``node_type`` with the node
+        class name and a field ``config`` with a dict of the configuration
+        options.
+
+        Returns:
+            dict: dict-representation of the node.
+        """
+        config = {
+            'unit': self.unit,
+            'max_shape': self.max_shape,
+            'min_shape': self.min_shape,
+            'max_value': self.max_value,
+            'min_value': self.min_value,
+            'dtype': self.dtype,
+        }
+        return {'node_type': 'Array', 'config': config}
+
+    def validate(self, test_data):
+        """Validate given data against the node's constraints.
+
+        For :class:`Array` nodes, this ensures that the given data type is of
+        type :class:`numpy.ndarray` and that all constraints (dimensions, dtype
+        etc.) are met.
+
+        If validation succeeds, the method terminates silently. Otherwise, an
+        exception is raised.
+
+        Args:
+            test_data: Data to be validated.
+
+        Raises:
+            :exc:`.ValidationError`: if validation fails.
+        """
+        if not type(test_data) == np.ndarray:
+            raise ValidationError('Invalid type/value.', 'numpy.ndarray',
+                                  type(test_data))
+        if self.max_shape:
+            # Validate array dimensions
+            if test_data.ndim > len(self.max_shape):
+                raise ValidationError('Maximum number of dimensions exceeded.',
+                                      len(self.max_shape), test_data.ndim)
+            # Validate individual dimension's sizes
+            for index, value in enumerate(test_data.shape):
+                if self.max_shape[index] and value > self.max_shape[index]:
+                    raise ValidationError('Maximum array shape exceeded.',
+                                          self.max_shape, test_data.shape)
+        if self.min_shape:
+            # Validate array dimensions
+            if test_data.ndim < len(self.min_shape):
+                raise ValidationError('Minimum number of dimensions undercut.',
+                                      len(self.min_shape), test_data.ndim)
+            # Validate individual dimension's sizes
+            for index, value in enumerate(test_data.shape):
+                if self.min_shape[index] and value < self.min_shape[index]:
+                    raise ValidationError('Minimum array shape undercut.',
+                                          self.min_shape, test_data.shape)
+        if self.max_value is not None and np.any(test_data > self.max_value):
+            raise ValidationError('Maximum array element value exceeded.',
+                                  self.max_value,
+                                  test_data[test_data > self.max_value])
+        if self.min_value is not None and np.any(test_data < self.min_value):
+            raise ValidationError('Minimum array element value undercut.',
+                                  self.min_value,
+                                  test_data[test_data < self.min_value])
+        if self.dtype and not test_data.dtype == self.dtype:
+            raise ValidationError('Invalid dtype.', self.dtype,
+                                  test_data.dtype)
 
 
 class Bool:

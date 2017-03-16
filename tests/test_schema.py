@@ -3,6 +3,119 @@ import pytest
 from dsch import schema
 
 
+class TestArray:
+    def test_from_dict(self):
+        node = schema.Array.from_dict({'node_type': 'Array', 'config': {
+            'dtype': 'float',
+            'unit': 'V',
+            'max_shape': (3, 2),
+            'min_shape': (1, 1),
+            'max_value': 42,
+            'min_value': 23,
+        }})
+        assert isinstance(node, schema.Array)
+        assert node.dtype == 'float'
+        assert node.unit == 'V'
+        assert node.max_shape == (3, 2)
+        assert node.min_shape == (1, 1)
+        assert node.max_value == 42
+        assert node.min_value == 23
+
+    def test_init_defaults(self):
+        node = schema.Array(dtype='int')
+        assert node.dtype == 'int'
+        assert node.unit == ''
+        assert node.max_shape is None
+        assert node.min_shape is None
+        assert node.max_value is None
+        assert node.min_value is None
+
+    def test_to_dict(self):
+        node = schema.Array(dtype='int', unit='V', max_shape=(3, 2),
+                            min_shape=(1, 1), max_value=42, min_value=23)
+        node_dict = node.to_dict()
+        assert 'node_type' in node_dict
+        assert node_dict['node_type'] == 'Array'
+        assert 'config' in node_dict
+        assert node_dict['config'] == {
+            'dtype': 'int',
+            'unit': 'V',
+            'max_shape': (3, 2),
+            'min_shape': (1, 1),
+            'max_value': 42,
+            'min_value': 23,
+        }
+
+    def test_validate(self):
+        node = schema.Array(dtype='int', max_shape=(3, 2), min_shape=(2,),
+                            max_value=42, min_value=23)
+        node.validate(np.array([23, 42], dtype='int'))
+
+    def test_validate_fail_dtype(self):
+        node = schema.Array(dtype='int8')
+        with pytest.raises(schema.ValidationError) as err:
+            node.validate(np.array([23., 42]))
+        assert err.value.message == 'Invalid dtype.'
+        assert err.value.expected == 'int8'
+        assert err.value.got == 'float'
+
+    def test_validate_fail_max_shape(self):
+        node = schema.Array(dtype='int', max_shape=(3,))
+        with pytest.raises(schema.ValidationError) as err:
+            node.validate(np.array([1, 2, 3, 4]))
+        assert err.value.message == 'Maximum array shape exceeded.'
+        assert err.value.expected == (3,)
+        assert err.value.got == (4,)
+
+    def test_validate_fail_max_shape_dims(self):
+        node = schema.Array(dtype='int', max_shape=(3,))
+        with pytest.raises(schema.ValidationError) as err:
+            node.validate(np.array([[1, 2], [3, 4]]))
+        assert err.value.message == 'Maximum number of dimensions exceeded.'
+        assert err.value.expected == 1
+        assert err.value.got == 2
+
+    def test_validate_fail_min_shape(self):
+        node = schema.Array(dtype='int', min_shape=(3, 1))
+        with pytest.raises(schema.ValidationError) as err:
+            node.validate(np.array([[1, 2], [3, 4]]))
+        assert err.value.message == 'Minimum array shape undercut.'
+        assert err.value.expected == (3, 1)
+        assert err.value.got == (2, 2)
+
+    def test_validate_fail_min_shape_dims(self):
+        node = schema.Array(dtype='int', min_shape=(3, 1))
+        with pytest.raises(schema.ValidationError) as err:
+            node.validate(np.array([1, 2, 3, 4]))
+        assert err.value.message == 'Minimum number of dimensions undercut.'
+        assert err.value.expected == 2
+        assert err.value.got == 1
+
+    def test_validate_fail_max_value(self):
+        node = schema.Array(dtype='int', max_value=42)
+        with pytest.raises(schema.ValidationError) as err:
+            node.validate(np.array([23, 43]))
+        assert err.value.message == 'Maximum array element value exceeded.'
+        assert err.value.expected == 42
+        assert err.value.got == np.array([43])
+
+    def test_validate_fail_min_value(self):
+        node = schema.Array(dtype='int', min_value=23)
+        with pytest.raises(schema.ValidationError) as err:
+            node.validate(np.array([22, 42]))
+        assert err.value.message == 'Minimum array element value undercut.'
+        assert err.value.expected == 23
+        assert err.value.got == np.array([22])
+
+    @pytest.mark.parametrize('test_data', (0, 1, [23, 42], 'spam'))
+    def test_validate_fail_type(self, test_data):
+        node = schema.Array(dtype='int')
+        with pytest.raises(schema.ValidationError) as err:
+            node.validate(test_data)
+        assert err.value.message == 'Invalid type/value.'
+        assert err.value.expected == 'numpy.ndarray'
+
+
 class TestBool:
     def test_from_dict(self):
         node = schema.Bool.from_dict({'node_type': 'Bool', 'config': {}})
