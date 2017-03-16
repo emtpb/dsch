@@ -294,6 +294,38 @@ class TestDate:
             node.validate(test_data)
 
 
+class TestDateTime:
+    def test_from_dict(self):
+        node = schema.DateTime.from_dict({'node_type': 'DateTime', 'config':
+                                         {'set_on_create': True}})
+        assert isinstance(node, schema.DateTime)
+        assert node.set_on_create
+
+    def test_from_dict_fail(self):
+        with pytest.raises(ValueError) as err:
+            schema.Date.from_dict({'node_type': 'SPAM', 'config': {}})
+        assert err.value.args[0] == 'Invalid node type in dict.'
+
+    def test_to_dict(self):
+        node = schema.DateTime()
+        node_dict = node.to_dict()
+        assert 'node_type' in node_dict
+        assert node_dict['node_type'] == 'DateTime'
+        assert 'config' in node_dict
+        assert node_dict['config'] == {'set_on_create': False}
+
+    def test_validate(self):
+        node = schema.DateTime()
+        node.validate(datetime.datetime.now())
+
+    @pytest.mark.parametrize('test_data', (0, 1, [23, 42], 'spam',
+                                           np.array([True])))
+    def test_validate_fail(self, test_data):
+        node = schema.DateTime()
+        with pytest.raises(schema.ValidationError):
+            node.validate(test_data)
+
+
 class TestList:
     def test_from_dict(self):
         node_dict = {'node_type': 'List', 'config': {
