@@ -38,6 +38,41 @@ class _ItemNode(data.ItemNode):
                                                     data=new_value)
 
 
+class Array(_ItemNode):
+    """Array-type data node for the HDF5 backend."""
+
+    def _init_new(self, new_params):
+        """Initialize new, empty Array data node.
+
+        Creates a new HDF5 dataset as the data storage for this node. The HDF5
+        dataset name and parent are given as ``new_params['parent']`` and
+        ``new_params['name']``.
+
+        Args:
+            new_params (dict): Dict including the HDF5 dataset name as ``name``
+                and the HDF5 parent object as ``parent``.
+        """
+        self._dataset_name = new_params['name']
+        self._parent = new_params['parent']
+        self._storage = self._parent.create_dataset(
+            self._dataset_name,
+            dtype=self.schema_node.dtype,
+            shape=self.schema_node.min_shape or (),
+        )
+
+    @property
+    def value(self):
+        """Return the actual node data, independent of the backend in use.
+
+        This representation of the data only depends on the corresponding
+        schema node, not on the selected backend.
+
+        Returns:
+            Node data.
+        """
+        return self._storage.value
+
+
 class Bool(_ItemNode):
     """Bool-type data node for the HDF5 backend."""
 

@@ -1,4 +1,5 @@
 import h5py
+import numpy as np
 import json
 import pytest
 from dsch import schema
@@ -8,6 +9,37 @@ from dsch.backends import hdf5
 @pytest.fixture()
 def hdf5file(tmpdir):
     return h5py.File(str(tmpdir.join('hdf5test.h5')))
+
+
+class TestArray:
+    def test_init_from_storage(self, hdf5file):
+        hdf5file.create_dataset('test_array', data=np.array([23, 42]))
+
+        schema_node = schema.Array(dtype='int')
+        data_node = hdf5.Array(schema_node,
+                               data_storage=hdf5file['test_array'])
+        assert np.all(data_node._storage == hdf5file['test_array'])
+        assert np.all(data_node.value == np.array([23, 42]))
+
+    def test_init_new(self, hdf5file):
+        schema_node = schema.Array(dtype='int')
+        data_node = hdf5.Array(schema_node, new_params={'name': 'test_array',
+                                                        'parent': hdf5file})
+        assert 'test_array' in hdf5file
+        assert isinstance(hdf5file['test_array'], h5py.Dataset)
+        assert hdf5file['test_array'].dtype == 'int'
+        assert data_node._storage == hdf5file['test_array']
+
+    def test_replace(self, hdf5file):
+        hdf5file.create_dataset('test_array', data=np.array([23, 42]))
+
+        schema_node = schema.Array(dtype='int')
+        data_node = hdf5.Array(schema_node,
+                               data_storage=hdf5file['test_array'])
+        data_node.replace(np.array([23, 42]))
+        assert isinstance(data_node._storage, h5py.Dataset)
+        assert np.all(data_node._storage == hdf5file['test_array'])
+        assert np.all(data_node.value == np.array([23, 42]))
 
 
 class TestBool:
@@ -25,6 +57,7 @@ class TestBool:
                                                        'parent': hdf5file})
         assert 'test_bool' in hdf5file
         assert isinstance(hdf5file['test_bool'], h5py.Dataset)
+        assert hdf5file['test_bool'].dtype == 'bool'
         assert data_node._storage == hdf5file['test_bool']
 
     def test_replace(self, hdf5file):
