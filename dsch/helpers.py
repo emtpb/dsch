@@ -17,15 +17,15 @@ def backend_module(backend_name):
     return importlib.import_module('dsch.backends.' + backend_name)
 
 
-def inflate_dotted(input):
+def inflate_dotted(input_dict):
     """Convert flat dict with dotted key notation into nested dict.
 
     Given a flat dict with dotted keys for nested items, e.g.
-        >>> input = {'spam.eggs': 23, 'answer': 42}
+        >>> input_dict = {'spam.eggs': 23, 'answer': 42}
 
     create a nested dict
-        >>> output = inflate_dotted(input)
-        >>> output == {'spam': {'eggs': 23}, 'answer': 42}
+        >>> output_dict = inflate_dotted(input_dict)
+        >>> output_dict == {'spam': {'eggs': 23}, 'answer': 42}
         True
 
     Args:
@@ -34,27 +34,27 @@ def inflate_dotted(input):
     Returns:
         dict: Nested dict.
     """
-    output = {}
-    for key, value in input.items():
-        ref = output
+    output_dict = {}
+    for key, value in input_dict.items():
+        ref = output_dict
         parts = key.split('.')
         for part in parts[:-1]:
             if part not in ref:
                 ref[part] = {}
             ref = ref[part]
         ref[parts[-1]] = value
-    return output
+    return output_dict
 
 
-def flatten_dotted(input, prefix=''):
+def flatten_dotted(input_dict, prefix=''):
     """Convert nested dict into flat dict with dotted key notation.
 
     Given a nested dict, e.g.
-        >>> input = {'spam': {'eggs': 23}, 'answer': 42}
+        >>> input_dict = {'spam': {'eggs': 23}, 'answer': 42}
 
     create a flat dict with dotted keys for the nested items
-        >>> output = flatten_dotted(input)
-        >>> output == {'spam.eggs': 23, 'answer': 42}
+        >>> output_dict = flatten_dotted(input_dict)
+        >>> output_dict == {'spam.eggs': 23, 'answer': 42}
         True
 
     Args:
@@ -65,14 +65,14 @@ def flatten_dotted(input, prefix=''):
     Returns:
         dict: Flattened dict with dotted notation.
     """
-    output = {}
-    for key, value in input.items():
+    output_dict = {}
+    for key, value in input_dict.items():
         if prefix:
             dotted = prefix + '.' + key
         else:
             dotted = key
         if isinstance(value, dict):
-            output.update(flatten_dotted(value, dotted))
+            output_dict.update(flatten_dotted(value, dotted))
         else:
-            output[dotted] = value
-    return output
+            output_dict[dotted] = value
+    return output_dict

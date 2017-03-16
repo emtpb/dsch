@@ -263,8 +263,7 @@ class List:
             subnode.replace(value)
 
     def clear(self):
-        """Clear all subnodes.
-        """
+        """Clear all subnodes."""
         self._subnodes.clear()
 
     def __getitem__(self, item):
@@ -292,7 +291,7 @@ class List:
         Args:
             data_storage (dict): Backend-specific data storage object to load.
         """
-        for name, node_storage in sorted(data_storage.items()):
+        for _, node_storage in sorted(data_storage.items()):
             subnode = data_node_from_schema(self.schema_node.subnode,
                                             self.__module__,
                                             data_storage=node_storage)

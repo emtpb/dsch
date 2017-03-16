@@ -142,7 +142,7 @@ class Array:
         Raises:
             :exc:`.ValidationError`: if validation fails.
         """
-        if not type(test_data) == np.ndarray:
+        if type(test_data) != np.ndarray:
             raise ValidationError('Invalid type/value.', 'numpy.ndarray',
                                   type(test_data))
         if self.max_shape:
@@ -227,7 +227,7 @@ class Bool:
         Raises:
             :exc:`.ValidationError`: if validation fails.
         """
-        if not type(test_data) == bool:
+        if type(test_data) != bool:
             raise ValidationError('Invalid type/value.', 'bool',
                                   type(test_data))
 
@@ -415,7 +415,7 @@ class String:
         Raises:
             :exc:`.ValidationError`: if validation fails.
         """
-        if not type(test_data) == str:
+        if type(test_data) != str:
             raise ValidationError('Invalid type/value.', 'str',
                                   type(test_data))
         if self.max_length and len(test_data) > self.max_length:
@@ -444,6 +444,7 @@ class ValidationError(Exception):
 
     def __init__(self, message, expected, got=None):
         """Initialize ValidationError instance."""
+        super().__init__()
         self.message = message
         self.expected = expected
         self.got = got
