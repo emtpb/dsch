@@ -33,7 +33,11 @@ class _ItemNode(data.ItemNode):
             new_value: New value to apply to the node, independent of the
                 backend in use.
         """
-        del self._parent[self._dataset_name]
+        try:
+            del self._parent[self._dataset_name]
+        except KeyError:
+            # If the dataset has not been created yet, that's also okay.
+            pass
         self._storage = self._parent.create_dataset(self._dataset_name,
                                                     data=new_value)
 
