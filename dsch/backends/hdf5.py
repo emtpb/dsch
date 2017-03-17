@@ -48,9 +48,12 @@ class Array(_ItemNode):
     def _init_new(self, new_params):
         """Initialize new, empty Array data node.
 
-        Creates a new HDF5 dataset as the data storage for this node. The HDF5
-        dataset name and parent are given as ``new_params['parent']`` and
-        ``new_params['name']``.
+        The HDF5 dataset name and parent are given as ``new_params['parent']``
+        and ``new_params['name']``.
+        The dataset itself is only created if the corresponding schema node
+        defines :attr:`dsch.schema.Array.min_shape`, in which case the dataset
+        is initialized with that size. Otherwise, the dataset is left empty and
+        can be filled by calling :meth:`replace`.
 
         Args:
             new_params (dict): Dict including the HDF5 dataset name as ``name``
@@ -58,11 +61,12 @@ class Array(_ItemNode):
         """
         self._dataset_name = new_params['name']
         self._parent = new_params['parent']
-        self._storage = self._parent.create_dataset(
-            self._dataset_name,
-            dtype=self.schema_node.dtype,
-            shape=self.schema_node.min_shape or (),
-        )
+        if self.schema_node.min_shape:
+            self._storage = self._parent.create_dataset(
+                self._dataset_name,
+                dtype=self.schema_node.dtype,
+                shape=self.schema_node.min_shape
+            )
 
     @property
     def value(self):
