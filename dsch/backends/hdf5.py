@@ -92,6 +92,18 @@ class Bool(_ItemNode):
         self._storage = self._parent.create_dataset(self._dataset_name,
                                                     dtype='bool', shape=())
 
+    def replace(self, new_value):
+        """Completely replace the current node value.
+
+        Instead of changing parts of the data (e.g. via numpy array slicing),
+        replace the entire data for this node.
+
+        Args:
+            new_value: New value to apply to the node, independent of the
+                backend in use.
+        """
+        self._storage[()] = new_value
+
     @property
     def value(self):
         """Return the actual node data, independent of the backend in use.
@@ -244,6 +256,18 @@ class String(_ItemNode):
         self._parent = new_params['parent']
         self._storage = self._parent.create_dataset(self._dataset_name,
                                                     data='')
+
+    def replace(self, new_value):
+        """Completely replace the current node value.
+
+        Instead of changing parts of the data (e.g. via numpy array slicing),
+        replace the entire data for this node.
+
+        Args:
+            new_value: New value to apply to the node, independent of the
+                backend in use.
+        """
+        self._storage[()] = new_value
 
     @property
     def value(self):
