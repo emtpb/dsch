@@ -3,7 +3,9 @@
 This backend provides support for the HDF5 file format. :mod:`h5py` is used as
 the interface.
 """
+import datetime
 import h5py
+import numpy as np
 from .. import data, schema, storage
 
 
@@ -189,6 +191,102 @@ class Compilation(data.Compilation):
                 subnode, self.__module__, new_params=new_params_sub)
 
 
+class Date(_ItemNode):
+    """Date-type data node for the HDF5 backend."""
+
+    def _init_new(self, new_params):
+        """Initialize new Date data node.
+
+        For :class:`Date`, the corresponding HDF5 dataset is only created if
+        the corresponding schema node's :attr:`dsch.schema.Date.set_on_create`
+        is ``True``. Otherwise, the dataset is left empty and can be filled by
+        calling meth:`replace`.
+
+        Args:
+            new_params (dict): Dict including the HDF5 dataset name as ``name``
+                and the HDF5 parent object as ``parent``.
+        """
+        self._dataset_name = new_params['name']
+        self._parent = new_params['parent']
+        if self.schema_node.set_on_create:
+            self.replace(datetime.date.today())
+
+    def replace(self, new_value):
+        """Completely replace the current node value.
+
+        Instead of changing parts of the data (e.g. via numpy array slicing),
+        replace the entire data object for this node.
+
+        Args:
+            new_value: New value to apply to the node, independent of the
+                backend in use.
+        """
+        repr_data = np.array([new_value.year, new_value.month, new_value.day],
+                             dtype='int')
+        super().replace(repr_data)
+
+    @property
+    def value(self):
+        """Return the actual node data, independent of the backend in use.
+
+        This representation of the data only depends on the corresponding
+        schema node, not on the selected backend.
+
+        Returns:
+            Node data.
+        """
+        return datetime.date(*self._storage.value.tolist())
+
+
+class DateTime(_ItemNode):
+    """DateTime-type data node for the HDF5 backend."""
+
+    def _init_new(self, new_params):
+        """Initialize new DateTime data node.
+
+        For :class:`DateTime`, the corresponding HDF5 dataset is only created
+        if the corresponding schema node's
+        :attr:`dsch.schema.DateTime.set_on_create` is ``True``. Otherwise, the
+        dataset is left empty and can be filled by calling meth:`replace`.
+
+        Args:
+            new_params (dict): Dict including the HDF5 dataset name as ``name``
+                and the HDF5 parent object as ``parent``.
+        """
+        self._dataset_name = new_params['name']
+        self._parent = new_params['parent']
+        if self.schema_node.set_on_create:
+            self.replace(datetime.datetime.now())
+
+    def replace(self, new_value):
+        """Completely replace the current node value.
+
+        Instead of changing parts of the data (e.g. via numpy array slicing),
+        replace the entire data object for this node.
+
+        Args:
+            new_value: New value to apply to the node, independent of the
+                backend in use.
+        """
+        repr_data = np.array([new_value.year, new_value.month, new_value.day,
+                              new_value.hour, new_value.minute,
+                              new_value.second, new_value.microsecond],
+                             dtype='int')
+        super().replace(repr_data)
+
+    @property
+    def value(self):
+        """Return the actual node data, independent of the backend in use.
+
+        This representation of the data only depends on the corresponding
+        schema node, not on the selected backend.
+
+        Returns:
+            Node data.
+        """
+        return datetime.datetime(*self._storage.value.tolist())
+
+
 class Storage(storage.FileStorage):
     """Interface to HDF5 files.
 
@@ -313,3 +411,51 @@ class String(_ItemNode):
         if self._storage is None:
             raise RuntimeError('Empty data node has no value.')
         return self._storage.value
+
+
+class Time(_ItemNode):
+    """Time-type data node for the HDF5 backend."""
+
+    def _init_new(self, new_params):
+        """Initialize new Time data node.
+
+        For :class:`Time`, the corresponding HDF5 dataset is only created if
+        the corresponding schema node's :attr:`dsch.schema.Time.set_on_create`
+        is ``True``. Otherwise, the dataset is left empty and can be filled by
+        calling meth:`replace`.
+
+        Args:
+            new_params (dict): Dict including the HDF5 dataset name as ``name``
+                and the HDF5 parent object as ``parent``.
+        """
+        self._dataset_name = new_params['name']
+        self._parent = new_params['parent']
+        if self.schema_node.set_on_create:
+            self.replace(datetime.datetime.now().time())
+
+    def replace(self, new_value):
+        """Completely replace the current node value.
+
+        Instead of changing parts of the data (e.g. via numpy array slicing),
+        replace the entire data object for this node.
+
+        Args:
+            new_value: New value to apply to the node, independent of the
+                backend in use.
+        """
+        repr_data = np.array([new_value.hour, new_value.minute,
+                              new_value.second, new_value.microsecond],
+                             dtype='int')
+        super().replace(repr_data)
+
+    @property
+    def value(self):
+        """Return the actual node data, independent of the backend in use.
+
+        This representation of the data only depends on the corresponding
+        schema node, not on the selected backend.
+
+        Returns:
+            Node data.
+        """
+        return datetime.time(*self._storage.value.tolist())
