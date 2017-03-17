@@ -20,6 +20,14 @@ def backend(request, tmpdir):
 
 
 class TestArray:
+    def test_getitem(self, backend):
+        data_node = backend.module.Array(schema.Array(dtype='int'),
+                                         new_params=backend.new_params)
+        data_node.replace(np.array([23, 42]))
+        assert data_node[0] == 23
+        assert data_node[1] == 42
+        assert np.all(data_node[()] == np.array([23, 42]))
+
     def test_init(self, backend):
         schema_node = schema.Array(dtype='int')
         data_node = backend.module.Array(schema_node,
@@ -31,6 +39,17 @@ class TestArray:
                                          new_params=backend.new_params)
         data_node.replace(np.array([23, 42]))
         assert np.all(data_node.value == np.array([23, 42]))
+
+    def test_setitem(self, backend):
+        data_node = backend.module.Array(schema.Array(dtype='int'),
+                                         new_params=backend.new_params)
+        data_node.replace(np.array([5, 23, 42]))
+        data_node[0] = 1
+        assert np.all(data_node.value == np.array([1, 23, 42]))
+        data_node[1:] = np.array([2, 3])
+        assert np.all(data_node.value == np.array([1, 2, 3]))
+        data_node[()] = np.array([42, 23, 5])
+        assert np.all(data_node.value == np.array([42, 23, 5]))
 
     def test_validate(self, backend):
         data_node = backend.module.Array(schema.Array(dtype='int'),

@@ -11,6 +11,14 @@ from .. import data, helpers, schema, storage
 class Array(data.ItemNode):
     """Array-type data node for the npz backend."""
 
+    def __getitem__(self, key):
+        """Pass slicing/indexing operations directly to NumPy array."""
+        return self._storage[key]
+
+    def __setitem__(self, key, value):
+        """Pass slicing/indexing operations directly to NumPy array."""
+        self._storage[key] = value
+
     def replace(self, new_value):
         """Completely replace the current node value.
 

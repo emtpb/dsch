@@ -68,6 +68,14 @@ class Array(_ItemNode):
                 shape=self.schema_node.min_shape
             )
 
+    def __getitem__(self, key):
+        """Pass slicing/indexing operations directly to HDF5 dataset."""
+        return self._storage[key]
+
+    def __setitem__(self, key, value):
+        """Pass slicing/indexing operations directly to HDF5 dataset."""
+        self._storage[key] = value
+
     @property
     def value(self):
         """Return the actual node data, independent of the backend in use.
