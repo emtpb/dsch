@@ -50,16 +50,16 @@ class Array:
       This attribute is non-optional, since many backends require knowledge of
       the data type for efficient storage.
     * Minimum and maximum array shape. Like :attr:`numpy.ndarray.shape`, this
-      tuples limit the size of each dimension of the array. In addition, the
-      length of the tuples implicitly defines the allowed number of dimensions.
-      :attr:`max_shape` and :attr:`min_shape` do not need to be of the same
-      length, allowing a range of dimensionalities (see also
-      :attr:`numpy.ndarray.ndim`).
+      tuples limit the size of each dimension of the array. If both minimum and
+      maximum shape are given, they must have the same length.
+    * Number of array dimensions. If a minimum or maximum array shape is given,
+      this is determined automatically. Otherwise, it can be given explicitly
+      or left at the default value of ``1``.
     * Minimum and maximum array values. This constraint is applied to each
       individual value in the array, meaning that a single array element value
       outside the given boundaries causes validation to fail.
 
-    All of the constraint parameters, except :attr:`dtype`, default to
+    Note: The constraint parameters for array shape and values all default to
     ``None``, effectively disabling the corresponding validation step.
 
     Attributes:
@@ -68,12 +68,13 @@ class Array:
             (and values) should be given without any SI prefixes.
         max_shape (tuple): Maximum allowed array shape.
         min_shape (tuple): Minimum allowed array shape.
+        ndim (int): Number of array dimensions.
         max_value: Maximum allowed value for any element.
         min_value: Minimum allowed value for any element.
     """
 
     def __init__(self, dtype, unit='', max_shape=None, min_shape=None,
-                 max_value=None, min_value=None):
+                 ndim=1, max_value=None, min_value=None):
         """Initialize array-type schema node.
 
         Args:
@@ -82,13 +83,21 @@ class Array:
                 (and values) should be given without any SI prefixes.
             max_shape (tuple): Maximum allowed array shape.
             min_shape (tuple): Minimum allowed array shape.
+            ndim (int): Number of array dimensions.
             max_value: Maximum allowed value for any element.
             min_value: Minimum allowed value for any element.
         """
+        if max_shape and min_shape and len(max_shape) != len(min_shape):
+            raise ValueError('Shape constraints must have the same length.')
+
         self.dtype = dtype
         self.unit = unit
         self.max_shape = max_shape
         self.min_shape = min_shape
+        if max_shape or min_shape:
+            self.ndim = len(max_shape or min_shape)
+        else:
+            self.ndim = ndim
         self.max_value = max_value
         self.min_value = min_value
 
@@ -120,6 +129,7 @@ class Array:
             'unit': self.unit,
             'max_shape': self.max_shape,
             'min_shape': self.min_shape,
+            'ndim': self.ndim,
             'max_value': self.max_value,
             'min_value': self.min_value,
             'dtype': self.dtype,
@@ -145,21 +155,16 @@ class Array:
         if type(test_data) != np.ndarray:
             raise ValidationError('Invalid type/value.', 'numpy.ndarray',
                                   type(test_data))
+        if test_data.ndim != self.ndim:
+            raise ValidationError('Invalid number of array dimensions.',
+                                  self.ndim, test_data.ndim)
         if self.max_shape:
-            # Validate array dimensions
-            if test_data.ndim > len(self.max_shape):
-                raise ValidationError('Maximum number of dimensions exceeded.',
-                                      len(self.max_shape), test_data.ndim)
             # Validate individual dimension's sizes
             for index, value in enumerate(test_data.shape):
                 if self.max_shape[index] and value > self.max_shape[index]:
                     raise ValidationError('Maximum array shape exceeded.',
                                           self.max_shape, test_data.shape)
         if self.min_shape:
-            # Validate array dimensions
-            if test_data.ndim < len(self.min_shape):
-                raise ValidationError('Minimum number of dimensions undercut.',
-                                      len(self.min_shape), test_data.ndim)
             # Validate individual dimension's sizes
             for index, value in enumerate(test_data.shape):
                 if self.min_shape[index] and value < self.min_shape[index]:

@@ -10,6 +10,7 @@ class TestArray:
             'unit': 'V',
             'max_shape': (3, 2),
             'min_shape': (1, 1),
+            'ndim': 2,
             'max_value': 42,
             'min_value': 23,
         }})
@@ -18,6 +19,7 @@ class TestArray:
         assert node.unit == 'V'
         assert node.max_shape == (3, 2)
         assert node.min_shape == (1, 1)
+        assert node.ndim == 2
         assert node.max_value == 42
         assert node.min_value == 23
 
@@ -30,10 +32,47 @@ class TestArray:
         node = schema.Array(dtype='int')
         assert node.dtype == 'int'
         assert node.unit == ''
+        assert node.ndim == 1
         assert node.max_shape is None
         assert node.min_shape is None
         assert node.max_value is None
         assert node.min_value is None
+
+    def test_init_defaults_ndim(self):
+        node = schema.Array(dtype='int', ndim=2)
+        assert node.dtype == 'int'
+        assert node.unit == ''
+        assert node.ndim == 2
+        assert node.max_shape is None
+        assert node.min_shape is None
+        assert node.max_value is None
+        assert node.min_value is None
+
+    def test_init_defaults_max_shape(self):
+        node = schema.Array(dtype='int', max_shape=(5, 1))
+        assert node.dtype == 'int'
+        assert node.unit == ''
+        assert node.ndim == 2
+        assert node.max_shape == (5, 1)
+        assert node.min_shape is None
+        assert node.max_value is None
+        assert node.min_value is None
+
+    def test_init_defaults_min_shape(self):
+        node = schema.Array(dtype='int', min_shape=(2, 1))
+        assert node.dtype == 'int'
+        assert node.unit == ''
+        assert node.ndim == 2
+        assert node.max_shape is None
+        assert node.min_shape == (2, 1)
+        assert node.max_value is None
+        assert node.min_value is None
+
+    def test_init_fail_shapes(self):
+        with pytest.raises(ValueError) as err:
+            schema.Array(dtype='int', max_shape=(3, 2), min_shape=(2,))
+        assert err.value.args[0] == ('Shape constraints must have the same '
+                                     'length.')
 
     def test_to_dict(self):
         node = schema.Array(dtype='int', unit='V', max_shape=(3, 2),
@@ -47,12 +86,13 @@ class TestArray:
             'unit': 'V',
             'max_shape': (3, 2),
             'min_shape': (1, 1),
+            'ndim': 2,
             'max_value': 42,
             'min_value': 23,
         }
 
     def test_validate(self):
-        node = schema.Array(dtype='int', max_shape=(3, 2), min_shape=(2,),
+        node = schema.Array(dtype='int', max_shape=(3,), min_shape=(2,),
                             max_value=42, min_value=23)
         node.validate(np.array([23, 42], dtype='int'))
 
@@ -72,14 +112,6 @@ class TestArray:
         assert err.value.expected == (3,)
         assert err.value.got == (4,)
 
-    def test_validate_fail_max_shape_dims(self):
-        node = schema.Array(dtype='int', max_shape=(3,))
-        with pytest.raises(schema.ValidationError) as err:
-            node.validate(np.array([[1, 2], [3, 4]]))
-        assert err.value.message == 'Maximum number of dimensions exceeded.'
-        assert err.value.expected == 1
-        assert err.value.got == 2
-
     def test_validate_fail_min_shape(self):
         node = schema.Array(dtype='int', min_shape=(3, 1))
         with pytest.raises(schema.ValidationError) as err:
@@ -88,13 +120,13 @@ class TestArray:
         assert err.value.expected == (3, 1)
         assert err.value.got == (2, 2)
 
-    def test_validate_fail_min_shape_dims(self):
-        node = schema.Array(dtype='int', min_shape=(3, 1))
+    def test_validate_fail_ndim(self):
+        node = schema.Array(dtype='int', ndim=1)
         with pytest.raises(schema.ValidationError) as err:
-            node.validate(np.array([1, 2, 3, 4]))
-        assert err.value.message == 'Minimum number of dimensions undercut.'
-        assert err.value.expected == 2
-        assert err.value.got == 1
+            node.validate(np.array([[1, 2], [3, 4]]))
+        assert err.value.message == 'Invalid number of array dimensions.'
+        assert err.value.expected == 1
+        assert err.value.got == 2
 
     def test_validate_fail_max_value(self):
         node = schema.Array(dtype='int', max_value=42)
