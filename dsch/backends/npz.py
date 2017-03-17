@@ -4,6 +4,7 @@ This backend provides support for NumPy's npz format. For details, see
 :func:`numpy.savez`, :func:`numpy.load` and the `corresponding NumPy
 enhancement proposal <https://docs.scipy.org/doc/numpy/neps/npy-format.html>`_.
 """
+import datetime
 import numpy as np
 from .. import data, helpers, schema, storage
 
@@ -115,6 +116,110 @@ class Compilation(data.Compilation):
         return data_storage
 
 
+class Date(data.ItemNode):
+    """Date-type data node for the npz backend."""
+
+    def _init_new(self, new_params):
+        """Initialize new Date data node.
+
+        For :class:`Date`, the current date is applied to the node if
+        the corresponding schema node's :attr:`dsch.schema.Date.set_on_create`
+        is ``True``. Otherwise, the dataset is left empty and can be filled by
+        calling meth:`replace`.
+
+        Args:
+            new_params: Argument ignored for this class.
+        """
+        if self.schema_node.set_on_create:
+            self.replace(datetime.date.today())
+
+    def replace(self, new_value):
+        """Completely replace the current node value.
+
+        Instead of changing parts of the data (e.g. via numpy array slicing),
+        replace the entire data object for this node.
+
+        Args:
+            new_value: New value to apply to the node, independent of the
+                backend in use.
+        """
+        self._storage = np.array([new_value.year, new_value.month,
+                                  new_value.day], dtype='int')
+
+    def save(self):
+        """Export the node data as a data storage object.
+
+        Returns:
+            dict: Data storage object with the node's data.
+        """
+        return self._storage
+
+    @property
+    def value(self):
+        """Return the actual node data, independent of the backend in use.
+
+        This representation of the data only depends on the corresponding
+        schema node, not on the selected backend.
+
+        Returns:
+            Node data.
+        """
+        return datetime.date(*self._storage.tolist())
+
+
+class DateTime(data.ItemNode):
+    """DateTime-type data node for the npz backend."""
+
+    def _init_new(self, new_params):
+        """Initialize new DateTime data node.
+
+        For :class:`DateTime`, the current date and time is applied to the node
+        if the corresponding schema node's
+        :attr:`dsch.schema.DateTime.set_on_create` is ``True``. Otherwise, the
+        dataset is left empty and can be filled by calling meth:`replace`.
+
+        Args:
+            new_params: Argument ignored for this class.
+        """
+        if self.schema_node.set_on_create:
+            self.replace(datetime.datetime.now())
+
+    def replace(self, new_value):
+        """Completely replace the current node value.
+
+        Instead of changing parts of the data (e.g. via numpy array slicing),
+        replace the entire data object for this node.
+
+        Args:
+            new_value: New value to apply to the node, independent of the
+                backend in use.
+        """
+        self._storage = np.array([new_value.year, new_value.month,
+                                  new_value.day, new_value.hour,
+                                  new_value.minute, new_value.second,
+                                  new_value.microsecond], dtype='int')
+
+    def save(self):
+        """Export the node data as a data storage object.
+
+        Returns:
+            dict: Data storage object with the node's data.
+        """
+        return self._storage
+
+    @property
+    def value(self):
+        """Return the actual node data, independent of the backend in use.
+
+        This representation of the data only depends on the corresponding
+        schema node, not on the selected backend.
+
+        Returns:
+            Node data.
+        """
+        return datetime.datetime(*self._storage.tolist())
+
+
 class List(data.List):
     """List-type data node for the npz backend."""
 
@@ -218,3 +323,55 @@ class String(data.ItemNode):
             Node data.
         """
         return str(self._storage)
+
+
+class Time(data.ItemNode):
+    """Time-type data node for the npz backend."""
+
+    def _init_new(self, new_params):
+        """Initialize new Time data node.
+
+        For :class:`Time`, the current time is applied to the node if
+        the corresponding schema node's :attr:`dsch.schema.Time.set_on_create`
+        is ``True``. Otherwise, the dataset is left empty and can be filled by
+        calling meth:`replace`.
+
+        Args:
+            new_params: Argument ignored for this class.
+        """
+        if self.schema_node.set_on_create:
+            self.replace(datetime.datetime.now().time())
+
+    def replace(self, new_value):
+        """Completely replace the current node value.
+
+        Instead of changing parts of the data (e.g. via numpy array slicing),
+        replace the entire data object for this node.
+
+        Args:
+            new_value: New value to apply to the node, independent of the
+                backend in use.
+        """
+        self._storage = np.array([new_value.hour, new_value.minute,
+                                  new_value.second, new_value.microsecond],
+                                 dtype='int')
+
+    def save(self):
+        """Export the node data as a data storage object.
+
+        Returns:
+            dict: Data storage object with the node's data.
+        """
+        return self._storage
+
+    @property
+    def value(self):
+        """Return the actual node data, independent of the backend in use.
+
+        This representation of the data only depends on the corresponding
+        schema node, not on the selected backend.
+
+        Returns:
+            Node data.
+        """
+        return datetime.time(*self._storage.tolist())

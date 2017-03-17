@@ -1,4 +1,5 @@
 from collections import namedtuple
+import datetime
 import h5py
 import numpy as np
 import pytest
@@ -169,6 +170,85 @@ class TestCompilation:
         comp.validate()
 
 
+class TestDate:
+    def test_init(self, backend):
+        schema_node = schema.Date()
+        data_node = backend.module.Date(schema_node,
+                                        new_params=backend.new_params)
+        assert data_node.schema_node == schema_node
+
+    def test_default_value(self, backend):
+        data_node = backend.module.Date(schema.Date(set_on_create=False),
+                                        new_params=backend.new_params)
+        assert data_node._storage is None
+
+    def test_default_value_set_on_create(self, backend):
+        data_node = backend.module.Date(schema.Date(set_on_create=True),
+                                        new_params=backend.new_params)
+        assert data_node._storage is not None
+        assert data_node.value == datetime.date.today()
+
+    def test_replace(self, backend):
+        data_node = backend.module.Date(schema.Date(),
+                                        new_params=backend.new_params)
+        data_node.replace(datetime.date.today())
+        assert data_node.value == datetime.date.today()
+
+    def test_validate(self, backend):
+        data_node = backend.module.Date(schema.Date(),
+                                        new_params=backend.new_params)
+        data_node.replace(datetime.date.today())
+        data_node.validate()
+
+    def test_value(self, backend):
+        data_node = backend.module.Date(schema.Date(),
+                                        new_params=backend.new_params)
+        data_node.replace(datetime.date.today())
+        assert isinstance(data_node.value, datetime.date)
+
+
+class TestDateTime:
+    def test_init(self, backend):
+        schema_node = schema.DateTime()
+        data_node = backend.module.DateTime(schema_node,
+                                            new_params=backend.new_params)
+        assert data_node.schema_node == schema_node
+
+    def test_default_value(self, backend):
+        data_node = backend.module.DateTime(
+            schema.DateTime(set_on_create=False),
+            new_params=backend.new_params
+        )
+        assert data_node._storage is None
+
+    def test_default_value_set_on_create(self, backend):
+        data_node = backend.module.DateTime(
+            schema.DateTime(set_on_create=True),
+            new_params=backend.new_params
+        )
+        assert data_node._storage is not None
+        assert (data_node.value - datetime.datetime.now()).total_seconds() < 1
+
+    def test_replace(self, backend):
+        data_node = backend.module.DateTime(schema.DateTime(),
+                                            new_params=backend.new_params)
+        dt = datetime.datetime.now()
+        data_node.replace(dt)
+        assert data_node.value == dt
+
+    def test_validate(self, backend):
+        data_node = backend.module.DateTime(schema.DateTime(),
+                                            new_params=backend.new_params)
+        data_node.replace(datetime.datetime.now())
+        data_node.validate()
+
+    def test_value(self, backend):
+        data_node = backend.module.DateTime(schema.DateTime(),
+                                            new_params=backend.new_params)
+        data_node.replace(datetime.datetime.now())
+        assert isinstance(data_node.value, datetime.datetime)
+
+
 class TestList:
     def test_append(self, backend):
         data_node = backend.module.List(schema.List(schema.Bool()),
@@ -266,3 +346,43 @@ class TestString:
                                           new_params=backend.new_params)
         data_node.replace('spam')
         assert isinstance(data_node.value, str)
+
+
+class TestTime:
+    def test_init(self, backend):
+        schema_node = schema.Time()
+        data_node = backend.module.Time(schema_node,
+                                        new_params=backend.new_params)
+        assert data_node.schema_node == schema_node
+
+    def test_default_value(self, backend):
+        data_node = backend.module.Time(schema.Time(set_on_create=False),
+                                        new_params=backend.new_params)
+        assert data_node._storage is None
+
+    def test_default_value_set_on_create(self, backend):
+        data_node = backend.module.Time(schema.Time(set_on_create=True),
+                                        new_params=backend.new_params)
+        assert data_node._storage is not None
+        dt = datetime.datetime.now().time()
+        assert ((data_node.value.hour, data_node.value.minute) ==
+                (dt.hour, dt.minute))
+
+    def test_replace(self, backend):
+        data_node = backend.module.Time(schema.Time(),
+                                        new_params=backend.new_params)
+        dt = datetime.time(13, 37, 42, 23)
+        data_node.replace(dt)
+        assert data_node.value == dt
+
+    def test_validate(self, backend):
+        data_node = backend.module.Time(schema.Time(),
+                                        new_params=backend.new_params)
+        data_node.replace(datetime.time(13, 37, 42, 23))
+        data_node.validate()
+
+    def test_value(self, backend):
+        data_node = backend.module.Time(schema.Time(),
+                                        new_params=backend.new_params)
+        data_node.replace(datetime.time(13, 37, 42, 23))
+        assert isinstance(data_node.value, datetime.time)
