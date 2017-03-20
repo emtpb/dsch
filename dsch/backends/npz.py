@@ -15,10 +15,6 @@ class Array(data.ItemNode):
         """Pass slicing/indexing operations directly to NumPy array."""
         return self._storage[key]
 
-    def __setitem__(self, key, value):
-        """Pass slicing/indexing operations directly to NumPy array."""
-        self._storage[key] = value
-
     def replace(self, new_value):
         """Completely replace the current node value.
 
@@ -46,6 +42,10 @@ class Array(data.ItemNode):
             dict: Data storage object with the node's data.
         """
         return self._storage
+
+    def __setitem__(self, key, value):
+        """Pass slicing/indexing operations directly to NumPy array."""
+        self._storage[key] = value
 
     @property
     def value(self):
@@ -146,11 +146,6 @@ class Storage(storage.FileStorage):
         data: Top-level data node, providing access to all managed data.
     """
 
-    def _new(self):
-        """Create a new file at :attr:`storage_path`."""
-        self.data = data.data_node_from_schema(self.schema_node,
-                                               self.__module__)
-
     def _load(self):
         """Load an existing file from :attr:`storage_path`."""
         with np.load(self.storage_path) as file_:
@@ -167,6 +162,11 @@ class Storage(storage.FileStorage):
         self.data = data.data_node_from_schema(self.schema_node,
                                                self.__module__,
                                                data_storage=data_storage)
+
+    def _new(self):
+        """Create a new file at :attr:`storage_path`."""
+        self.data = data.data_node_from_schema(self.schema_node,
+                                               self.__module__)
 
     def save(self):
         """Save the current data to the file in :attr:`storage_path`.
