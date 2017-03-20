@@ -12,6 +12,7 @@ This module provides base classes for backends to derive from, so that common
 functionality may be implemented in a single place without unnecessary
 repetition.
 """
+import hashlib
 import json
 import os
 from . import schema
@@ -68,6 +69,17 @@ class Storage:
             json_str (str): JSON string representing the schema node.
         """
         self.schema_node = schema.node_from_dict(json.loads(json_str))
+
+    def schema_hash(self):
+        """Calculate the SHA256 hash of the (serialized) schema.
+
+        This uses the JSON-serialized schema specification that is mostly
+        included with the respective dsch storage.
+
+        Returns:
+            str: SHA256 hash (hex) of the schema.
+        """
+        return hashlib.sha256(self._schema_to_json().encode()).hexdigest()
 
     def _schema_to_json(self):
         """Export the top-level schema node as a JSON string.
