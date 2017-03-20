@@ -99,6 +99,14 @@ class Array(_ItemNode):
             maxshape=maxshape,
         )
 
+    def resize(self, size):
+        """Resize the array to the desired size.
+
+        Args:
+            size (tuple): Desired array size.
+        """
+        self._storage.resize(size)
+
     def __setitem__(self, key, value):
         """Pass slicing/indexing operations directly to HDF5 dataset."""
         self._storage[key] = value

@@ -41,6 +41,15 @@ class TestArray:
         data_node.replace(np.array([23, 42]))
         assert np.all(data_node.value == np.array([23, 42]))
 
+    def test_resize(self, backend):
+        data_node = backend.module.Array(schema.Array(dtype='int'),
+                                         new_params=backend.new_params)
+        data_node.replace(np.array([42]))
+        assert data_node.value.shape == (1,)
+        data_node.resize((5,))
+        assert data_node.value.ndim == 1
+        assert data_node.value.shape == (5,)
+
     def test_setitem(self, backend):
         data_node = backend.module.Array(schema.Array(dtype='int'),
                                          new_params=backend.new_params)

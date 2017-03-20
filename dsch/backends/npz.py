@@ -31,6 +31,14 @@ class Array(data.ItemNode):
         """
         self._storage = new_value
 
+    def resize(self, size):
+        """Resize the array to the desired size.
+
+        Args:
+            size (tuple): Desired array shape.
+        """
+        self._storage.resize(size)
+
     def save(self):
         """Export the node data as a data storage object.
 
