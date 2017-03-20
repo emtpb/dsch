@@ -30,6 +30,7 @@ def create(storage_path, schema_node, backend=None):
     Name        Description         Path format
     ==========  ==================  ========================
     npz         NumPy .npz file     Path to regular file
+    hdf5        HDF5 file           Path to regular file
     ==========  ==================  ========================
 
     Args:
