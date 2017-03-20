@@ -206,8 +206,7 @@ class Date(_ItemNode):
             new_params (dict): Dict including the HDF5 dataset name as ``name``
                 and the HDF5 parent object as ``parent``.
         """
-        self._dataset_name = new_params['name']
-        self._parent = new_params['parent']
+        super()._init_new(new_params)
         if self.schema_node.set_on_create:
             self.replace(datetime.date.today())
 
@@ -253,8 +252,7 @@ class DateTime(_ItemNode):
             new_params (dict): Dict including the HDF5 dataset name as ``name``
                 and the HDF5 parent object as ``parent``.
         """
-        self._dataset_name = new_params['name']
-        self._parent = new_params['parent']
+        super()._init_new(new_params)
         if self.schema_node.set_on_create:
             self.replace(datetime.datetime.now())
 
@@ -428,8 +426,7 @@ class Time(_ItemNode):
             new_params (dict): Dict including the HDF5 dataset name as ``name``
                 and the HDF5 parent object as ``parent``.
         """
-        self._dataset_name = new_params['name']
-        self._parent = new_params['parent']
+        super()._init_new(new_params)
         if self.schema_node.set_on_create:
             self.replace(datetime.datetime.now().time())
 
