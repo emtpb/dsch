@@ -20,3 +20,13 @@ def test_load(tmpdir):
     new_storage = frontend.load(storage_path)
     assert isinstance(new_storage, npz.Storage)
     assert new_storage.data.value is True
+
+
+def test_load_require_schema(tmpdir):
+    schema_node = schema.Bool()
+    storage_path = str(tmpdir.join('test_load.npz'))
+    storage = frontend.create(storage_path, schema_node)
+    storage.data.replace(True)
+    storage.save()
+    schema_hash = storage.schema_hash()
+    frontend.load(storage_path, require_schema=schema_hash)

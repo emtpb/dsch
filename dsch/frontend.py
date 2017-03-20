@@ -47,7 +47,7 @@ def create(storage_path, schema_node, backend=None):
                                                    schema_node=schema_node)
 
 
-def load(storage_path, backend=None):
+def load(storage_path, backend=None, require_schema=None):
     """Load a dsch storage from the given path.
 
     Normally, the correct backend is detected automatically by interpreting the
@@ -55,16 +55,31 @@ def load(storage_path, backend=None):
     be forced to a desired value by additionally passing a ``backend``
     argument.
 
+    The ``require_schema`` argument can be used to ensure that the loaded
+    storage uses a specific schema. The value must be the SHA256 hash of the
+    required schema JSON, as can be determined by
+    :meth:`dsch.storage.schema_hash`. If the loaded storage uses a different
+    schema, an exception is raised.
+
     Args:
         storage_path (str): Path to the dsch storage to load.
         backend (str): Backend to be used. By default, perform auto-detection.
+        require_schema (str): SHA256 hash of the required schema.
 
     Returns:
         Storage object.
+
+    Raises:
+        RuntimeError: if the SHA256 hash given to ``require_schema`` did not
+            match.
     """
     if not backend:
         backend = _autodetect_backend(storage_path)
-    return helpers.backend_module(backend).Storage(storage_path=storage_path)
+    backend_module = helpers.backend_module(backend)
+    storage = backend_module.Storage(storage_path=storage_path)
+    if require_schema and storage.schema_hash() != require_schema:
+        raise RuntimeError('Loaded schema does not match the required schema.')
+    return storage
 
 
 def _autodetect_backend(storage_path):
