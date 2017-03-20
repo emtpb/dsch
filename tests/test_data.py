@@ -28,11 +28,12 @@ class TestArray:
         assert data_node[1] == 42
         assert np.all(data_node[()] == np.array([23, 42]))
 
-    def test_init(self, backend):
+    def test_init_new(self, backend):
         schema_node = schema.Array(dtype='int')
         data_node = backend.module.Array(schema_node,
                                          new_params=backend.new_params)
         assert data_node.schema_node == schema_node
+        assert data_node._storage is None
 
     def test_replace(self, backend):
         data_node = backend.module.Array(schema.Array(dtype='int'),
@@ -65,11 +66,12 @@ class TestArray:
 
 
 class TestBool:
-    def test_init(self, backend):
+    def test_init_new(self, backend):
         schema_node = schema.Bool()
         data_node = backend.module.Bool(schema_node,
                                         new_params=backend.new_params)
         assert data_node.schema_node == schema_node
+        assert data_node._storage is None
 
     def test_replace(self, backend):
         data_node = backend.module.Bool(schema.Bool(),
@@ -88,6 +90,7 @@ class TestBool:
     def test_value(self, backend):
         data_node = backend.module.Bool(schema.Bool(),
                                         new_params=backend.new_params)
+        data_node.replace(True)
         assert isinstance(data_node.value, bool)
 
 
@@ -230,11 +233,12 @@ class TestList:
 
 
 class TestString:
-    def test_init(self, backend):
+    def test_init_new(self, backend):
         schema_node = schema.String()
         data_node = backend.module.String(schema_node,
                                           new_params=backend.new_params)
         assert data_node.schema_node == schema_node
+        assert data_node._storage is None
 
     def test_replace(self, backend):
         data_node = backend.module.String(schema.String(),

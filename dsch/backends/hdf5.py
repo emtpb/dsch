@@ -23,6 +23,23 @@ class _ItemNode(data.ItemNode):
         self._dataset_name = data_storage.name.split('/')[-1]
         self._parent = data_storage.parent
 
+    def _init_new(self, new_params):
+        """Initialize new, empty data node.
+
+        The new data node is generally initialized without data, i.e. no
+        storage data object exists. Use :meth:`replace` to apply the desired
+        value.
+
+        The HDF5 dataset name and parent are given as ``new_params['parent']``
+        and ``new_params['name']``.
+
+        Args:
+            new_params (dict): Dict including the HDF5 dataset name as ``name``
+                and the HDF5 parent object as ``parent``.
+        """
+        self._dataset_name = new_params['name']
+        self._parent = new_params['parent']
+
     def replace(self, new_value):
         """Completely replace the current node value.
 
@@ -45,32 +62,42 @@ class _ItemNode(data.ItemNode):
 class Array(_ItemNode):
     """Array-type data node for the HDF5 backend."""
 
-    def _init_new(self, new_params):
-        """Initialize new, empty Array data node.
-
-        The HDF5 dataset name and parent are given as ``new_params['parent']``
-        and ``new_params['name']``.
-        The dataset itself is only created if the corresponding schema node
-        defines :attr:`dsch.schema.Array.min_shape`, in which case the dataset
-        is initialized with that size. Otherwise, the dataset is left empty and
-        can be filled by calling :meth:`replace`.
-
-        Args:
-            new_params (dict): Dict including the HDF5 dataset name as ``name``
-                and the HDF5 parent object as ``parent``.
-        """
-        self._dataset_name = new_params['name']
-        self._parent = new_params['parent']
-        if self.schema_node.min_shape:
-            self._storage = self._parent.create_dataset(
-                self._dataset_name,
-                dtype=self.schema_node.dtype,
-                shape=self.schema_node.min_shape
-            )
-
     def __getitem__(self, key):
         """Pass slicing/indexing operations directly to HDF5 dataset."""
         return self._storage[key]
+
+    def replace(self, new_value):
+        """Completely replace the current node value.
+
+        Instead of changing parts of the data (e.g. via numpy array slicing),
+        replace the entire data object for this node.
+
+        Args:
+            new_value: New value to apply to the node, independent of the
+                backend in use.
+        """
+        try:
+            del self._parent[self._dataset_name]
+        except KeyError:
+            # If the dataset has not been created yet, that's also okay.
+            pass
+
+        if self.schema_node.max_shape:
+            if self.schema_node.max_shape == self.schema_node.min_shape:
+                # For equal shape constraints, disable resizing entirely.
+                maxshape = None
+            else:
+                maxshape = self.schema_node.max_shape
+        else:
+            # Make all dimensions arbitrarily resizable by default.
+            maxshape = (None,) * self.schema_node.ndim
+
+        self._storage = self._parent.create_dataset(
+            self._dataset_name,
+            data=new_value,
+            dtype=self.schema_node.dtype,
+            maxshape=maxshape,
+        )
 
     def __setitem__(self, key, value):
         """Pass slicing/indexing operations directly to HDF5 dataset."""
@@ -86,27 +113,13 @@ class Array(_ItemNode):
         Returns:
             Node data.
         """
+        if self._storage is None:
+            raise RuntimeError('Empty data node has no value.')
         return self._storage.value
 
 
 class Bool(_ItemNode):
     """Bool-type data node for the HDF5 backend."""
-
-    def _init_new(self, new_params):
-        """Initialize new, empty Bool data node.
-
-        Creates a new HDF5 dataset as the data storage for this node. The HDF5
-        dataset name and parent are given as ``new_params['parent']`` and
-        ``new_params['name']``.
-
-        Args:
-            new_params (dict): Dict including the HDF5 dataset name as ``name``
-                and the HDF5 parent object as ``parent``.
-        """
-        self._dataset_name = new_params['name']
-        self._parent = new_params['parent']
-        self._storage = self._parent.create_dataset(self._dataset_name,
-                                                    dtype='bool', shape=())
 
     def replace(self, new_value):
         """Completely replace the current node value.
@@ -118,7 +131,11 @@ class Bool(_ItemNode):
             new_value: New value to apply to the node, independent of the
                 backend in use.
         """
-        self._storage[()] = new_value
+        if self._storage:
+            self._storage[()] = new_value
+        else:
+            self._storage = self._parent.create_dataset(self._dataset_name,
+                                                        data=new_value)
 
     @property
     def value(self):
@@ -130,6 +147,8 @@ class Bool(_ItemNode):
         Returns:
             Node data.
         """
+        if self._storage is None:
+            raise RuntimeError('Empty data node has no value.')
         return bool(self._storage.value)
 
 
@@ -257,22 +276,6 @@ class List(data.List):
 class String(_ItemNode):
     """String-type data node for the HDF5 backend."""
 
-    def _init_new(self, new_params):
-        """Initialize new, empty String data node.
-
-        Creates a new HDF5 dataset as the data storage for this node. The HDF5
-        dataset name and parent are given as ``new_params['parent']`` and
-        ``new_params['name']``.
-
-        Args:
-            new_params (dict): Dict including the HDF5 dataset name as ``name``
-                and the HDF5 parent object as ``parent``.
-        """
-        self._dataset_name = new_params['name']
-        self._parent = new_params['parent']
-        self._storage = self._parent.create_dataset(self._dataset_name,
-                                                    data='')
-
     def replace(self, new_value):
         """Completely replace the current node value.
 
@@ -283,7 +286,11 @@ class String(_ItemNode):
             new_value: New value to apply to the node, independent of the
                 backend in use.
         """
-        self._storage[()] = new_value
+        if self._storage:
+            self._storage[()] = new_value
+        else:
+            self._storage = self._parent.create_dataset(self._dataset_name,
+                                                        data=new_value)
 
     @property
     def value(self):
@@ -295,4 +302,6 @@ class String(_ItemNode):
         Returns:
             Node data.
         """
+        if self._storage is None:
+            raise RuntimeError('Empty data node has no value.')
         return self._storage.value
