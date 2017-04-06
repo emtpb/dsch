@@ -4,10 +4,12 @@ import pytest
 from dsch import frontend, schema
 
 
-@pytest.fixture(params=('hdf5', 'npz'))
+@pytest.fixture(params=('hdf5', 'mat', 'npz'))
 def storage_path(request, tmpdir):
     if request.param == 'hdf5':
         storage_path = str(tmpdir.join('test_file.h5'))
+    elif request.param == 'mat':
+        storage_path = str(tmpdir.join('test_file.mat'))
     elif request.param == 'npz':
         storage_path = str(tmpdir.join('test_file.npz'))
     return storage_path
