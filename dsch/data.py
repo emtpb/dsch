@@ -44,7 +44,7 @@ class Compilation:
         """
         self.schema_node = schema_node
         self._subnodes = {}
-        if data_storage:
+        if data_storage is not None:
             self._init_from_storage(data_storage)
         else:
             self._init_new(new_params)
@@ -239,7 +239,7 @@ class List:
         """
         self.schema_node = schema_node
         self._subnodes = []
-        if data_storage:
+        if data_storage is not None:
             self._init_from_storage(data_storage)
         else:
             self._init_new(new_params)
