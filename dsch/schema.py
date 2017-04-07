@@ -59,6 +59,16 @@ class Array:
     * Minimum and maximum array values. This constraint is applied to each
       individual value in the array, meaning that a single array element value
       outside the given boundaries causes validation to fail.
+    * Linking with independent variables. Often, an array represents a variable
+      that depends on another variable, e.g. a time-dependent voltage vector
+      ``u(t)``. When ``t`` is registered as an independent variable of ``u``,
+      dsch ensures that the array sizes match.
+      Independent variables can be defined by supplying the desired node's name
+      to the ``depends_on`` argument. Note that this only works if the
+      dependent and independent variable's nodes are both direct sub-nodes of
+      the same :class:`Compilation`.
+      For multi-dimensional arrays, ``depends_on`` is a tuple, containing a
+      node name (or ``None``) for each of the array's dimensions.
 
     Note: The constraint parameters for array shape and values all default to
     ``None``, effectively disabling the corresponding validation step.
@@ -72,10 +82,12 @@ class Array:
         ndim (int): Number of array dimensions.
         max_value: Maximum allowed value for any element.
         min_value: Minimum allowed value for any element.
+        depends_on (str or tuple): Name(s) of nodes representing the
+            independent variables.
     """
 
     def __init__(self, dtype, unit='', max_shape=None, min_shape=None,
-                 ndim=1, max_value=None, min_value=None):
+                 ndim=1, max_value=None, min_value=None, depends_on=None):
         """Initialize array-type schema node.
 
         Args:
@@ -87,6 +99,8 @@ class Array:
             ndim (int): Number of array dimensions.
             max_value: Maximum allowed value for any element.
             min_value: Minimum allowed value for any element.
+            depends_on (str or tuple): Name(s) of nodes representing the
+                independent variables.
         """
         if max_shape and min_shape and len(max_shape) != len(min_shape):
             raise ValueError('Shape constraints must have the same length.')
@@ -101,6 +115,13 @@ class Array:
             self.ndim = ndim
         self.max_value = max_value
         self.min_value = min_value
+        if isinstance(depends_on, str):
+            self.depends_on = (depends_on,)
+        else:
+            self.depends_on = depends_on
+        if self.depends_on and len(self.depends_on) != self.ndim:
+            raise ValueError('Number of independent variables must be equal '
+                             'to the number of array dimensions.')
 
     @classmethod
     def from_dict(cls, node_dict):
@@ -133,22 +154,31 @@ class Array:
             'ndim': self.ndim,
             'max_value': self.max_value,
             'min_value': self.min_value,
+            'depends_on': self.depends_on,
             'dtype': self.dtype,
         }
         return {'node_type': 'Array', 'config': config}
 
-    def validate(self, test_data):
+    def validate(self, test_data, independent_values):
         """Validate given data against the node's constraints.
 
         For :class:`Array` nodes, this ensures that the given data type is of
         type :class:`numpy.ndarray` and that all constraints (dimensions, dtype
         etc.) are met.
 
+        If :attr:`depends_on` is set, the array dimensions are automatically
+        validated against the independent variable's array length. Therefore,
+        in contrast to other node types, this method requires a second
+        argument, supplying a tuple of :class:`numpy.ndarray` representing the
+        independent variables. The tuple's length must consequently be equal to
+        :attr:`ndim` and to the length of :attr:`depends_on`.
+
         If validation succeeds, the method terminates silently. Otherwise, an
         exception is raised.
 
         Args:
             test_data: Data to be validated.
+            independent_values: Values of the independent variables.
 
         Raises:
             :exc:`.ValidationError`: if validation fails.
@@ -182,6 +212,12 @@ class Array:
         if self.dtype and not test_data.dtype == self.dtype:
             raise ValidationError('Invalid dtype.', self.dtype,
                                   test_data.dtype)
+
+        if self.depends_on:
+            for dim, value in enumerate(independent_values):
+                if value.size != test_data.shape[dim]:
+                    raise ValidationError('Dependent array size mismatch.',
+                                          value.size, test_data.shape[dim])
 
 
 class Bool:

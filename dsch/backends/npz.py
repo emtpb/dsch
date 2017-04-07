@@ -48,6 +48,23 @@ class Array(data.ItemNode):
         """Pass slicing/indexing operations directly to NumPy array."""
         self._storage[key] = value
 
+    def validate(self):
+        """Validate the node value against the schema node specification.
+
+        If validation succeeds, the method terminates silently. Otherwise, an
+        exception is raised.
+
+        Raises:
+            :exc:`dsch.schema.ValidationError`: if validation fails.
+        """
+        independent_values = []
+        node_names = self.schema_node.depends_on or []
+        for node_name in node_names:
+            if node_name:
+                independent_values.append(getattr(self.parent, node_name)
+                                          .value)
+        self.schema_node.validate(self.value, independent_values)
+
     @property
     def value(self):
         """Return the actual node data, independent of the backend in use.

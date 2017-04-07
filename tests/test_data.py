@@ -73,6 +73,15 @@ class TestArray:
         data_node.replace(np.array([23, 42]))
         data_node.validate()
 
+    def test_validate_depends_on(self, backend):
+        comp = backend.module.Compilation(schema.Compilation({
+            'time': schema.Array(dtype='float'),
+            'voltage': schema.Array(dtype='float', depends_on='time'),
+        }), parent=None, new_params=backend.new_params)
+        comp.time.replace(np.array([0, 1, 2], dtype='float'))
+        comp.voltage.replace(np.array([2, 3, 5], dtype='float'))
+        comp.voltage.validate()
+
     def test_value(self, backend):
         data_node = backend.module.Array(schema.Array(dtype='int'),
                                          parent=None,
