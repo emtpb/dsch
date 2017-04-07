@@ -30,7 +30,8 @@ class Compilation(npz.Compilation):
 
         for node_name, subnode in self.schema_node.subnodes.items():
             self._subnodes[node_name] = data.data_node_from_schema(
-                subnode, self.__module__, data_storage=data_storage[node_name])
+                subnode, self.__module__, self,
+                data_storage=data_storage[node_name])
 
 
 class List(npz.List):
@@ -53,7 +54,7 @@ class List(npz.List):
         for field in data_storage:
             node_storage = field
             subnode = data.data_node_from_schema(self.schema_node.subnode,
-                                                 self.__module__,
+                                                 self.__module__, self,
                                                  data_storage=node_storage)
             self._subnodes.append(subnode)
 
@@ -89,7 +90,7 @@ class Storage(npz.Storage):
         file_ = sio.loadmat(self.storage_path, squeeze_me=True)
         self._schema_from_json(file_['schema'])
         self.data = data.data_node_from_schema(self.schema_node,
-                                               self.__module__,
+                                               self.__module__, None,
                                                data_storage=file_['data'])
 
     def save(self):

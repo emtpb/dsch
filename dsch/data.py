@@ -25,7 +25,8 @@ class Compilation:
         schema_node: The schema node that this data node is based on.
     """
 
-    def __init__(self, schema_node, data_storage=None, new_params=None):
+    def __init__(self, schema_node, parent, data_storage=None,
+                 new_params=None):
         """Initialize compilation node from a given schema node.
 
         When ``data_storage`` is given, the Compilation and all its sub-nodes
@@ -39,10 +40,13 @@ class Compilation:
 
         Args:
             schema_node: Schema node to create the data node for.
+            parent: Parent data node object (``None`` if this is the top-level
+                data node).
             data_storage: Backend-specific data storage object to load.
             new_params: Backend-specific metadata for data node creation.
         """
         self.schema_node = schema_node
+        self.parent = parent
         self._subnodes = {}
         if data_storage is not None:
             self._init_from_storage(data_storage)
@@ -78,7 +82,8 @@ class Compilation:
         """
         for node_name, subnode in self.schema_node.subnodes.items():
             self._subnodes[node_name] = data_node_from_schema(
-                subnode, self.__module__, data_storage=data_storage[node_name])
+                subnode, self.__module__, self,
+                data_storage=data_storage[node_name])
 
     def _init_new(self, new_params):
         """Initialize new, empty Compilation.
@@ -91,7 +96,7 @@ class Compilation:
         """
         for node_name, subnode in self.schema_node.subnodes.items():
             self._subnodes[node_name] = data_node_from_schema(
-                subnode, self.__module__)
+                subnode, self.__module__, self)
 
     def replace(self, new_value):
         """Replace the current compilation values with new ones.
@@ -138,17 +143,21 @@ class ItemNode:
         value: Actual node data, independent of the backend in use.
     """
 
-    def __init__(self, schema_node, data_storage=None, new_params=None):
+    def __init__(self, schema_node, parent, data_storage=None,
+                 new_params=None):
         """Initialize data node from a given schema node.
 
         Note: Both ``data_storage`` and ``new_params`` are backend-specific.
 
         Args:
             schema_node: Schema node to create the data node for.
+            parent: Parent data node object (``None`` if this is the top-level
+                data node).
             data_storage: Backend-specific data storage object to load.
             new_params: Backend-specific metadata for data node creation.
         """
         self.schema_node = schema_node
+        self.parent = parent
         self._storage = None
         if data_storage is not None:
             self._init_from_storage(data_storage)
@@ -227,17 +236,21 @@ class List:
         schema_node: The schema node that this data node is based on.
     """
 
-    def __init__(self, schema_node, data_storage=None, new_params=None):
+    def __init__(self, schema_node, parent, data_storage=None,
+                 new_params=None):
         """Initialize list node from a given schema node.
 
         Note: Both ``data_storage`` and ``new_params`` are backend-specific.
 
         Args:
             schema_node: Schema node to create the data node for.
+            parent: Parent data node object (``None`` if this is the top-level
+                data node).
             data_storage: Backend-specific data storage object to load.
             new_params: Backend-specific metadata for data node creation.
         """
         self.schema_node = schema_node
+        self.parent = parent
         self._subnodes = []
         if data_storage is not None:
             self._init_from_storage(data_storage)
@@ -257,7 +270,7 @@ class List:
             value: Value to be added to the list.
         """
         subnode = data_node_from_schema(self.schema_node.subnode,
-                                        self.__module__)
+                                        self.__module__, self)
         self._subnodes.append(subnode)
         if value is not None:
             subnode.replace(value)
@@ -293,7 +306,7 @@ class List:
         """
         for _, node_storage in sorted(data_storage.items()):
             subnode = data_node_from_schema(self.schema_node.subnode,
-                                            self.__module__,
+                                            self.__module__, self,
                                             data_storage=node_storage)
             self._subnodes.append(subnode)
 
@@ -334,7 +347,7 @@ class List:
             node.validate()
 
 
-def data_node_from_schema(schema_node, module_name, data_storage=None,
+def data_node_from_schema(schema_node, module_name, parent, data_storage=None,
                           new_params=None):
     """Create a new data node from a given schema node.
 
@@ -350,6 +363,7 @@ def data_node_from_schema(schema_node, module_name, data_storage=None,
     Args:
         schema_node: Schema node instance to create a data node for.
         module_name (str): The full module name of the data storage backend.
+        parent: Parent data node object.
         data_storage: Backend-specific data storage object to load.
         new_params: Backend-specific metadata for data node creation.
 
@@ -359,5 +373,5 @@ def data_node_from_schema(schema_node, module_name, data_storage=None,
     backend_module = importlib.import_module(module_name)
     node_type_name = type(schema_node).__name__
     data_node_type = getattr(backend_module, node_type_name)
-    return data_node_type(schema_node, data_storage=data_storage,
+    return data_node_type(schema_node, parent, data_storage=data_storage,
                           new_params=new_params)

@@ -265,13 +265,13 @@ class Storage(storage.FileStorage):
             # 'data' is used for the node.
             data_storage = stored_data['data']
         self.data = data.data_node_from_schema(self.schema_node,
-                                               self.__module__,
+                                               self.__module__, None,
                                                data_storage=data_storage)
 
     def _new(self):
         """Create a new file at :attr:`storage_path`."""
         self.data = data.data_node_from_schema(self.schema_node,
-                                               self.__module__)
+                                               self.__module__, None)
 
     def save(self):
         """Save the current data to the file in :attr:`storage_path`.

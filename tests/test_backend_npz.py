@@ -7,37 +7,38 @@ from dsch.backends import npz
 
 class TestArray:
     def test_init_from_storage(self):
-        data_node = npz.Array(schema.Array(dtype='int'),
+        data_node = npz.Array(schema.Array(dtype='int'), parent=None,
                               data_storage=np.array([23, 42]))
         assert np.all(data_node._storage == np.array([23, 42]))
         assert np.all(data_node.value == np.array([23, 42]))
 
     def test_replace(self):
-        data_node = npz.Array(schema.Array(dtype='int'))
+        data_node = npz.Array(schema.Array(dtype='int'), parent=None)
         data_node.replace(np.array([23, 42]))
         assert isinstance(data_node._storage, np.ndarray)
         assert np.all(data_node._storage == np.array([23, 42]))
 
     def test_save(self):
-        data_node = npz.Array(schema.Array(dtype='int'))
+        data_node = npz.Array(schema.Array(dtype='int'), parent=None)
         data_node.replace(np.array([23, 42]))
         assert np.all(data_node.save() == np.array([23, 42]))
 
 
 class TestBool:
     def test_init_from_storage(self):
-        data_node = npz.Bool(schema.Bool(), data_storage=np.array([True]))
+        data_node = npz.Bool(schema.Bool(), parent=None,
+                             data_storage=np.array([True]))
         assert data_node._storage == np.array([True])
         assert data_node.value is True
 
     def test_replace(self):
-        data_node = npz.Bool(schema.Bool())
+        data_node = npz.Bool(schema.Bool(), parent=None)
         data_node.replace(False)
         assert isinstance(data_node._storage, np.ndarray)
         assert data_node._storage == np.array([False])
 
     def test_save(self):
-        data_node = npz.Bool(schema.Bool())
+        data_node = npz.Bool(schema.Bool(), parent=None)
         data_node.replace(False)
         assert data_node.save() == np.array([False])
 
@@ -48,14 +49,15 @@ class TestCompilation:
                                           'eggs': schema.Bool()})
         data_storage = {'spam': np.array([True]),
                         'eggs': np.array([False])}
-        data_node = npz.Compilation(schema_node, data_storage=data_storage)
+        data_node = npz.Compilation(schema_node, parent=None,
+                                    data_storage=data_storage)
         assert data_node.spam.value is True
         assert data_node.eggs.value is False
 
     def test_save(self):
         schema_node = schema.Compilation({'spam': schema.Bool(),
                                           'eggs': schema.Bool()})
-        data_node = npz.Compilation(schema_node)
+        data_node = npz.Compilation(schema_node, parent=None)
         data_node.spam.replace(True)
         data_node.eggs.replace(False)
         data_storage = data_node.save()
@@ -69,12 +71,13 @@ class TestDate:
     def test_init_from_storage(self):
         dt = datetime.date.today()
         data_storage = np.array([dt.year, dt.month, dt.day])
-        data_node = npz.Date(schema.Date(), data_storage=data_storage)
+        data_node = npz.Date(schema.Date(), parent=None,
+                             data_storage=data_storage)
         assert np.all(data_node._storage == data_storage)
         assert data_node.value == dt
 
     def test_replace(self):
-        data_node = npz.Date(schema.Date())
+        data_node = npz.Date(schema.Date(), parent=None)
         dt = datetime.date.today()
         data_node.replace(dt)
         assert isinstance(data_node._storage, np.ndarray)
@@ -82,7 +85,7 @@ class TestDate:
             [dt.year, dt.month, dt.day]))
 
     def test_save(self):
-        data_node = npz.Date(schema.Date())
+        data_node = npz.Date(schema.Date(), parent=None)
         dt = datetime.date.today()
         data_node.replace(dt)
         assert np.all(data_node.save() == np.array(
@@ -94,12 +97,13 @@ class TestDateTime:
         dt = datetime.datetime.now()
         data_storage = np.array([dt.year, dt.month, dt.day, dt.hour,
                                  dt.minute, dt.second, dt.microsecond])
-        data_node = npz.DateTime(schema.DateTime(), data_storage=data_storage)
+        data_node = npz.DateTime(schema.DateTime(), parent=None,
+                                 data_storage=data_storage)
         assert np.all(data_node._storage == data_storage)
         assert data_node.value == dt
 
     def test_replace(self):
-        data_node = npz.DateTime(schema.DateTime())
+        data_node = npz.DateTime(schema.DateTime(), parent=None)
         dt = datetime.datetime.now()
         data_node.replace(dt)
         assert isinstance(data_node._storage, np.ndarray)
@@ -108,7 +112,7 @@ class TestDateTime:
              dt.microsecond]))
 
     def test_save(self):
-        data_node = npz.DateTime(schema.DateTime())
+        data_node = npz.DateTime(schema.DateTime(), parent=None)
         dt = datetime.datetime.now()
         data_node.replace(dt)
         assert np.all(data_node.save() == np.array(
@@ -223,13 +227,13 @@ class TestList:
     def test_init_from_storage(self):
         data_storage = {'item_0': np.array([True]),
                         'item_1': np.array([False])}
-        data_node = npz.List(schema.List(schema.Bool()),
+        data_node = npz.List(schema.List(schema.Bool()), parent=None,
                              data_storage=data_storage)
         assert data_node[0].value is True
         assert data_node[1].value is False
 
     def test_save(self):
-        data_node = npz.List(schema.List(schema.Bool()))
+        data_node = npz.List(schema.List(schema.Bool()), parent=None)
         data_node.append(True)
         data_node.append(False)
         data_storage = data_node.save()
@@ -241,19 +245,19 @@ class TestList:
 class TestString:
     def test_init_from_storage(self):
         data_storage = np.array('spam', dtype='U')
-        data_node = npz.String(schema.String(),
+        data_node = npz.String(schema.String(), parent=None,
                                data_storage=data_storage)
         assert data_node._storage == data_storage
         assert data_node.value == 'spam'
 
     def test_replace(self):
-        data_node = npz.String(schema.String())
+        data_node = npz.String(schema.String(), parent=None)
         data_node.replace('spam')
         assert isinstance(data_node._storage, np.ndarray)
         assert data_node._storage == np.array('spam', dtype='U')
 
     def test_save(self):
-        data_node = npz.String(schema.String())
+        data_node = npz.String(schema.String(), parent=None)
         data_node.replace('spam')
         assert data_node.save() == np.array('spam', dtype='U')
 
@@ -263,12 +267,13 @@ class TestTime:
         dt = datetime.time(13, 37, 42, 23)
         data_storage = np.array([dt.hour, dt.minute, dt.second,
                                  dt.microsecond])
-        data_node = npz.Time(schema.Time(), data_storage=data_storage)
+        data_node = npz.Time(schema.Time(), parent=None,
+                             data_storage=data_storage)
         assert np.all(data_node._storage == data_storage)
         assert data_node.value == dt
 
     def test_replace(self):
-        data_node = npz.Time(schema.Time())
+        data_node = npz.Time(schema.Time(), parent=None)
         dt = datetime.time(13, 37, 42, 23)
         data_node.replace(dt)
         assert isinstance(data_node._storage, np.ndarray)
@@ -276,7 +281,7 @@ class TestTime:
             [dt.hour, dt.minute, dt.second, dt.microsecond]))
 
     def test_save(self):
-        data_node = npz.Time(schema.Time())
+        data_node = npz.Time(schema.Time(), parent=None)
         dt = datetime.time(13, 37, 42, 23)
         data_node.replace(dt)
         assert np.all(data_node.save() == np.array(

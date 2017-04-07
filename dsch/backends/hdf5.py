@@ -188,7 +188,7 @@ class Compilation(data.Compilation):
         for node_name, subnode in self.schema_node.subnodes.items():
             new_params_sub = {'name': node_name, 'parent': comp_group}
             self._subnodes[node_name] = data.data_node_from_schema(
-                subnode, self.__module__, new_params=new_params_sub)
+                subnode, self.__module__, self, new_params=new_params_sub)
 
 
 class Date(_ItemNode):
@@ -309,7 +309,7 @@ class Storage(storage.FileStorage):
             # name 'dsch_data'.
             data_storage = self._storage['dsch_data']
         self.data = data.data_node_from_schema(self.schema_node,
-                                               self.__module__,
+                                               self.__module__, None,
                                                data_storage=data_storage)
 
     def _new(self):
@@ -323,7 +323,7 @@ class Storage(storage.FileStorage):
             # name 'dsch_data'.
             new_params = {'name': 'dsch_data', 'parent': self._storage}
         self.data = data.data_node_from_schema(self.schema_node,
-                                               self.__module__,
+                                               self.__module__, None,
                                                new_params=new_params)
 
     def save(self):
@@ -353,7 +353,7 @@ class List(data.List):
         new_params = {'name': 'item_{}'.format(len(self)),
                       'parent': self._storage}
         subnode = data.data_node_from_schema(self.schema_node.subnode,
-                                             self.__module__,
+                                             self.__module__, self,
                                              new_params=new_params)
         self._subnodes.append(subnode)
         if value is not None:
