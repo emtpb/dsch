@@ -2,7 +2,7 @@ import numpy as np
 import scipy.io as sio
 from .. import data
 from . import npz
-from .npz import Array, Bool, Date, DateTime, String, Time
+from .npz import Array, Bool, Date, DateTime, Scalar, String, Time
 
 
 class Compilation(npz.Compilation):

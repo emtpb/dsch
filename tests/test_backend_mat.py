@@ -121,6 +121,25 @@ class TestDateTime:
              dt.microsecond]))
 
 
+class TestScalar:
+    def test_init_from_storage(self):
+        data_node = mat.Scalar(schema.Scalar(dtype='int32'), parent=None,
+                               data_storage=np.int32(42))
+        assert data_node._storage == np.int32(42)
+        assert data_node.value == 42
+
+    def test_replace(self):
+        data_node = mat.Scalar(schema.Scalar(dtype='int32'), parent=None)
+        data_node.replace(42)
+        assert isinstance(data_node._storage, np.int32)
+        assert data_node._storage == 42
+
+    def test_save(self):
+        data_node = mat.Scalar(schema.Scalar(dtype='int32'), parent=None)
+        data_node.replace(42)
+        assert data_node.save() == np.int32(42)
+
+
 class TestStorage:
     def test_load_compilation(self, tmpdir):
         schema_node = schema.Compilation({'spam': schema.Bool(),

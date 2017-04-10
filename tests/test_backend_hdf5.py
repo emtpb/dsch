@@ -187,6 +187,37 @@ class TestDateTime:
         assert data_node.value == dt
 
 
+class TestScalar:
+    def test_init_from_storage(self, hdf5file):
+        hdf5file.create_dataset('test_scalar', data=np.int32(42))
+
+        schema_node = schema.Scalar(dtype='int32')
+        data_node = hdf5.Scalar(schema_node, parent=None,
+                                data_storage=hdf5file['test_scalar'])
+        assert data_node._storage == hdf5file['test_scalar']
+        assert data_node.value == 42
+
+    def test_init_new(self, hdf5file):
+        schema_node = schema.Scalar(dtype='int32')
+        data_node = hdf5.Scalar(schema_node, parent=None,
+                                new_params={'name': 'test_scalar',
+                                            'parent': hdf5file})
+        assert 'test_scalar' not in hdf5file
+        assert data_node._dataset_name == 'test_scalar'
+        assert data_node._parent == hdf5file
+
+    def test_replace(self, hdf5file):
+        hdf5file.create_dataset('test_scalar', data=np.int32(42))
+
+        schema_node = schema.Scalar(dtype='int32')
+        data_node = hdf5.Scalar(schema_node, parent=None,
+                                data_storage=hdf5file['test_scalar'])
+        data_node.replace(42)
+        assert isinstance(data_node._storage, h5py.Dataset)
+        assert data_node._storage == hdf5file['test_scalar']
+        assert data_node.value == 42
+
+
 class TestStorage:
     def test_load_compilation(self, tmpdir):
         schema_node = schema.Compilation({'spam': schema.Bool(),

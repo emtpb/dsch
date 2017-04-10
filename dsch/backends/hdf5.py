@@ -302,6 +302,46 @@ class DateTime(_ItemNode):
         return datetime.datetime(*self._storage.value.tolist())
 
 
+class Scalar(_ItemNode):
+    """Scalar-type data node for the HDF5 backend."""
+
+    def replace(self, new_value):
+        """Completely replace the current node value.
+
+        Instead of changing parts of the data (e.g. via numpy array slicing),
+        replace the entire data object for this node.
+
+        Args:
+            new_value: New value to apply to the node, independent of the
+                backend in use.
+        """
+        try:
+            del self._parent[self._dataset_name]
+        except KeyError:
+            # If the dataset has not been created yet, that's also okay.
+            pass
+
+        self._storage = self._parent.create_dataset(
+            self._dataset_name,
+            data=new_value,
+            dtype=self.schema_node.dtype,
+        )
+
+    @property
+    def value(self):
+        """Return the actual node data, independent of the backend in use.
+
+        This representation of the data only depends on the corresponding
+        schema node, not on the selected backend.
+
+        Returns:
+            Node data.
+        """
+        if self._storage is None:
+            raise RuntimeError('Empty data node has no value.')
+        return self._storage.value
+
+
 class Storage(storage.FileStorage):
     """Interface to HDF5 files.
 

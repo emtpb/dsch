@@ -346,6 +346,36 @@ class TestList:
         data_node.validate()
 
 
+class TestScalar:
+    def test_init_new(self, backend):
+        schema_node = schema.Scalar(dtype='int32')
+        data_node = backend.module.Scalar(schema_node, parent=None,
+                                          new_params=backend.new_params)
+        assert data_node.schema_node == schema_node
+        assert data_node._storage is None
+
+    def test_replace(self, backend):
+        data_node = backend.module.Scalar(schema.Scalar(dtype='int32'),
+                                          parent=None,
+                                          new_params=backend.new_params)
+        data_node.replace(42)
+        assert data_node.value == 42
+
+    def test_validate(self, backend):
+        data_node = backend.module.Scalar(schema.Scalar(dtype='int32'),
+                                          parent=None,
+                                          new_params=backend.new_params)
+        data_node.replace(42)
+        data_node.validate()
+
+    def test_value(self, backend):
+        data_node = backend.module.Scalar(schema.Scalar(dtype='int32'),
+                                          parent=None,
+                                          new_params=backend.new_params)
+        data_node.replace(42)
+        assert isinstance(data_node.value, np.int32)
+
+
 class TestString:
     def test_init_new(self, backend):
         schema_node = schema.String()
