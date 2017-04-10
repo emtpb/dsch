@@ -136,6 +136,14 @@ class TestArray:
         assert err.value.expected == 4
         assert err.value.got == 3
 
+    def test_validate_fail_depends_indep_ndim(self):
+        node = schema.Array(dtype='int', ndim=1, depends_on=('spam'))
+        spam = np.array([[1, 2], [3, 4]])
+        with pytest.raises(ValueError) as err:
+            node.validate(np.array([23, 42]), [spam])
+        assert err.value.args[0] == ('Independent variable array must be one-'
+                                     'dimensional.')
+
     def test_validate_fail_dtype(self):
         node = schema.Array(dtype='int8')
         with pytest.raises(schema.ValidationError) as err:

@@ -215,6 +215,9 @@ class Array:
 
         if self.depends_on:
             for dim, value in enumerate(independent_values):
+                if value.ndim > 1:
+                    raise ValueError('Independent variable array must be '
+                                     'one-dimensional.')
                 if value.size != test_data.shape[dim]:
                     raise ValidationError('Dependent array size mismatch.',
                                           value.size, test_data.shape[dim])
