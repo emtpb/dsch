@@ -536,6 +536,111 @@ class List:
         return node_dict
 
 
+class Scalar:
+    """Schema node for NumPy scalar values.
+
+    This node type accepts scalar values of all numeric NumPy scalar types,
+    i.e.  subclasses of :class:`numpy.number`.
+
+    In addition to the actual value, Scalars contain some metadata:
+
+    * The unit of the physical quantity that is represented by the value,
+      e.g. 'V' for volts.
+
+    Also, Scalars support various constraints:
+
+    * NumPy data type (:class:`numpy.dtype`). This directly validates the
+      scalar's ``dtype``. Note that the data type is always matched exactly, so
+      one cannot require "any of the int.
+      This attribute is non-optional, since many backends require knowledge of
+      the data type for efficient storage.
+    * Minimum and maximum values.
+
+    Attributes:
+        dtype (:class:`numpy.dtype` or :class:`str`): Required NumPy dtype.
+        unit (str): Unit of the physical quantity, e.g. 'V' for volts. Unit
+            (and value) should be given without any SI prefixes.
+        max_value: Maximum allowed value.
+        min_value: Minimum allowed value.
+    """
+
+    def __init__(self, dtype, unit='', max_value=None, min_value=None):
+        """Initialize scalar-type schema node.
+
+        Args:
+            dtype (:class:`numpy.dtype` or str): Required NumPy dtype.
+            unit (str): Unit of the physical quantity, e.g. 'V' for volts. Unit
+                (and value) should be given without any SI prefixes.
+            max_value: Maximum allowed value.
+            min_value: Minimum allowed value.
+        """
+        self.dtype = dtype
+        self.unit = unit
+        self.max_value = max_value
+        self.min_value = min_value
+
+    @classmethod
+    def from_dict(cls, node_dict):
+        """Create a new instance from a dict representation.
+
+        Args:
+            node_dict: dict-representation of the node to be loaded.
+
+        Returns:
+            :class:`Scalar`: New scalar-type schema node.
+        """
+        if node_dict['node_type'] != 'Scalar':
+            raise ValueError('Invalid node type in dict.')
+        return cls(**node_dict['config'])
+
+    def to_dict(self):
+        """Return the node representation as a dict.
+
+        The representation dict includes a field ``node_type`` with the node
+        class name and a field ``config`` with a dict of the configuration
+        options.
+
+        Returns:
+            dict: dict-representation of the node.
+        """
+        config = {
+            'dtype': self.dtype,
+            'unit': self.unit,
+            'max_value': self.max_value,
+            'min_value': self.min_value,
+        }
+        return {'node_type': 'Scalar', 'config': config}
+
+    def validate(self, test_data):
+        """Validate given data against the node's constraints.
+
+        For :class:`Scalar` nodes, this ensures that the given data type is of
+        a subtype of :class:`numpy.number` and that all constraints (dtype
+        etc.) are met.
+
+        If validation succeeds, the method terminates silently. Otherwise, an
+        exception is raised.
+
+        Args:
+            test_data: Data to be validated.
+
+        Raises:
+            :exc:`.ValidationError`: if validation fails.
+        """
+        if not isinstance(test_data, np.number):
+            raise ValidationError('Invalid type/value.', 'numpy.number',
+                                  type(test_data))
+        if self.max_value is not None and test_data > self.max_value:
+            raise ValidationError('Maximum value exceeded.',
+                                  self.max_value, test_data)
+        if self.min_value is not None and test_data < self.min_value:
+            raise ValidationError('Minimum value undercut.',
+                                  self.min_value, test_data)
+        if self.dtype and not test_data.dtype == self.dtype:
+            raise ValidationError('Invalid dtype.', self.dtype,
+                                  test_data.dtype)
+
+
 class String:
     """Schema node for string values.
 

@@ -429,6 +429,75 @@ class TestList:
         assert node_dict['config']['subnode'] == subnode.to_dict()
 
 
+class TestScalar:
+    def test_from_dict(self):
+        node = schema.Scalar.from_dict({'node_type': 'Scalar', 'config': {
+            'dtype': 'float64',
+            'unit': 'V',
+            'max_value': 42,
+            'min_value': 23,
+        }})
+        assert isinstance(node, schema.Scalar)
+        assert node.dtype == 'float64'
+        assert node.unit == 'V'
+        assert node.max_value == 42
+        assert node.min_value == 23
+
+    def test_from_dict_fail(self):
+        with pytest.raises(ValueError) as err:
+            schema.Scalar.from_dict({'node_type': 'SPAM', 'config': {}})
+        assert err.value.args[0] == 'Invalid node type in dict.'
+
+    def test_init_defaults(self):
+        node = schema.Scalar(dtype='int32')
+        assert node.dtype == 'int32'
+        assert node.unit == ''
+        assert node.max_value is None
+        assert node.min_value is None
+
+    def test_to_dict(self):
+        node = schema.Scalar(dtype='float64', unit='V', max_value=42,
+                             min_value=23)
+        node_dict = node.to_dict()
+        assert 'node_type' in node_dict
+        assert node_dict['node_type'] == 'Scalar'
+        assert 'config' in node_dict
+        assert node_dict['config'] == {
+            'dtype': 'float64',
+            'unit': 'V',
+            'max_value': 42,
+            'min_value': 23,
+        }
+
+    def test_validate(self):
+        node = schema.Scalar(dtype='float64', unit='V', max_value=42,
+                             min_value=23)
+        node.validate(np.float64(23.5))
+
+    def test_validate_fail_max_value(self):
+        node = schema.Scalar(dtype='int32', max_value=42)
+        with pytest.raises(schema.ValidationError) as err:
+            node.validate(np.int32(43))
+        assert err.value.message == 'Maximum value exceeded.'
+        assert err.value.expected == 42
+        assert err.value.got == 43
+
+    def test_validate_fail_min_value(self):
+        node = schema.Scalar(dtype='int32', min_value=23)
+        with pytest.raises(schema.ValidationError) as err:
+            node.validate(np.int32(22))
+        assert err.value.message == 'Minimum value undercut.'
+        assert err.value.expected == 23
+        assert err.value.got == 22
+
+    @pytest.mark.parametrize('test_data', (True, [23, 42], 'spam',
+                                           np.array([42])))
+    def test_validate_fail_type(self, test_data):
+        node = schema.Scalar(dtype='float64')
+        with pytest.raises(schema.ValidationError):
+            node.validate(test_data)
+
+
 class TestString:
     @pytest.mark.parametrize('config,expected', (
         ({}, {'min_length': None, 'max_length': None}),
