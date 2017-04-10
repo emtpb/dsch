@@ -259,6 +259,16 @@ class List(data.List):
 class Scalar(data.ItemNode):
     """Scalar-type data node for the npz backend."""
 
+    def _init_from_storage(self, data_storage):
+        """Create a new data node from a data storage object.
+
+        This initializes the data node using the given data storage object.
+
+        Args:
+            data_storage: Backend-specific data storage object to load.
+        """
+        self._storage = np.dtype(self.schema_node.dtype).type(data_storage)
+
     def replace(self, new_value):
         """Completely replace the current node value.
 
