@@ -29,6 +29,14 @@ class TestArray:
         data_node.clear()
         assert data_node._storage is None
 
+    def test_complete(self, backend):
+        data_node = backend.module.Array(schema.Array(dtype='int'),
+                                         parent=None,
+                                         new_params=backend.new_params)
+        assert not data_node.complete
+        data_node.replace(np.array([23, 42]))
+        assert data_node.complete
+
     def test_empty(self, backend):
         data_node = backend.module.Array(schema.Array(dtype='int'),
                                          parent=None,
@@ -114,6 +122,13 @@ class TestBool:
         data_node.clear()
         assert data_node._storage is None
 
+    def test_complete(self, backend):
+        data_node = backend.module.Bool(schema.Bool(), parent=None,
+                                        new_params=backend.new_params)
+        assert not data_node.complete
+        data_node.replace(False)
+        assert data_node.complete
+
     def test_empty(self, backend):
         data_node = backend.module.Bool(schema.Bool(), parent=None,
                                         new_params=backend.new_params)
@@ -160,6 +175,17 @@ class TestCompilation:
         comp.clear()
         assert comp.spam._storage is None
         assert comp.eggs._storage is None
+
+    def test_complete(self, backend):
+        schema_node = schema.Compilation({'spam': schema.Bool(),
+                                          'eggs': schema.Bool()})
+        comp = backend.module.Compilation(schema_node, parent=None,
+                                          new_params=backend.new_params)
+        assert not comp.complete
+        comp.spam.replace(True)
+        assert not comp.complete
+        comp.eggs.replace(False)
+        assert comp.complete
 
     def test_empty(self, backend):
         schema_node = schema.Compilation({'spam': schema.Bool(),
@@ -243,6 +269,13 @@ class TestDate:
         data_node.clear()
         assert data_node._storage is None
 
+    def test_complete(self, backend):
+        data_node = backend.module.Date(schema.Date(), parent=None,
+                                        new_params=backend.new_params)
+        assert not data_node.complete
+        data_node.replace(datetime.date.today())
+        assert data_node.complete
+
     def test_empty(self, backend):
         data_node = backend.module.Date(schema.Date(), parent=None,
                                         new_params=backend.new_params)
@@ -296,6 +329,14 @@ class TestDateTime:
         data_node.replace(dt)
         data_node.clear()
         assert data_node._storage is None
+
+    def test_complete(self, backend):
+        data_node = backend.module.DateTime(schema.DateTime(), parent=None,
+                                            new_params=backend.new_params)
+        assert not data_node.complete
+        dt = datetime.datetime.now()
+        data_node.replace(dt)
+        assert data_node.complete
 
     def test_empty(self, backend):
         data_node = backend.module.DateTime(schema.DateTime(), parent=None,
@@ -365,6 +406,16 @@ class TestList:
         assert len(data_node._subnodes) == 1
         data_node.clear()
         assert len(data_node._subnodes) == 0
+
+    def test_complete(self, backend):
+        data_node = backend.module.List(schema.List(schema.Bool()),
+                                        parent=None,
+                                        new_params=backend.new_params)
+        assert data_node.complete
+        data_node.append()
+        assert not data_node.complete
+        data_node[0].replace(True)
+        assert data_node.complete
 
     def test_empty(self, backend):
         data_node = backend.module.List(schema.List(schema.Bool()),
@@ -455,6 +506,14 @@ class TestScalar:
         data_node.clear()
         assert data_node._storage is None
 
+    def test_complete(self, backend):
+        data_node = backend.module.Scalar(schema.Scalar(dtype='int32'),
+                                          parent=None,
+                                          new_params=backend.new_params)
+        assert not data_node.complete
+        data_node.replace(42)
+        assert data_node.complete
+
     def test_empty(self, backend):
         data_node = backend.module.Scalar(schema.Scalar(dtype='int32'),
                                           parent=None,
@@ -500,6 +559,13 @@ class TestString:
         data_node.clear()
         assert data_node._storage is None
 
+    def test_complete(self, backend):
+        data_node = backend.module.String(schema.String(), parent=None,
+                                          new_params=backend.new_params)
+        assert not data_node.complete
+        data_node.replace('spam')
+        assert data_node.complete
+
     def test_empty(self, backend):
         data_node = backend.module.String(schema.String(), parent=None,
                                           new_params=backend.new_params)
@@ -541,6 +607,14 @@ class TestTime:
         data_node.replace(dt)
         data_node.clear()
         assert data_node._storage is None
+
+    def test_complete(self, backend):
+        data_node = backend.module.Time(schema.Time(), parent=None,
+                                        new_params=backend.new_params)
+        assert not data_node.complete
+        dt = datetime.time(13, 37, 42, 23)
+        data_node.replace(dt)
+        assert data_node.complete
 
     def test_empty(self, backend):
         data_node = backend.module.Time(schema.Time(), parent=None,

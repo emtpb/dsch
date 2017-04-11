@@ -68,6 +68,21 @@ class Compilation:
         for node in self._subnodes.values():
             node.clear()
 
+    @property
+    def complete(self):
+        """Check whether the Compilation is currently complete.
+
+        A Compilation is considered complete when all individual sub-nodes are
+        not empty. Note that this is not the inverse of :attr:`empty`!
+
+        Returns:
+            bool: ``True`` if the data node is complete, ``False`` otherwise.
+        """
+        for node in self._subnodes.values():
+            if not node.complete:
+                return False
+        return True
+
     def __dir__(self):
         """Include sub-nodes in :meth:`dir`."""
         attrs = super().__dir__()
@@ -210,6 +225,21 @@ class ItemNode:
         self._storage = None
 
     @property
+    def complete(self):
+        """Check whether the data node is currently complete.
+
+        A data node is considered complete when a corresponding storage object
+        exists. For non-containing nodes (i.e. all node types except
+        :class:`Compilation` and :class:`List`), this is always the inverse of
+        :attr:`empty`, but the property is still provided for interface
+        compatibility.
+
+        Returns:
+            bool: ``True`` if the data node is complete, ``False`` otherwise.
+        """
+        return not self.empty
+
+    @property
     def empty(self):
         """Check whether the data node is currently empty.
 
@@ -338,6 +368,21 @@ class List:
     def clear(self):
         """Clear all subnodes."""
         self._subnodes.clear()
+
+    @property
+    def complete(self):
+        """Check whether the List is currently complete.
+
+        A List is considered complete when all of its sub-nodes are complete.
+        Note that an empty List is also considered complete!
+
+        Returns:
+            bool: ``True`` if the data node is complete, ``False`` otherwise.
+        """
+        for node in self._subnodes:
+            if not node.complete:
+                return False
+        return True
 
     @property
     def empty(self):
