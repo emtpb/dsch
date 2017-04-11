@@ -376,10 +376,14 @@ class TestDateTime:
 class TestList:
     def test_from_dict(self):
         node_dict = {'node_type': 'List', 'config': {
-            'subnode': {'node_type': 'Bool', 'config': {}}
+            'subnode': {'node_type': 'Bool', 'config': {}},
+            'max_length': 3,
+            'min_length': 1,
         }}
         node = schema.List.from_dict(node_dict)
         assert isinstance(node.subnode, schema.Bool)
+        assert node.max_length == 3
+        assert node.min_length == 1
 
     def test_from_dict_compilation_in_list(self):
         node_dict = {'node_type': 'List', 'config': {
@@ -417,16 +421,45 @@ class TestList:
     def test_init(self):
         node = schema.List(schema.Bool())
         assert isinstance(node.subnode, schema.Bool)
+        assert node.max_length is None
+        assert node.min_length is None
 
     def test_to_dict(self):
         subnode = schema.Bool()
-        node = schema.List(subnode)
+        node = schema.List(subnode, max_length=3, min_length=1)
         node_dict = node.to_dict()
         assert 'node_type' in node_dict
         assert node_dict['node_type'] == 'List'
         assert 'config' in node_dict
         assert 'subnode' in node_dict['config']
         assert node_dict['config']['subnode'] == subnode.to_dict()
+        assert 'max_length' in node_dict['config']
+        assert node_dict['config']['max_length'] == 3
+        assert 'min_length' in node_dict['config']
+        assert node_dict['config']['min_length'] == 1
+
+    def test_validate(self):
+        subnode = schema.Bool()
+        node = schema.List(subnode, max_length=3, min_length=1)
+        node.validate([23, 42])
+
+    def test_validate_fail_max_length(self):
+        subnode = schema.Bool()
+        node = schema.List(subnode, max_length=3)
+        with pytest.raises(schema.ValidationError) as err:
+            node.validate([1, 2, 3, 4])
+        assert err.value.message == 'Maximum list length exceeded.'
+        assert err.value.expected == 3
+        assert err.value.got == 4
+
+    def test_validate_fail_min_length(self):
+        subnode = schema.Bool()
+        node = schema.List(subnode, min_length=3)
+        with pytest.raises(schema.ValidationError) as err:
+            node.validate([1, 2])
+        assert err.value.message == 'Minimum list length undercut.'
+        assert err.value.expected == 3
+        assert err.value.got == 2
 
 
 class TestScalar:

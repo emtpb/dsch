@@ -345,6 +345,18 @@ class TestList:
         data_node.append(True)
         data_node.validate()
 
+    def test_validate_fail(self, backend):
+        schema_subnode = schema.Bool()
+        subnode = schema.List(schema_subnode, max_length=3)
+        data_node = backend.module.List(subnode, parent=None,
+                                        new_params=backend.new_params)
+        data_node.append(True)
+        data_node.append(False)
+        data_node.append(True)
+        data_node.append(False)
+        with pytest.raises(schema.ValidationError):
+            data_node.validate()
+
 
 class TestScalar:
     def test_init_new(self, backend):

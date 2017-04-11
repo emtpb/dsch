@@ -343,6 +343,7 @@ class List:
         Raises:
             :exc:`dsch.schema.ValidationError`: if validation fails.
         """
+        self.schema_node.validate(self)
         for node in self._subnodes:
             node.validate()
 

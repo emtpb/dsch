@@ -489,20 +489,30 @@ class List:
     Note that this behavior is different from regular python lists, which can
     contain arbitrary entries.
 
+    In addition to the sub-nodes, constraints can also be set for the List
+    itself, specifying the maximum and minimum list length (i.e. number of
+    items in the list).
+
     Often, a :class:`List` is used with a :class:`Compilation` as its sub-node,
     allowing to represent arbitrary hierarchical schemas.
 
     Attributes:
         subnode: A single schema node, used to validate all list entries.
+        max_length (int): Maximum number of list entries.
+        min_length (int): Minimum number of list entries.
     """
 
-    def __init__(self, subnode):
+    def __init__(self, subnode, max_length=None, min_length=None):
         """Initialize a List schema node.
 
         Args:
             subnode: A single schema node.
+            max_length (int): Maximum number of list entries.
+            min_length (int): Minimum number of list entries.
         """
         self.subnode = subnode
+        self.max_length = max_length
+        self.min_length = min_length
 
     @classmethod
     def from_dict(cls, node_dict):
@@ -518,7 +528,9 @@ class List:
             raise ValueError('Invalid node type in dict.')
 
         subnode = node_from_dict(node_dict['config']['subnode'])
-        return cls(subnode)
+        config = {k: v for k, v in node_dict['config'].items()
+                  if k != 'subnode'}
+        return cls(subnode, **config)
 
     def to_dict(self):
         """Return the node representation as a dict.
@@ -531,9 +543,33 @@ class List:
             dict: dict-representation of the node.
         """
         node_dict = {'node_type': 'List', 'config': {
-            'subnode': self.subnode.to_dict()
+            'subnode': self.subnode.to_dict(),
+            'max_length': self.max_length,
+            'min_length': self.min_length,
         }}
         return node_dict
+
+    def validate(self, test_data):
+        """Validate given data against the node's constraints.
+
+        For :class:`List` nodes, this ensures that the list length is within
+        the limits specified with :attr:`max_length` and :attr:`min_length`.
+
+        If validation succeeds, the method terminates silently. Otherwise, an
+        exception is raised.
+
+        Args:
+            test_data: Data to be validated.
+
+        Raises:
+            :exc:`.ValidationError`: if validation fails.
+        """
+        if self.max_length and len(test_data) > self.max_length:
+            raise ValidationError('Maximum list length exceeded.',
+                                  self.max_length, len(test_data))
+        if self.min_length and len(test_data) < self.min_length:
+            raise ValidationError('Minimum list length undercut.',
+                                  self.min_length, len(test_data))
 
 
 class Scalar:
