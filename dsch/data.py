@@ -25,6 +25,7 @@ class Compilation:
         schema_node: The schema node that this data node is based on.
         parent: Parent data node object (``None`` if this is the top-level data
             node).
+        empty: Data absence flag. ``True`` if no data is present.
     """
 
     def __init__(self, schema_node, parent, data_storage=None,
@@ -60,6 +61,21 @@ class Compilation:
         attrs = super().__dir__()
         attrs.extend(self._subnodes.keys())
         return attrs
+
+    @property
+    def empty(self):
+        """Check whether the Compilation is currently empty.
+
+        A Compilation is considered empty when all individual sub-nodes are
+        empty.
+
+        Returns:
+            bool: ``True`` if the data node is empty, ``False`` otherwise.
+        """
+        for node in self._subnodes.values():
+            if not node.empty:
+                return False
+        return True
 
     def __getattr__(self, attr_name):
         """Return sub-nodes via the dot-attribute syntax.
@@ -144,6 +160,7 @@ class ItemNode:
         schema_node: The schema node that this data node is based on.
         parent: Parent data node object (``None`` if this is the top-level data
             node).
+        empty: Data absence flag. ``True`` if no data is present.
         value: Actual node data, independent of the backend in use.
     """
 
@@ -167,6 +184,18 @@ class ItemNode:
             self._init_from_storage(data_storage)
         else:
             self._init_new(new_params)
+
+    @property
+    def empty(self):
+        """Check whether the data node is currently empty.
+
+        A data node is considered empty when no corresponding storage object
+        exists. For applying a new value, see :meth:`replace`.
+
+        Returns:
+            bool: ``True`` if the data node is empty, ``False`` otherwise.
+        """
+        return self._storage is None
 
     def _init_from_storage(self, data_storage):
         """Create a new data node from a data storage object.
@@ -240,6 +269,7 @@ class List:
         schema_node: The schema node that this data node is based on.
         parent: Parent data node object (``None`` if this is the top-level data
             node).
+        empty: Data absence flag. ``True`` if no data is present.
     """
 
     def __init__(self, schema_node, parent, data_storage=None,
@@ -284,6 +314,17 @@ class List:
     def clear(self):
         """Clear all subnodes."""
         self._subnodes.clear()
+
+    @property
+    def empty(self):
+        """Check whether the List is currently empty.
+
+        A List is considered empty when no sub-nodes are present.
+
+        Returns:
+            bool: ``True`` if the data node is empty, ``False`` otherwise.
+        """
+        return len(self._subnodes) == 0
 
     def __getitem__(self, item):
         """Return subnodes via the brackets syntax.

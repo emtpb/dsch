@@ -21,6 +21,14 @@ def backend(request, tmpdir):
 
 
 class TestArray:
+    def test_empty(self, backend):
+        data_node = backend.module.Array(schema.Array(dtype='int'),
+                                         parent=None,
+                                         new_params=backend.new_params)
+        assert data_node.empty
+        data_node.replace(np.array([23, 42]))
+        assert not data_node.empty
+
     def test_getitem(self, backend):
         data_node = backend.module.Array(schema.Array(dtype='int'),
                                          parent=None,
@@ -91,6 +99,13 @@ class TestArray:
 
 
 class TestBool:
+    def test_empty(self, backend):
+        data_node = backend.module.Bool(schema.Bool(), parent=None,
+                                        new_params=backend.new_params)
+        assert data_node.empty
+        data_node.replace(False)
+        assert not data_node.empty
+
     def test_init_new(self, backend):
         schema_node = schema.Bool()
         data_node = backend.module.Bool(schema_node, parent=None,
@@ -120,6 +135,15 @@ class TestBool:
 
 
 class TestCompilation:
+    def test_empty(self, backend):
+        schema_node = schema.Compilation({'spam': schema.Bool(),
+                                          'eggs': schema.Bool()})
+        comp = backend.module.Compilation(schema_node, parent=None,
+                                          new_params=backend.new_params)
+        assert comp.empty
+        comp.spam.replace(True)
+        assert not comp.empty
+
     def test_dir(self, backend):
         schema_node = schema.Compilation({'spam': schema.Bool(),
                                           'eggs': schema.Bool()})
@@ -186,6 +210,13 @@ class TestCompilation:
 
 
 class TestDate:
+    def test_empty(self, backend):
+        data_node = backend.module.Date(schema.Date(), parent=None,
+                                        new_params=backend.new_params)
+        assert data_node.empty
+        data_node.replace(datetime.date.today())
+        assert not data_node.empty
+
     def test_init(self, backend):
         schema_node = schema.Date()
         data_node = backend.module.Date(schema_node, parent=None,
@@ -225,6 +256,14 @@ class TestDate:
 
 
 class TestDateTime:
+    def test_empty(self, backend):
+        data_node = backend.module.DateTime(schema.DateTime(), parent=None,
+                                            new_params=backend.new_params)
+        assert data_node.empty
+        dt = datetime.datetime.now()
+        data_node.replace(dt)
+        assert not data_node.empty
+
     def test_init(self, backend):
         schema_node = schema.DateTime()
         data_node = backend.module.DateTime(schema_node, parent=None,
@@ -285,6 +324,14 @@ class TestList:
         assert len(data_node._subnodes) == 1
         data_node.clear()
         assert len(data_node._subnodes) == 0
+
+    def test_empty(self, backend):
+        data_node = backend.module.List(schema.List(schema.Bool()),
+                                        parent=None,
+                                        new_params=backend.new_params)
+        assert data_node.empty
+        data_node.replace([True, False])
+        assert not data_node.empty
 
     def test_getitem(self, backend):
         schema_subnode = schema.Bool()
@@ -359,6 +406,14 @@ class TestList:
 
 
 class TestScalar:
+    def test_empty(self, backend):
+        data_node = backend.module.Scalar(schema.Scalar(dtype='int32'),
+                                          parent=None,
+                                          new_params=backend.new_params)
+        assert data_node.empty
+        data_node.replace(42)
+        assert not data_node.empty
+
     def test_init_new(self, backend):
         schema_node = schema.Scalar(dtype='int32')
         data_node = backend.module.Scalar(schema_node, parent=None,
@@ -389,6 +444,13 @@ class TestScalar:
 
 
 class TestString:
+    def test_empty(self, backend):
+        data_node = backend.module.String(schema.String(), parent=None,
+                                          new_params=backend.new_params)
+        assert data_node.empty
+        data_node.replace('spam')
+        assert not data_node.empty
+
     def test_init_new(self, backend):
         schema_node = schema.String()
         data_node = backend.module.String(schema_node, parent=None,
@@ -416,6 +478,14 @@ class TestString:
 
 
 class TestTime:
+    def test_empty(self, backend):
+        data_node = backend.module.Time(schema.Time(), parent=None,
+                                        new_params=backend.new_params)
+        assert data_node.empty
+        dt = datetime.time(13, 37, 42, 23)
+        data_node.replace(dt)
+        assert not data_node.empty
+
     def test_init(self, backend):
         schema_node = schema.Time()
         data_node = backend.module.Time(schema_node, parent=None,
