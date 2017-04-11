@@ -56,6 +56,18 @@ class Compilation:
         else:
             self._init_new(new_params)
 
+    def clear(self):
+        """Clear all sub-node values.
+
+        Note that, in contrast to :class:`List`, this does not remove the
+        the sub-nodes entirely, but only their values (by calling the
+        respective :meth:`clear` method). This is because the set of sub-nodes
+        for a Compilation is fixed via the schema specification and does not
+        change during usage.
+        """
+        for node in self._subnodes.values():
+            node.clear()
+
     def __dir__(self):
         """Include sub-nodes in :meth:`dir`."""
         attrs = super().__dir__()
@@ -184,6 +196,18 @@ class ItemNode:
             self._init_from_storage(data_storage)
         else:
             self._init_new(new_params)
+
+    def clear(self):
+        """Clear the data that is held by this data node.
+
+        This removes the corresponding storage object entirely, causing the
+        data node to be :attr:`empty` afterwards.
+
+        The default implementation simply clears the data storage object.
+        Backend-specific subclasses may for example implement additional
+        clean-up functionality.
+        """
+        self._storage = None
 
     @property
     def empty(self):

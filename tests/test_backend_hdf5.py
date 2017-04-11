@@ -13,6 +13,16 @@ def hdf5file(tmpdir):
 
 
 class TestArray:
+    def test_clear(self, hdf5file):
+        schema_node = schema.Array(dtype='int')
+        data_node = hdf5.Array(schema_node, parent=None,
+                               new_params={'name': 'test_array',
+                                           'parent': hdf5file})
+        data_node.replace(np.array([23, 42]))
+        assert 'test_array' in hdf5file
+        data_node.clear()
+        assert 'test_array' not in hdf5file
+
     def test_init_from_storage(self, hdf5file):
         hdf5file.create_dataset('test_array', data=np.array([23, 42]))
 
@@ -44,6 +54,16 @@ class TestArray:
 
 
 class TestBool:
+    def test_clear(self, hdf5file):
+        schema_node = schema.Bool()
+        data_node = hdf5.Bool(schema_node, parent=None,
+                              new_params={'name': 'test_bool',
+                                          'parent': hdf5file})
+        data_node.replace(True)
+        assert 'test_bool' in hdf5file
+        data_node.clear()
+        assert 'test_bool' not in hdf5file
+
     def test_init_from_storage(self, hdf5file):
         hdf5file.create_dataset('test_bool', data=True)
 
@@ -100,6 +120,16 @@ class TestCompilation:
 
 
 class TestDate:
+    def test_clear(self, hdf5file):
+        schema_node = schema.Date()
+        data_node = hdf5.Date(schema_node, parent=None,
+                              new_params={'name': 'test_date',
+                                          'parent': hdf5file})
+        data_node.replace(datetime.date(2017, 4, 11))
+        assert 'test_date' in hdf5file
+        data_node.clear()
+        assert 'test_date' not in hdf5file
+
     def test_init_from_storage(self, hdf5file):
         hdf5file.create_dataset('test_date', data=np.array([2017, 3, 16]))
 
@@ -143,6 +173,16 @@ class TestDate:
 
 
 class TestDateTime:
+    def test_clear(self, hdf5file):
+        schema_node = schema.DateTime()
+        data_node = hdf5.DateTime(schema_node, parent=None,
+                                  new_params={'name': 'test_datetime',
+                                              'parent': hdf5file})
+        data_node.replace(datetime.datetime(2017, 4, 11, 13, 37, 42, 23))
+        assert 'test_datetime' in hdf5file
+        data_node.clear()
+        assert 'test_datetime' not in hdf5file
+
     def test_init_from_storage(self, hdf5file):
         hdf5file.create_dataset('test_datetime',
                                 data=np.array([2017, 3, 16, 13, 37, 42, 23]))
@@ -188,6 +228,16 @@ class TestDateTime:
 
 
 class TestScalar:
+    def test_clear(self, hdf5file):
+        schema_node = schema.Scalar(dtype='int32')
+        data_node = hdf5.Scalar(schema_node, parent=None,
+                                new_params={'name': 'test_scalar',
+                                            'parent': hdf5file})
+        data_node.replace(42)
+        assert 'test_scalar' in hdf5file
+        data_node.clear()
+        assert 'test_scalar' not in hdf5file
+
     def test_init_from_storage(self, hdf5file):
         hdf5file.create_dataset('test_scalar', data=np.int32(42))
 
@@ -353,6 +403,16 @@ class TestList:
 
 
 class TestString:
+    def test_clear(self, hdf5file):
+        schema_node = schema.String()
+        data_node = hdf5.String(schema_node, parent=None,
+                                new_params={'name': 'test_string',
+                                            'parent': hdf5file})
+        data_node.replace('spam')
+        assert 'test_string' in hdf5file
+        data_node.clear()
+        assert 'test_string' not in hdf5file
+
     def test_init_from_storage(self, hdf5file):
         hdf5file.create_dataset('test_string', data='spam')
 
@@ -384,6 +444,16 @@ class TestString:
 
 
 class TestTime:
+    def test_clear(self, hdf5file):
+        schema_node = schema.Time()
+        data_node = hdf5.Time(schema_node, parent=None,
+                              new_params={'name': 'test_time',
+                                          'parent': hdf5file})
+        data_node.replace(datetime.time(13, 37, 42, 23))
+        assert 'test_time' in hdf5file
+        data_node.clear()
+        assert 'test_time' not in hdf5file
+
     def test_init_from_storage(self, hdf5file):
         hdf5file.create_dataset('test_time', data=np.array([13, 37, 42, 23]))
 

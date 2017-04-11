@@ -12,6 +12,19 @@ from .. import data, schema, storage
 class _ItemNode(data.ItemNode):
     """Common base class for data nodes for the HDF5 backend."""
 
+    def clear(self):
+        """Clear the data that is held by this data node.
+
+        This removes the corresponding storage object entirely, causing the
+        data node to be :attr:`empty` afterwards.
+        """
+        self._storage = None
+        try:
+            del self._parent[self._dataset_name]
+        except KeyError:
+            # If the dataset has not been created yet, that's also okay.
+            pass
+
     def _init_from_storage(self, data_storage):
         """Create a new data node from a data storage object.
 
@@ -52,11 +65,7 @@ class _ItemNode(data.ItemNode):
             new_value: New value to apply to the node, independent of the
                 backend in use.
         """
-        try:
-            del self._parent[self._dataset_name]
-        except KeyError:
-            # If the dataset has not been created yet, that's also okay.
-            pass
+        self.clear()
         self._storage = self._parent.create_dataset(self._dataset_name,
                                                     data=new_value)
 
@@ -78,11 +87,7 @@ class Array(_ItemNode):
             new_value: New value to apply to the node, independent of the
                 backend in use.
         """
-        try:
-            del self._parent[self._dataset_name]
-        except KeyError:
-            # If the dataset has not been created yet, that's also okay.
-            pass
+        self.clear()
 
         if self.schema_node.max_shape:
             if self.schema_node.max_shape == self.schema_node.min_shape:
@@ -315,12 +320,7 @@ class Scalar(_ItemNode):
             new_value: New value to apply to the node, independent of the
                 backend in use.
         """
-        try:
-            del self._parent[self._dataset_name]
-        except KeyError:
-            # If the dataset has not been created yet, that's also okay.
-            pass
-
+        self.clear()
         self._storage = self._parent.create_dataset(
             self._dataset_name,
             data=new_value,
