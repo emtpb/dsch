@@ -23,6 +23,8 @@ class Compilation:
 
     Attributes:
         schema_node: The schema node that this data node is based on.
+        parent: Parent data node object (``None`` if this is the top-level data
+            node).
     """
 
     def __init__(self, schema_node, parent, data_storage=None,
@@ -140,6 +142,8 @@ class ItemNode:
 
     Attributes:
         schema_node: The schema node that this data node is based on.
+        parent: Parent data node object (``None`` if this is the top-level data
+            node).
         value: Actual node data, independent of the backend in use.
     """
 
@@ -234,6 +238,8 @@ class List:
 
     Attributes:
         schema_node: The schema node that this data node is based on.
+        parent: Parent data node object (``None`` if this is the top-level data
+            node).
     """
 
     def __init__(self, schema_node, parent, data_storage=None,
