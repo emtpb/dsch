@@ -72,13 +72,18 @@ class Compilation:
     def complete(self):
         """Check whether the Compilation is currently complete.
 
-        A Compilation is considered complete when all individual sub-nodes are
-        not empty. Note that this is not the inverse of :attr:`empty`!
+        A Compilation is considered complete when all non-optional sub-nodes
+        are individually complete. This allows defining exceptions for specific
+        sub-nodes by including them in
+        :attr:`dsch.schema.Compilation.optionals`.
+
+        Note that :attr:`complete` is not simply the inverse of :attr:`empty`.
 
         Returns:
             bool: ``True`` if the data node is complete, ``False`` otherwise.
         """
-        for node in self._subnodes.values():
+        for node in [node for name, node in self._subnodes.items()
+                     if name not in self.schema_node.optionals]:
             if not node.complete:
                 return False
         return True

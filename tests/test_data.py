@@ -187,6 +187,16 @@ class TestCompilation:
         comp.eggs.replace(False)
         assert comp.complete
 
+    def test_complete_optionals(self, backend):
+        schema_node = schema.Compilation({'spam': schema.Bool(),
+                                          'eggs': schema.Bool()},
+                                         optionals=['eggs'])
+        comp = backend.module.Compilation(schema_node, parent=None,
+                                          new_params=backend.new_params)
+        assert not comp.complete
+        comp.spam.replace(True)
+        assert comp.complete
+
     def test_empty(self, backend):
         schema_node = schema.Compilation({'spam': schema.Bool(),
                                           'eggs': schema.Bool()})

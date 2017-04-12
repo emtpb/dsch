@@ -294,17 +294,28 @@ class Compilation:
     ``measurement.sampling.frequency`` vs.
     ``measurement['sampling']['frequency']``.
 
+    Compilations support defining optional sub-nodes. This can be used when
+    describing a data structure that has truly optional fields, i.e. fields
+    that can be omitted without making the entire data unusable. The selected
+    sub-nodes are then ignored when checking for completeness via
+    :attr:`dsch.data.Compilation.complete`.
+
     Attributes:
         subnodes: dict-like mapping of names to schema sub-nodes.
+        optionals (list): List of names of sub-nodes that are ignored when
+            checking for completeness.
     """
 
-    def __init__(self, subnodes):
+    def __init__(self, subnodes, optionals=None):
         """Initialize a Compilation schema node.
 
         Args:
             subnodes (dict): dict-like mapping of names to sub-nodes.
+            optionals (list): List of names of sub-nodes that are ignored when
+                checking for completeness.
         """
         self.subnodes = subnodes
+        self.optionals = optionals or []
 
     @classmethod
     def from_dict(cls, node_dict):
@@ -321,7 +332,9 @@ class Compilation:
 
         subnodes = {name: node_from_dict(node_config) for name, node_config in
                     node_dict['config']['subnodes'].items()}
-        return cls(subnodes=subnodes)
+        config = {k: v for k, v in node_dict['config'].items()
+                  if k != 'subnodes'}
+        return cls(subnodes=subnodes, **config)
 
     def to_dict(self):
         """Return the node representation as a dict.
@@ -336,7 +349,8 @@ class Compilation:
         subnode_dict = {name: node.to_dict() for name, node in
                         self.subnodes.items()}
         return {'node_type': 'Compilation', 'config': {
-            'subnodes': subnode_dict
+            'subnodes': subnode_dict,
+            'optionals': self.optionals,
         }}
 
 
