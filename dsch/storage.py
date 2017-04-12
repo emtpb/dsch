@@ -59,6 +59,22 @@ class Storage:
         self.storage_path = storage_path
         self.schema_node = schema_node
 
+    @property
+    def complete(self):
+        """Check whether the stored data is currently complete.
+
+        The data held by this storage interface is considered complete when the
+        top-level data node is complete. In most cases, this will be a
+        :class:`dsch.data.Compilation` or :class:`dsch.data.List`, which
+        recursively check their sub-nodes for completeness.
+        When the Storage is complete, this means that all available data fields
+        are filled out.
+
+        Returns:
+            bool: ``True`` if the stored data is complete, ``False`` otherwise.
+        """
+        return self.data.complete
+
     def _schema_from_json(self, json_str):
         """Import the top-level schema node from a JSON string.
 

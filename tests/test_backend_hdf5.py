@@ -269,6 +269,15 @@ class TestScalar:
 
 
 class TestStorage:
+    def test_complete(self, tmpdir):
+        schema_node = schema.Bool()
+        file_name = str(tmpdir.join('test_complete.h5'))
+        hdf5_file = hdf5.Storage(storage_path=file_name,
+                                 schema_node=schema_node)
+        assert not hdf5_file.complete
+        hdf5_file.data.replace(True)
+        assert hdf5_file.complete
+
     def test_load_compilation(self, tmpdir):
         schema_node = schema.Compilation({'spam': schema.Bool(),
                                           'eggs': schema.Bool()})

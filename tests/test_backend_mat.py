@@ -141,6 +141,15 @@ class TestScalar:
 
 
 class TestStorage:
+    def test_complete(self, tmpdir):
+        schema_node = schema.Bool()
+        storage_path = str(tmpdir.join('test_complete.mat'))
+        mat_file = mat.Storage(storage_path=storage_path,
+                               schema_node=schema_node)
+        assert not mat_file.complete
+        mat_file.data.replace(True)
+        assert mat_file.complete
+
     def test_load_compilation(self, tmpdir):
         schema_node = schema.Compilation({'spam': schema.Bool(),
                                           'eggs': schema.Bool()})
