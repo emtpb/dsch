@@ -24,8 +24,10 @@ def test_array(storage_path):
     storage.save()
 
     new_storage = frontend.load(storage_path)
-    data = new_storage.data
-    assert np.all(data.value == np.array([23, 42]))
+    assert np.all(new_storage.data.value == np.array([23, 42]))
+
+    new_storage.data.replace([1, 2, 3])
+    new_storage.save()
 
 
 def test_bool(storage_path):
@@ -37,8 +39,10 @@ def test_bool(storage_path):
     storage.save()
 
     new_storage = frontend.load(storage_path)
-    data = new_storage.data
-    assert data.value is True
+    assert new_storage.data.value is True
+
+    new_storage.data.replace(False)
+    new_storage.save()
 
 
 def test_compilation(storage_path):
@@ -194,6 +198,56 @@ def test_compilation(storage_path):
     assert data.test_listlist[1][0].value is False
     assert data.test_listlist[1][1].value is True
 
+    new_storage.data.test_array.replace(np.array([1, 2, 3]))
+    new_storage.data.test_bool.replace(False)
+    new_storage.data.test_date.replace(datetime.date(1970, 1, 1))
+    new_storage.data.test_datetime.replace(datetime.datetime(1970, 1, 1, 0, 0, 0))
+    new_storage.data.test_scalar.replace(23)
+    new_storage.data.test_string.replace('eggs')
+    new_storage.data.test_time.replace(datetime.time(0, 1, 2))
+    new_storage.data.test_comp.comp_array.replace(np.array([1, 2, 3]))
+    new_storage.data.test_comp.comp_bool.replace(False)
+    new_storage.data.test_comp.comp_date.replace(datetime.date(1970, 1, 1))
+    new_storage.data.test_comp.comp_datetime.replace(datetime.datetime(
+        1970, 1, 1, 0, 0, 0))
+    new_storage.data.test_comp.comp_scalar.replace(23)
+    new_storage.data.test_comp.comp_string.replace('spam')
+    new_storage.data.test_comp.comp_time.replace(datetime.time(0, 1, 2))
+    new_storage.data.test_list_array.replace([np.array([1, 2]),
+                                          np.array([3, 4])])
+    new_storage.data.test_list_bool.replace([False, True])
+    new_storage.data.test_list_date.replace([datetime.date(1970, 1, 1),
+                                         datetime.date(1985, 5, 23)])
+    new_storage.data.test_list_datetime.replace([
+        datetime.datetime(1970, 1, 1, 0, 0, 0),
+        datetime.datetime(1985, 5, 23, 5, 23, 42)
+    ])
+    new_storage.data.test_list_scalar.replace([1, 2])
+    new_storage.data.test_list_string.replace(['ham', 'spam'])
+    new_storage.data.test_list_time.replace([datetime.time(0, 0, 0),
+                                         datetime.time(5, 23, 42)])
+    new_storage.data.test_complist.replace([
+        {
+            'complist_array': np.array([1, 0]),
+            'complist_bool': False,
+            'complist_date': datetime.date(1970, 1, 1),
+            'complist_datetime': datetime.datetime(1970, 1, 1, 0, 0, 0),
+            'complist_scalar': 42,
+            'complist_string': 'eggs',
+            'complist_time': datetime.time(0, 0, 0),
+        },
+        {
+            'complist_array': np.array([23, 42]),
+            'complist_bool': True,
+            'complist_date': datetime.date(1985, 5, 23),
+            'complist_datetime': datetime.datetime(1985, 5, 23, 5, 23, 42),
+            'complist_scalar': 23,
+            'complist_string': 'spam',
+            'complist_time': datetime.time(5, 23, 42),
+        },
+    ])
+    new_storage.data.test_listlist.replace([[False, False], [True, True]])
+    new_storage.save()
 
 def test_date(storage_path):
     schema_node = schema.Date()
@@ -207,6 +261,9 @@ def test_date(storage_path):
     new_storage = frontend.load(storage_path)
     assert new_storage.data.value == dt
 
+    new_storage.data.replace(datetime.date(1970, 1, 1))
+    new_storage.save()
+
 
 def test_datetime(storage_path):
     schema_node = schema.DateTime()
@@ -219,6 +276,9 @@ def test_datetime(storage_path):
 
     new_storage = frontend.load(storage_path)
     assert new_storage.data.value == dt
+
+    new_storage.data.replace(datetime.datetime(1970, 1, 1, 0, 0, 0))
+    new_storage.save()
 
 
 def test_list(storage_path):
@@ -357,6 +417,70 @@ def test_list(storage_path):
         assert data.test_listlist[1][0].value is False
         assert data.test_listlist[1][1].value is True
 
+    new_storage.data[0].test_array.replace(np.array([1, 2]))
+    new_storage.data[0].test_bool.replace(False)
+    new_storage.data[0].test_date.replace(datetime.date(1970, 1, 1))
+    new_storage.data[0].test_datetime.replace(datetime.datetime(1970, 1, 1, 0,
+                                                                0, 0))
+    new_storage.data[0].test_scalar.replace(42)
+    new_storage.data[0].test_string.replace('eggs')
+    new_storage.data[0].test_time.replace(datetime.time(0, 1, 2))
+    new_storage.data[0].test_comp.comp_array.replace(np.array([1, 2]))
+    new_storage.data[0].test_comp.comp_bool.replace(False)
+    new_storage.data[0].test_comp.comp_date.replace(datetime.date(1970, 1, 1))
+    new_storage.data[0].test_comp.comp_datetime.replace(datetime.datetime(
+        1970, 1, 1, 0, 0, 0))
+    new_storage.data[0].test_comp.comp_scalar.replace(42)
+    new_storage.data[0].test_comp.comp_string.replace('ham')
+    new_storage.data[0].test_comp.comp_time.replace(datetime.time(0, 1, 2))
+    new_storage.data[0].test_list_array.replace([np.array([1, 2]),
+                                                 np.array([3, 4])])
+    new_storage.data[0].test_list_bool.replace([False, True])
+    new_storage.data[0].test_list_date.replace([datetime.date(1970, 1, 1),
+                                                datetime.date(1985, 5, 23)])
+    new_storage.data[0].test_list_datetime.replace([
+        datetime.datetime(1970, 1, 1, 0, 0, 0),
+        datetime.datetime(1985, 5, 23, 5, 23, 42)
+    ])
+    new_storage.data[0].test_list_scalar.replace([1, 2])
+    new_storage.data[0].test_list_string.replace(['ham', 'spam'])
+    new_storage.data[0].test_list_time.replace([datetime.time(0, 0, 0),
+                                                datetime.time(5, 23, 42)])
+    new_storage.data[0].test_listlist.replace([[False, False], [True, True]])
+
+    new_storage.data.append()
+    new_storage.data[2].test_array.replace(np.array([23, 42]))
+    new_storage.data[2].test_bool.replace(True)
+    new_storage.data[2].test_date.replace(datetime.date(1985, 5, 23))
+    new_storage.data[2].test_datetime.replace(datetime.datetime(1985, 5, 23, 5, 23,
+                                                                42))
+    new_storage.data[2].test_scalar.replace(23)
+    new_storage.data[2].test_string.replace('spam')
+    new_storage.data[2].test_time.replace(datetime.time(5, 23, 42))
+    new_storage.data[2].test_comp.comp_array.replace(np.array([23, 42]))
+    new_storage.data[2].test_comp.comp_bool.replace(True)
+    new_storage.data[2].test_comp.comp_date.replace(datetime.date(1985, 5, 23))
+    new_storage.data[2].test_comp.comp_datetime.replace(datetime.datetime(
+        1985, 5, 23, 5, 23, 42))
+    new_storage.data[2].test_comp.comp_scalar.replace(23)
+    new_storage.data[2].test_comp.comp_string.replace('eggs')
+    new_storage.data[2].test_comp.comp_time.replace(datetime.time(5, 23, 42))
+    new_storage.data[2].test_list_array.replace([np.array([23, 42]),
+                                                 np.array([1, 0])])
+    new_storage.data[2].test_list_bool.replace([True, False])
+    new_storage.data[2].test_list_date.replace([datetime.date(1985, 5, 23),
+                                                datetime.date(1970, 1, 1)])
+    new_storage.data[2].test_list_datetime.replace([
+        datetime.datetime(1985, 5, 23, 5, 23, 42),
+        datetime.datetime(1970, 1, 1, 0, 0, 0)
+    ])
+    new_storage.data[2].test_list_scalar.replace([23, 42])
+    new_storage.data[2].test_list_string.replace(['spam', 'eggs'])
+    new_storage.data[2].test_list_time.replace([datetime.time(5, 23, 42),
+                                                datetime.time(0, 0, 0)])
+    new_storage.data[2].test_listlist.replace([[True, False], [False, True]])
+    new_storage.save()
+
 
 def test_scalar(storage_path):
     schema_node = schema.Scalar(dtype='int32')
@@ -367,8 +491,10 @@ def test_scalar(storage_path):
     storage.save()
 
     new_storage = frontend.load(storage_path)
-    data = new_storage.data
-    assert data.value == 42
+    assert new_storage.data.value == 42
+
+    new_storage.data.replace(23)
+    new_storage.save()
 
 
 def test_string(storage_path):
@@ -380,8 +506,10 @@ def test_string(storage_path):
     storage.save()
 
     new_storage = frontend.load(storage_path)
-    data = new_storage.data
-    assert data.value == 'spam'
+    assert new_storage.data.value == 'spam'
+
+    new_storage.data.replace('eggs')
+    new_storage.save()
 
 
 def test_time(storage_path):
@@ -395,3 +523,6 @@ def test_time(storage_path):
 
     new_storage = frontend.load(storage_path)
     assert new_storage.data.value == dt
+
+    new_storage.data.replace(datetime.time(23, 42, 13))
+    new_storage.save()
