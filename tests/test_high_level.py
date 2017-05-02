@@ -15,7 +15,7 @@ def storage_path(request, tmpdir):
     return storage_path
 
 
-def test_array(storage_path, tmpdir):
+def test_array(storage_path):
     schema_node = schema.Array(dtype='int')
     storage = frontend.create(storage_path=storage_path,
                               schema_node=schema_node)
@@ -28,7 +28,7 @@ def test_array(storage_path, tmpdir):
     assert np.all(data.value == np.array([23, 42]))
 
 
-def test_bool(storage_path, tmpdir):
+def test_bool(storage_path):
     schema_node = schema.Bool()
     storage = frontend.create(storage_path=storage_path,
                               schema_node=schema_node)
@@ -41,7 +41,7 @@ def test_bool(storage_path, tmpdir):
     assert data.value is True
 
 
-def test_compilation(storage_path, tmpdir):
+def test_compilation(storage_path):
     schema_node = schema.Compilation({
         'test_array': schema.Array(dtype='int'),
         'test_bool': schema.Bool(),
@@ -195,7 +195,7 @@ def test_compilation(storage_path, tmpdir):
     assert data.test_listlist[1][1].value is True
 
 
-def test_date(storage_path, tmpdir):
+def test_date(storage_path):
     schema_node = schema.Date()
     storage = frontend.create(storage_path=storage_path,
                               schema_node=schema_node)
@@ -208,7 +208,7 @@ def test_date(storage_path, tmpdir):
     assert new_storage.data.value == dt
 
 
-def test_datetime(storage_path, tmpdir):
+def test_datetime(storage_path):
     schema_node = schema.DateTime()
     storage = frontend.create(storage_path=storage_path,
                               schema_node=schema_node)
@@ -221,7 +221,7 @@ def test_datetime(storage_path, tmpdir):
     assert new_storage.data.value == dt
 
 
-def test_list(storage_path, tmpdir):
+def test_list(storage_path):
     schema_node = schema.List(
         schema.Compilation({
             'test_array': schema.Array(dtype='int'),
@@ -358,7 +358,7 @@ def test_list(storage_path, tmpdir):
         assert data.test_listlist[1][1].value is True
 
 
-def test_scalar(storage_path, tmpdir):
+def test_scalar(storage_path):
     schema_node = schema.Scalar(dtype='int32')
     storage = frontend.create(storage_path=storage_path,
                               schema_node=schema_node)
@@ -371,7 +371,7 @@ def test_scalar(storage_path, tmpdir):
     assert data.value == 42
 
 
-def test_string(storage_path, tmpdir):
+def test_string(storage_path):
     schema_node = schema.String()
     storage = frontend.create(storage_path=storage_path,
                               schema_node=schema_node)
@@ -384,7 +384,7 @@ def test_string(storage_path, tmpdir):
     assert data.value == 'spam'
 
 
-def test_time(storage_path, tmpdir):
+def test_time(storage_path):
     schema_node = schema.Time()
     storage = frontend.create(storage_path=storage_path,
                               schema_node=schema_node)
