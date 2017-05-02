@@ -422,6 +422,18 @@ class List(data.List):
             del self._storage[name]
         super().clear()
 
+    def _init_from_storage(self, data_storage):
+        """Create a new data node from a data storage object.
+
+        This initializes the data node using the given data storage object.
+
+        Args:
+            data_storage (:class:`h5py.Dataset`): Data storage object to be
+                imported.
+        """
+        super()._init_from_storage(data_storage)
+        self._storage = data_storage
+
     def _init_new(self, new_params):
         """Initialize new, empty List data node.
 
