@@ -20,68 +20,64 @@ def backend(request, tmpdir):
                         new_params=new_params)
 
 
-class TestArray:
-    def test_clear(self, backend):
-        data_node = backend.module.Array(schema.Array(dtype='int'),
-                                         parent=None,
-                                         new_params=backend.new_params)
-        data_node.replace(np.array([23, 42]))
+class ItemNodeTestBase:
+    @pytest.fixture()
+    def data_node(self, backend):
+        data_node_class = getattr(backend.module, self.class_name)
+        return data_node_class(self.schema_node, parent=None,
+                               new_params=backend.new_params)
+
+    def test_clear(self, data_node):
+        data_node.replace(self.valid_data)
         data_node.clear()
         assert data_node._storage is None
 
-    def test_complete(self, backend):
-        data_node = backend.module.Array(schema.Array(dtype='int'),
-                                         parent=None,
-                                         new_params=backend.new_params)
+    def test_complete(self, data_node):
         assert not data_node.complete
-        data_node.replace(np.array([23, 42]))
+        data_node.replace(self.valid_data)
         assert data_node.complete
 
-    def test_empty(self, backend):
-        data_node = backend.module.Array(schema.Array(dtype='int'),
-                                         parent=None,
-                                         new_params=backend.new_params)
+    def test_empty(self, data_node):
         assert data_node.empty
-        data_node.replace(np.array([23, 42]))
+        data_node.replace(self.valid_data)
         assert not data_node.empty
 
-    def test_getitem(self, backend):
-        data_node = backend.module.Array(schema.Array(dtype='int'),
-                                         parent=None,
-                                         new_params=backend.new_params)
-        data_node.replace(np.array([23, 42]))
-        assert data_node[0] == 23
-        assert data_node[1] == 42
-        assert np.all(data_node[()] == np.array([23, 42]))
-
-    def test_init_new(self, backend):
-        schema_node = schema.Array(dtype='int')
-        data_node = backend.module.Array(schema_node, parent=None,
-                                         new_params=backend.new_params)
-        assert data_node.schema_node == schema_node
+    def test_init_new(self, data_node):
+        assert data_node.schema_node == self.schema_node
         assert data_node._storage is None
 
-    def test_replace(self, backend):
-        data_node = backend.module.Array(schema.Array(dtype='int'),
-                                         parent=None,
-                                         new_params=backend.new_params)
-        data_node.replace(np.array([23, 42]))
-        assert np.all(data_node.value == np.array([23, 42]))
+    def test_replace(self, data_node):
+        data_node.replace(self.valid_data)
+        assert np.all(data_node.value == self.valid_data)
 
-    def test_resize(self, backend):
-        data_node = backend.module.Array(schema.Array(dtype='int'),
-                                         parent=None,
-                                         new_params=backend.new_params)
+    def test_validate(self, data_node):
+        data_node.replace(self.valid_data)
+        data_node.validate()
+
+    def test_value(self, data_node):
+        data_node.replace(self.valid_data)
+        assert isinstance(data_node.value, type(self.valid_data))
+
+
+class TestArray(ItemNodeTestBase):
+    class_name = 'Array'
+    schema_node = schema.Array(dtype='int')
+    valid_data = np.array([23, 42])
+
+    def test_getitem(self, data_node):
+        data_node.replace(self.valid_data)
+        for idx, item in enumerate(self.valid_data):
+            assert data_node[idx] == item
+        assert np.all(data_node[()] == self.valid_data)
+
+    def test_resize(self, data_node):
         data_node.replace(np.array([42]))
         assert data_node.value.shape == (1,)
         data_node.resize((5,))
         assert data_node.value.ndim == 1
         assert data_node.value.shape == (5,)
 
-    def test_setitem(self, backend):
-        data_node = backend.module.Array(schema.Array(dtype='int'),
-                                         parent=None,
-                                         new_params=backend.new_params)
+    def test_setitem(self, data_node):
         data_node.replace(np.array([5, 23, 42]))
         data_node[0] = 1
         assert np.all(data_node.value == np.array([1, 23, 42]))
@@ -89,13 +85,6 @@ class TestArray:
         assert np.all(data_node.value == np.array([1, 2, 3]))
         data_node[()] = np.array([42, 23, 5])
         assert np.all(data_node.value == np.array([42, 23, 5]))
-
-    def test_validate(self, backend):
-        data_node = backend.module.Array(schema.Array(dtype='int'),
-                                         parent=None,
-                                         new_params=backend.new_params)
-        data_node.replace(np.array([23, 42]))
-        data_node.validate()
 
     def test_validate_depends_on(self, backend):
         comp = backend.module.Compilation(schema.Compilation({
@@ -106,63 +95,11 @@ class TestArray:
         comp.voltage.replace(np.array([2, 3, 5], dtype='float'))
         comp.voltage.validate()
 
-    def test_value(self, backend):
-        data_node = backend.module.Array(schema.Array(dtype='int'),
-                                         parent=None,
-                                         new_params=backend.new_params)
-        data_node.replace(np.array([23, 42]))
-        assert isinstance(data_node.value, np.ndarray)
 
-
-class TestBool:
-    def test_clear(self, backend):
-        data_node = backend.module.Bool(schema.Bool(), parent=None,
-                                        new_params=backend.new_params)
-        data_node.replace(False)
-        data_node.clear()
-        assert data_node._storage is None
-
-    def test_complete(self, backend):
-        data_node = backend.module.Bool(schema.Bool(), parent=None,
-                                        new_params=backend.new_params)
-        assert not data_node.complete
-        data_node.replace(False)
-        assert data_node.complete
-
-    def test_empty(self, backend):
-        data_node = backend.module.Bool(schema.Bool(), parent=None,
-                                        new_params=backend.new_params)
-        assert data_node.empty
-        data_node.replace(False)
-        assert not data_node.empty
-
-    def test_init_new(self, backend):
-        schema_node = schema.Bool()
-        data_node = backend.module.Bool(schema_node, parent=None,
-                                        new_params=backend.new_params)
-        assert data_node.schema_node == schema_node
-        assert data_node._storage is None
-
-    def test_replace(self, backend):
-        data_node = backend.module.Bool(schema.Bool(), parent=None,
-                                        new_params=backend.new_params)
-        data_node.replace(True)
-        assert data_node.value is True
-        data_node.replace(False)
-        assert data_node.value is False
-
-    def test_validate(self, backend):
-        data_node = backend.module.Bool(schema.Bool(), parent=None,
-                                        new_params=backend.new_params)
-        data_node.replace(True)
-        data_node.validate()
-
-    def test_value(self, backend):
-        data_node = backend.module.Bool(schema.Bool(), parent=None,
-                                        new_params=backend.new_params)
-        data_node.replace(True)
-        assert isinstance(data_node.value, bool)
-
+class TestBool(ItemNodeTestBase):
+    class_name = 'Bool'
+    schema_node = schema.Bool()
+    valid_data = True
 
 class TestCompilation:
     def test_clear(self, backend):
@@ -271,38 +208,12 @@ class TestCompilation:
         comp.validate()
 
 
-class TestDate:
-    def test_clear(self, backend):
-        data_node = backend.module.Date(schema.Date(), parent=None,
-                                        new_params=backend.new_params)
-        data_node.replace(datetime.date.today())
-        data_node.clear()
-        assert data_node._storage is None
+class TestDate(ItemNodeTestBase):
+    class_name = 'Date'
+    schema_node = schema.Date()
+    valid_data = datetime.date.today()
 
-    def test_complete(self, backend):
-        data_node = backend.module.Date(schema.Date(), parent=None,
-                                        new_params=backend.new_params)
-        assert not data_node.complete
-        data_node.replace(datetime.date.today())
-        assert data_node.complete
-
-    def test_empty(self, backend):
-        data_node = backend.module.Date(schema.Date(), parent=None,
-                                        new_params=backend.new_params)
-        assert data_node.empty
-        data_node.replace(datetime.date.today())
-        assert not data_node.empty
-
-    def test_init(self, backend):
-        schema_node = schema.Date()
-        data_node = backend.module.Date(schema_node, parent=None,
-                                        new_params=backend.new_params)
-        assert data_node.schema_node == schema_node
-
-    def test_default_value(self, backend):
-        data_node = backend.module.Date(schema.Date(set_on_create=False),
-                                        parent=None,
-                                        new_params=backend.new_params)
+    def test_default_value(self, data_node):
         assert data_node._storage is None
 
     def test_default_value_set_on_create(self, backend):
@@ -312,61 +223,13 @@ class TestDate:
         assert data_node._storage is not None
         assert data_node.value == datetime.date.today()
 
-    def test_replace(self, backend):
-        data_node = backend.module.Date(schema.Date(), parent=None,
-                                        new_params=backend.new_params)
-        data_node.replace(datetime.date.today())
-        assert data_node.value == datetime.date.today()
 
-    def test_validate(self, backend):
-        data_node = backend.module.Date(schema.Date(), parent=None,
-                                        new_params=backend.new_params)
-        data_node.replace(datetime.date.today())
-        data_node.validate()
+class TestDateTime(ItemNodeTestBase):
+    class_name = 'DateTime'
+    schema_node = schema.DateTime()
+    valid_data = datetime.datetime.now()
 
-    def test_value(self, backend):
-        data_node = backend.module.Date(schema.Date(), parent=None,
-                                        new_params=backend.new_params)
-        data_node.replace(datetime.date.today())
-        assert isinstance(data_node.value, datetime.date)
-
-
-class TestDateTime:
-    def test_clear(self, backend):
-        data_node = backend.module.DateTime(schema.DateTime(), parent=None,
-                                            new_params=backend.new_params)
-        dt = datetime.datetime.now()
-        data_node.replace(dt)
-        data_node.clear()
-        assert data_node._storage is None
-
-    def test_complete(self, backend):
-        data_node = backend.module.DateTime(schema.DateTime(), parent=None,
-                                            new_params=backend.new_params)
-        assert not data_node.complete
-        dt = datetime.datetime.now()
-        data_node.replace(dt)
-        assert data_node.complete
-
-    def test_empty(self, backend):
-        data_node = backend.module.DateTime(schema.DateTime(), parent=None,
-                                            new_params=backend.new_params)
-        assert data_node.empty
-        dt = datetime.datetime.now()
-        data_node.replace(dt)
-        assert not data_node.empty
-
-    def test_init(self, backend):
-        schema_node = schema.DateTime()
-        data_node = backend.module.DateTime(schema_node, parent=None,
-                                            new_params=backend.new_params)
-        assert data_node.schema_node == schema_node
-
-    def test_default_value(self, backend):
-        data_node = backend.module.DateTime(
-            schema.DateTime(set_on_create=False), parent=None,
-            new_params=backend.new_params
-        )
+    def test_default_value(self, data_node):
         assert data_node._storage is None
 
     def test_default_value_set_on_create(self, backend):
@@ -376,25 +239,6 @@ class TestDateTime:
         )
         assert data_node._storage is not None
         assert (data_node.value - datetime.datetime.now()).total_seconds() < 1
-
-    def test_replace(self, backend):
-        data_node = backend.module.DateTime(schema.DateTime(), parent=None,
-                                            new_params=backend.new_params)
-        dt = datetime.datetime.now()
-        data_node.replace(dt)
-        assert data_node.value == dt
-
-    def test_validate(self, backend):
-        data_node = backend.module.DateTime(schema.DateTime(), parent=None,
-                                            new_params=backend.new_params)
-        data_node.replace(datetime.datetime.now())
-        data_node.validate()
-
-    def test_value(self, backend):
-        data_node = backend.module.DateTime(schema.DateTime(), parent=None,
-                                            new_params=backend.new_params)
-        data_node.replace(datetime.datetime.now())
-        assert isinstance(data_node.value, datetime.datetime)
 
 
 class TestList:
@@ -507,143 +351,24 @@ class TestList:
             data_node.validate()
 
 
-class TestScalar:
-    def test_clear(self, backend):
-        data_node = backend.module.Scalar(schema.Scalar(dtype='int32'),
-                                          parent=None,
-                                          new_params=backend.new_params)
-        data_node.replace(42)
-        data_node.clear()
-        assert data_node._storage is None
-
-    def test_complete(self, backend):
-        data_node = backend.module.Scalar(schema.Scalar(dtype='int32'),
-                                          parent=None,
-                                          new_params=backend.new_params)
-        assert not data_node.complete
-        data_node.replace(42)
-        assert data_node.complete
-
-    def test_empty(self, backend):
-        data_node = backend.module.Scalar(schema.Scalar(dtype='int32'),
-                                          parent=None,
-                                          new_params=backend.new_params)
-        assert data_node.empty
-        data_node.replace(42)
-        assert not data_node.empty
-
-    def test_init_new(self, backend):
-        schema_node = schema.Scalar(dtype='int32')
-        data_node = backend.module.Scalar(schema_node, parent=None,
-                                          new_params=backend.new_params)
-        assert data_node.schema_node == schema_node
-        assert data_node._storage is None
-
-    def test_replace(self, backend):
-        data_node = backend.module.Scalar(schema.Scalar(dtype='int32'),
-                                          parent=None,
-                                          new_params=backend.new_params)
-        data_node.replace(42)
-        assert data_node.value == 42
-
-    def test_validate(self, backend):
-        data_node = backend.module.Scalar(schema.Scalar(dtype='int32'),
-                                          parent=None,
-                                          new_params=backend.new_params)
-        data_node.replace(42)
-        data_node.validate()
-
-    def test_value(self, backend):
-        data_node = backend.module.Scalar(schema.Scalar(dtype='int32'),
-                                          parent=None,
-                                          new_params=backend.new_params)
-        data_node.replace(42)
-        assert isinstance(data_node.value, np.int32)
+class TestScalar(ItemNodeTestBase):
+    class_name = 'Scalar'
+    schema_node = schema.Scalar(dtype='int32')
+    valid_data = np.int32(42)
 
 
-class TestString:
-    def test_clear(self, backend):
-        data_node = backend.module.String(schema.String(), parent=None,
-                                          new_params=backend.new_params)
-        data_node.replace('spam')
-        data_node.clear()
-        assert data_node._storage is None
-
-    def test_complete(self, backend):
-        data_node = backend.module.String(schema.String(), parent=None,
-                                          new_params=backend.new_params)
-        assert not data_node.complete
-        data_node.replace('spam')
-        assert data_node.complete
-
-    def test_empty(self, backend):
-        data_node = backend.module.String(schema.String(), parent=None,
-                                          new_params=backend.new_params)
-        assert data_node.empty
-        data_node.replace('spam')
-        assert not data_node.empty
-
-    def test_init_new(self, backend):
-        schema_node = schema.String()
-        data_node = backend.module.String(schema_node, parent=None,
-                                          new_params=backend.new_params)
-        assert data_node.schema_node == schema_node
-        assert data_node._storage is None
-
-    def test_replace(self, backend):
-        data_node = backend.module.String(schema.String(), parent=None,
-                                          new_params=backend.new_params)
-        data_node.replace('spam')
-        assert data_node.value == 'spam'
-
-    def test_validate(self, backend):
-        data_node = backend.module.String(schema.String(), parent=None,
-                                          new_params=backend.new_params)
-        data_node.replace('spam')
-        data_node.validate()
-
-    def test_value(self, backend):
-        data_node = backend.module.String(schema.String(), parent=None,
-                                          new_params=backend.new_params)
-        data_node.replace('spam')
-        assert isinstance(data_node.value, str)
+class TestString(ItemNodeTestBase):
+    class_name = 'String'
+    schema_node = schema.String()
+    valid_data = 'spam'
 
 
-class TestTime:
-    def test_clear(self, backend):
-        data_node = backend.module.Time(schema.Time(), parent=None,
-                                        new_params=backend.new_params)
-        dt = datetime.time(13, 37, 42, 23)
-        data_node.replace(dt)
-        data_node.clear()
-        assert data_node._storage is None
+class TestTime(ItemNodeTestBase):
+    class_name = 'Time'
+    schema_node = schema.Time()
+    valid_data = datetime.time(13, 37, 42, 23)
 
-    def test_complete(self, backend):
-        data_node = backend.module.Time(schema.Time(), parent=None,
-                                        new_params=backend.new_params)
-        assert not data_node.complete
-        dt = datetime.time(13, 37, 42, 23)
-        data_node.replace(dt)
-        assert data_node.complete
-
-    def test_empty(self, backend):
-        data_node = backend.module.Time(schema.Time(), parent=None,
-                                        new_params=backend.new_params)
-        assert data_node.empty
-        dt = datetime.time(13, 37, 42, 23)
-        data_node.replace(dt)
-        assert not data_node.empty
-
-    def test_init(self, backend):
-        schema_node = schema.Time()
-        data_node = backend.module.Time(schema_node, parent=None,
-                                        new_params=backend.new_params)
-        assert data_node.schema_node == schema_node
-
-    def test_default_value(self, backend):
-        data_node = backend.module.Time(schema.Time(set_on_create=False),
-                                        parent=None,
-                                        new_params=backend.new_params)
+    def test_default_value(self, data_node):
         assert data_node._storage is None
 
     def test_default_value_set_on_create(self, backend):
@@ -654,22 +379,3 @@ class TestTime:
         dt = datetime.datetime.now().time()
         assert ((data_node.value.hour, data_node.value.minute) ==
                 (dt.hour, dt.minute))
-
-    def test_replace(self, backend):
-        data_node = backend.module.Time(schema.Time(), parent=None,
-                                        new_params=backend.new_params)
-        dt = datetime.time(13, 37, 42, 23)
-        data_node.replace(dt)
-        assert data_node.value == dt
-
-    def test_validate(self, backend):
-        data_node = backend.module.Time(schema.Time(), parent=None,
-                                        new_params=backend.new_params)
-        data_node.replace(datetime.time(13, 37, 42, 23))
-        data_node.validate()
-
-    def test_value(self, backend):
-        data_node = backend.module.Time(schema.Time(), parent=None,
-                                        new_params=backend.new_params)
-        data_node.replace(datetime.time(13, 37, 42, 23))
-        assert isinstance(data_node.value, datetime.time)
