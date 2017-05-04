@@ -29,12 +29,13 @@ def create(storage_path, schema_node, backend=None):
     ==========  ==================  ========================
     Name        Description         Path format
     ==========  ==================  ========================
-    npz         NumPy .npz file     Path to regular file
     hdf5        HDF5 file           Path to regular file
+    mat         MATLAB data file    Path to regular file
+    npz         NumPy .npz file     Path to regular file
     ==========  ==================  ========================
 
     Args:
-        storage_path (str): Path to the new dsch storage.
+        storage_path (str): Path to the new dsch storage (backend-specific).
         schema_node: Top-level schema node for the dsch storage. See
             :mod:`dsch.schema` for details.
         backend (str): Backend to use for the new dsch storage.
@@ -59,8 +60,8 @@ def load(storage_path, backend=None, require_schema=None, require_valid=True):
     The ``require_schema`` argument can be used to ensure that the loaded
     storage uses a specific schema. The value must be the SHA256 hash of the
     required schema JSON, as can be determined by
-    :meth:`dsch.storage.schema_hash`. If the loaded storage uses a different
-    schema, an exception is raised.
+    :meth:`.storage.Storage.schema_hash`. If the loaded storage uses a
+    different schema, an exception is raised.
     Similarly, if ``require_valid`` is ``True`` (default), the loaded storage
     is validated and an exception is raised on failure.
 
@@ -70,7 +71,7 @@ def load(storage_path, backend=None, require_schema=None, require_valid=True):
     structure, datatypes and met constraints.
 
     Args:
-        storage_path (str): Path to the dsch storage to load.
+        storage_path (str): Path to the dsch storage (backend-specific).
         backend (str): Backend to be used. By default, perform auto-detection.
         require_schema (str): SHA256 hash of the required schema.
         require_valid (bool): If ``True``, ensure the data is valid.
@@ -81,6 +82,8 @@ def load(storage_path, backend=None, require_schema=None, require_valid=True):
     Raises:
         RuntimeError: if the SHA256 hash given to ``require_schema`` did not
             match.
+        :class:`.schema.ValidationError`: if ``require_valid`` was ``True``,
+            but validation failed.
     """
     if not backend:
         backend = _autodetect_backend(storage_path)
