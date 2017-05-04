@@ -191,15 +191,13 @@ class Array:
             raise ValidationError('Invalid number of array dimensions.',
                                   self.ndim, test_data.ndim)
         if self.max_shape:
-            # Validate individual dimension's sizes
-            for index, value in enumerate(test_data.shape):
-                if self.max_shape[index] and value > self.max_shape[index]:
+            for nominal, actual in zip(self.max_shape, test_data.shape):
+                if nominal and actual > nominal:
                     raise ValidationError('Maximum array shape exceeded.',
                                           self.max_shape, test_data.shape)
         if self.min_shape:
-            # Validate individual dimension's sizes
-            for index, value in enumerate(test_data.shape):
-                if self.min_shape[index] and value < self.min_shape[index]:
+            for nominal, actual in zip(self.min_shape, test_data.shape):
+                if nominal and actual < nominal:
                     raise ValidationError('Minimum array shape undercut.',
                                           self.min_shape, test_data.shape)
         if self.max_value is not None and np.any(test_data > self.max_value):
@@ -215,13 +213,13 @@ class Array:
                                   test_data.dtype)
 
         if self.depends_on:
-            for dim, value in enumerate(independent_values):
+            for dim, value in zip(test_data.shape, independent_values):
                 if value.ndim > 1:
                     raise ValueError('Independent variable array must be '
                                      'one-dimensional.')
-                if value.size != test_data.shape[dim]:
+                if value.size != dim:
                     raise ValidationError('Dependent array size mismatch.',
-                                          value.size, test_data.shape[dim])
+                                          value.size, dim)
 
 
 class Bool:
