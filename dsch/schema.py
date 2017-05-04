@@ -70,8 +70,9 @@ class Array:
       For multi-dimensional arrays, ``depends_on`` is a tuple, containing a
       node name (or ``None``) for each of the array's dimensions.
 
-    Note: The constraint parameters for array shape and values all default to
-    ``None``, effectively disabling the corresponding validation step.
+    Note: The constraint parameters for array shape, values and variable
+    dependencies all default to ``None``, effectively disabling the
+    corresponding validation step.
 
     Attributes:
         dtype (:class:`numpy.dtype` or :class:`str`): Required NumPy dtype.
@@ -287,7 +288,6 @@ class Compilation:
     The corresponding data node is a subclass of :class:`dsch.data.Compilation`
     and provides attributes corresponding to the schema node's sub-node names.
     Each of those attributes then represents a data node.
-
     While the general functionality is more similar to a dict, the object
     representation is preferred because of the more compact "dotted" notation.
     This is especially relevant when nesting compilations, e.g.
@@ -385,7 +385,7 @@ class Date:
             node_dict: dict-representation of the node to be loaded.
 
         Returns:
-            :class:`Date`: New string-type schema node.
+            :class:`Date`: New date-type schema node.
         """
         if node_dict['node_type'] != 'Date':
             raise ValueError('Invalid node type in dict.')
@@ -455,7 +455,7 @@ class DateTime:
             node_dict: dict-representation of the node to be loaded.
 
         Returns:
-            :class:`DateTime`: New string-type schema node.
+            :class:`DateTime`: New datetime-type schema node.
         """
         if node_dict['node_type'] != 'DateTime':
             raise ValueError('Invalid node type in dict.')
@@ -498,8 +498,8 @@ class List:
     """Schema node for lists of same-type elements.
 
     A :class:`List` is used to represent multiple data items that must meet the
-    same constraints. It uses a single schema node to specify the constraints
-    for all entries.
+    same constraints, e.g. a list of equally sized NumPy arrays. It uses a
+    single schema node to specify the constraints for all entries.
     Note that this behavior is different from regular python lists, which can
     contain arbitrary entries.
 
@@ -590,18 +590,18 @@ class Scalar:
     """Schema node for NumPy scalar values.
 
     This node type accepts scalar values of all numeric NumPy scalar types,
-    i.e.  subclasses of :class:`numpy.number`.
+    i.e. subclasses of :class:`numpy.number`.
 
     In addition to the actual value, Scalars contain some metadata:
 
     * The unit of the physical quantity that is represented by the value,
       e.g. 'V' for volts.
 
-    Also, Scalars support various constraints:
+    Also, Scalars support constraints:
 
     * NumPy data type (:class:`numpy.dtype`). This directly validates the
       scalar's ``dtype``. Note that the data type is always matched exactly, so
-      one cannot require "any of the int.
+      one cannot require "any of the int-dtypes".
       This attribute is non-optional, since many backends require knowledge of
       the data type for efficient storage.
     * Minimum and maximum values.
@@ -797,7 +797,7 @@ class Time:
             node_dict: dict-representation of the node to be loaded.
 
         Returns:
-            :class:`Time`: New string-type schema node.
+            :class:`Time`: New time-type schema node.
         """
         if node_dict['node_type'] != 'Time':
             raise ValueError('Invalid node type in dict.')
