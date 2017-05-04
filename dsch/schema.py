@@ -184,7 +184,7 @@ class Array:
         Raises:
             :exc:`.ValidationError`: if validation fails.
         """
-        if type(test_data) != np.ndarray:
+        if not isinstance(test_data, np.ndarray):
             raise ValidationError('Invalid type/value.', 'numpy.ndarray',
                                   type(test_data))
         if test_data.ndim != self.ndim:
@@ -419,7 +419,7 @@ class Date:
         Raises:
             :exc:`.ValidationError`: if validation fails.
         """
-        if type(test_data) != datetime.date:
+        if not isinstance(test_data, datetime.date):
             raise ValidationError('Invalid type/value.', 'datetime.date',
                                   type(test_data))
 
@@ -489,7 +489,7 @@ class DateTime:
         Raises:
             :exc:`.ValidationError`: if validation fails.
         """
-        if type(test_data) != datetime.datetime:
+        if not isinstance(test_data, datetime.datetime):
             raise ValidationError('Invalid type/value.', 'datetime.datetime',
                                   type(test_data))
 
@@ -755,7 +755,7 @@ class String:
         Raises:
             :exc:`.ValidationError`: if validation fails.
         """
-        if type(test_data) != str:
+        if not isinstance(test_data, str):
             raise ValidationError('Invalid type/value.', 'str',
                                   type(test_data))
         if self.max_length and len(test_data) > self.max_length:
@@ -831,7 +831,7 @@ class Time:
         Raises:
             :exc:`.ValidationError`: if validation fails.
         """
-        if type(test_data) != datetime.time:
+        if not isinstance(test_data, datetime.time):
             raise ValidationError('Invalid type/value.', 'datetime.time',
                                   type(test_data))
 
