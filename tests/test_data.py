@@ -101,111 +101,106 @@ class TestBool(ItemNodeTestBase):
     schema_node = schema.Bool()
     valid_data = True
 
+@pytest.mark.parametrize('schema_subnode,valid_subnode_data',(
+    (schema.Array(dtype='int32'), np.array([23, 42])),
+    (schema.Bool(), True),
+    (schema.Date(), datetime.date.today()),
+    (schema.DateTime(), datetime.datetime.now()),
+    (schema.Scalar(dtype='int32'), np.int32(42)),
+    (schema.String(), 'spam'),
+    (schema.Time(), datetime.time(13, 37, 42, 23)),
+))
 class TestCompilation:
-    def test_clear(self, backend):
-        schema_node = schema.Compilation({'spam': schema.Bool(),
-                                          'eggs': schema.Bool()})
-        comp = backend.module.Compilation(schema_node, parent=None,
-                                          new_params=backend.new_params)
-        comp.spam.replace(True)
-        comp.eggs.replace(False)
-        comp.clear()
-        assert comp.spam._storage is None
-        assert comp.eggs._storage is None
+    @pytest.fixture()
+    def data_node(self, backend, schema_subnode):
+        schema_node = schema.Compilation({'spam': schema_subnode,
+                                          'eggs': schema_subnode})
+        data_node = backend.module.Compilation(schema_node, parent=None,
+                                               new_params=backend.new_params)
+        return data_node
 
-    def test_complete(self, backend):
-        schema_node = schema.Compilation({'spam': schema.Bool(),
-                                          'eggs': schema.Bool()})
-        comp = backend.module.Compilation(schema_node, parent=None,
-                                          new_params=backend.new_params)
-        assert not comp.complete
-        comp.spam.replace(True)
-        assert not comp.complete
-        comp.eggs.replace(False)
-        assert comp.complete
+    def test_clear(self, data_node, valid_subnode_data):
+        data_node.spam.replace(valid_subnode_data)
+        data_node.eggs.replace(valid_subnode_data)
+        data_node.clear()
+        assert data_node.spam._storage is None
+        assert data_node.eggs._storage is None
 
-    def test_complete_optionals(self, backend):
-        schema_node = schema.Compilation({'spam': schema.Bool(),
-                                          'eggs': schema.Bool()},
-                                         optionals=['eggs'])
-        comp = backend.module.Compilation(schema_node, parent=None,
-                                          new_params=backend.new_params)
-        assert not comp.complete
-        comp.spam.replace(True)
-        assert comp.complete
+    def test_complete(self, data_node, valid_subnode_data):
+        assert not data_node.complete
+        data_node.spam.replace(valid_subnode_data)
+        assert not data_node.complete
+        data_node.eggs.replace(valid_subnode_data)
+        assert data_node.complete
 
-    def test_empty(self, backend):
-        schema_node = schema.Compilation({'spam': schema.Bool(),
-                                          'eggs': schema.Bool()})
-        comp = backend.module.Compilation(schema_node, parent=None,
-                                          new_params=backend.new_params)
-        assert comp.empty
-        comp.spam.replace(True)
-        assert not comp.empty
+    def test_complete_optionals(self, data_node, valid_subnode_data):
+        data_node.schema_node.optionals.append('eggs')
+        assert not data_node.complete
+        data_node.spam.replace(valid_subnode_data)
+        assert data_node.complete
 
-    def test_dir(self, backend):
-        schema_node = schema.Compilation({'spam': schema.Bool(),
-                                          'eggs': schema.Bool()})
-        comp = backend.module.Compilation(schema_node, parent=None,
-                                          new_params=backend.new_params)
-        assert 'spam' in dir(comp)
-        assert 'eggs' in dir(comp)
+    def test_empty(self, data_node, valid_subnode_data):
+        assert data_node.empty
+        data_node.spam.replace(valid_subnode_data)
+        assert not data_node.empty
 
-    def test_getattr(self, backend):
-        schema_node = schema.Compilation({'spam': schema.Bool(),
-                                          'eggs': schema.Bool()})
-        comp = backend.module.Compilation(schema_node, parent=None,
-                                          new_params=backend.new_params)
-        assert comp.spam == comp._subnodes['spam']
-        assert comp.eggs == comp._subnodes['eggs']
+    def test_dir(self, data_node, valid_subnode_data):
+        assert 'spam' in dir(data_node)
+        assert 'eggs' in dir(data_node)
 
-    def test_init(self, backend):
-        schema_node = schema.Compilation({'spam': schema.Bool(),
-                                          'eggs': schema.Bool()})
-        comp = backend.module.Compilation(schema_node, parent=None,
-                                          new_params=backend.new_params)
-        assert comp.schema_node == schema_node
-        assert hasattr(comp, 'spam')
-        assert hasattr(comp, 'eggs')
-        assert 'spam' in comp._subnodes
-        assert 'eggs' in comp._subnodes
+    def test_getattr(self, data_node, valid_subnode_data):
+        assert data_node.spam == data_node._subnodes['spam']
+        assert data_node.eggs == data_node._subnodes['eggs']
 
-    def test_replace(self, backend):
-        schema_node = schema.Compilation({'spam': schema.Bool(),
-                                          'eggs': schema.Bool()})
-        comp = backend.module.Compilation(schema_node, parent=None,
-                                          new_params=backend.new_params)
-        comp.replace({'spam': True, 'eggs': False})
-        assert comp.spam.value is True
-        assert comp.eggs.value is False
+    def test_init(self, data_node, valid_subnode_data):
+        assert hasattr(data_node, 'spam')
+        assert hasattr(data_node, 'eggs')
+        assert 'spam' in data_node._subnodes
+        assert 'eggs' in data_node._subnodes
 
-    def test_replace_compilation_in_compilation(self, backend):
+    def test_replace(self, data_node, valid_subnode_data):
+        data_node.replace({'spam': valid_subnode_data, 'eggs': valid_subnode_data})
+        if isinstance(valid_subnode_data, np.ndarray):
+            assert np.all(data_node.spam.value == valid_subnode_data)
+            assert np.all(data_node.eggs.value == valid_subnode_data)
+        else:
+            assert data_node.spam.value == valid_subnode_data
+            assert data_node.eggs.value == valid_subnode_data
+
+    def test_replace_compilation_in_compilation(self, backend, schema_subnode,
+                                                valid_subnode_data):
         schema_node = schema.Compilation({
-            'inner': schema.Compilation({'spam': schema.Bool(),
-                                         'eggs': schema.Bool()})
+            'inner': schema.Compilation({'spam': schema_subnode,
+                                         'eggs': schema_subnode})
         })
-        comp = backend.module.Compilation(schema_node, parent=None,
-                                          new_params=backend.new_params)
-        comp.replace({'inner': {'spam': True, 'eggs': False}})
-        assert comp.inner.spam.value is True
-        assert comp.inner.eggs.value is False
+        data_node = backend.module.Compilation(schema_node, parent=None,
+                                               new_params=backend.new_params)
+        data_node.replace({'inner': {'spam': valid_subnode_data,
+                                     'eggs': valid_subnode_data}})
+        if isinstance(valid_subnode_data, np.ndarray):
+            assert np.all(data_node.inner.spam.value == valid_subnode_data)
+            assert np.all(data_node.inner.eggs.value == valid_subnode_data)
+        else:
+            assert data_node.inner.spam.value == valid_subnode_data
+            assert data_node.inner.eggs.value == valid_subnode_data
 
-    def test_replace_list_in_compilation(self, backend):
-        schema_node = schema.Compilation({'spam': schema.List(schema.Bool())})
-        comp = backend.module.Compilation(schema_node, parent=None,
-                                          new_params=backend.new_params)
-        comp.replace({'spam': [True, False]})
-        assert comp.spam[0].value is True
-        assert comp.spam[1].value is False
+    def test_replace_list_in_compilation(self, backend, schema_subnode,
+                                         valid_subnode_data):
+        schema_node = schema.Compilation({'spam': schema.List(schema_subnode)})
+        data_node = backend.module.Compilation(schema_node, parent=None,
+                                               new_params=backend.new_params)
+        data_node.replace({'spam': [valid_subnode_data, valid_subnode_data]})
+        if isinstance(valid_subnode_data, np.ndarray):
+            assert np.all(data_node.spam[0].value == valid_subnode_data)
+            assert np.all(data_node.spam[1].value == valid_subnode_data)
+        else:
+            assert data_node.spam[0].value == valid_subnode_data
+            assert data_node.spam[1].value == valid_subnode_data
 
-    def test_validate(self, backend):
-        schema_node = schema.Compilation({'spam': schema.Bool(),
-                                          'eggs': schema.Bool()})
-        comp = backend.module.Compilation(schema_node, parent=None,
-                                          new_params=backend.new_params)
-        comp.spam.replace(True)
-        comp.eggs.replace(False)
-        comp.validate()
+    def test_validate(self, data_node, valid_subnode_data):
+        data_node.spam.replace(valid_subnode_data)
+        data_node.eggs.replace(valid_subnode_data)
+        data_node.validate()
 
 
 class TestDate(ItemNodeTestBase):
