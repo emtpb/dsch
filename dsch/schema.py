@@ -149,6 +149,7 @@ class Array:
             dict: dict-representation of the node.
         """
         config = {
+            'dtype': self.dtype,
             'unit': self.unit,
             'max_shape': self.max_shape,
             'min_shape': self.min_shape,
@@ -156,7 +157,6 @@ class Array:
             'max_value': self.max_value,
             'min_value': self.min_value,
             'depends_on': self.depends_on,
-            'dtype': self.dtype,
         }
         return {'node_type': 'Array', 'config': config}
 
@@ -187,6 +187,9 @@ class Array:
         if not isinstance(test_data, np.ndarray):
             raise ValidationError('Invalid type/value.', 'numpy.ndarray',
                                   type(test_data))
+        if test_data.dtype != self.dtype:
+            raise ValidationError('Invalid dtype.', self.dtype,
+                                  test_data.dtype)
         if test_data.ndim != self.ndim:
             raise ValidationError('Invalid number of array dimensions.',
                                   self.ndim, test_data.ndim)
@@ -208,9 +211,6 @@ class Array:
             raise ValidationError('Minimum array element value undercut.',
                                   self.min_value,
                                   test_data[test_data < self.min_value])
-        if self.dtype and not test_data.dtype == self.dtype:
-            raise ValidationError('Invalid dtype.', self.dtype,
-                                  test_data.dtype)
 
         if self.depends_on:
             for dim, value in zip(test_data.shape, independent_values):
@@ -684,7 +684,7 @@ class Scalar:
         if self.min_value is not None and test_data < self.min_value:
             raise ValidationError('Minimum value undercut.',
                                   self.min_value, test_data)
-        if self.dtype and not test_data.dtype == self.dtype:
+        if test_data.dtype != self.dtype:
             raise ValidationError('Invalid dtype.', self.dtype,
                                   test_data.dtype)
 
