@@ -88,8 +88,9 @@ class Compilation:
         Returns:
             bool: ``True`` if the Compilation is complete, ``False`` otherwise.
         """
-        for node in [node for name, node in self._subnodes.items()
-                     if name not in self.schema_node.optionals]:
+        required_nodes = [node for name, node in self._subnodes.items()
+                          if name not in self.schema_node.optionals]
+        for node in required_nodes:
             if not node.complete:
                 return False
         return True
