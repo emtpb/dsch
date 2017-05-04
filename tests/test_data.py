@@ -241,112 +241,120 @@ class TestDateTime(ItemNodeTestBase):
         assert (data_node.value - datetime.datetime.now()).total_seconds() < 1
 
 
+@pytest.mark.parametrize('schema_subnode,valid_subnode_data',(
+    (schema.Array(dtype='int32'), np.array([23, 42])),
+    (schema.Bool(), True),
+    (schema.Date(), datetime.date.today()),
+    (schema.DateTime(), datetime.datetime.now()),
+    (schema.Scalar(dtype='int32'), np.int32(42)),
+    (schema.String(), 'spam'),
+    (schema.Time(), datetime.time(13, 37, 42, 23)),
+))
 class TestList:
-    def test_append(self, backend):
-        data_node = backend.module.List(schema.List(schema.Bool()),
-                                        parent=None,
-                                        new_params=backend.new_params)
-        data_node.append(False)
-        assert len(data_node._subnodes) == 1
-        assert isinstance(data_node._subnodes[0], backend.module.Bool)
-        assert data_node._subnodes[0].value is False
-
-    def test_clear(self, backend):
-        schema_subnode = schema.Bool()
+    @pytest.fixture()
+    def data_node(self, backend, schema_subnode):
         data_node = backend.module.List(schema.List(schema_subnode),
                                         parent=None,
                                         new_params=backend.new_params)
-        data_node.append(True)
+        return data_node
+
+    def test_append(self, data_node, valid_subnode_data, backend,
+                    schema_subnode):
+        data_node.append(valid_subnode_data)
+        assert len(data_node._subnodes) == 1
+        assert isinstance(data_node._subnodes[0],
+                          getattr(backend.module,
+                                  type(schema_subnode).__name__))
+        if isinstance(valid_subnode_data, np.ndarray):
+            assert np.all(data_node._subnodes[0].value == valid_subnode_data)
+        else:
+            assert data_node._subnodes[0].value == valid_subnode_data
+
+    def test_clear(self, data_node, valid_subnode_data):
+        data_node.append(valid_subnode_data)
         assert len(data_node._subnodes) == 1
         data_node.clear()
         assert len(data_node._subnodes) == 0
 
-    def test_complete(self, backend):
-        data_node = backend.module.List(schema.List(schema.Bool()),
-                                        parent=None,
-                                        new_params=backend.new_params)
+    def test_complete(self, data_node, valid_subnode_data):
         assert data_node.complete
         data_node.append()
         assert not data_node.complete
-        data_node[0].replace(True)
+        data_node[0].replace(valid_subnode_data)
         assert data_node.complete
 
-    def test_empty(self, backend):
-        data_node = backend.module.List(schema.List(schema.Bool()),
-                                        parent=None,
-                                        new_params=backend.new_params)
+    def test_empty(self, data_node, valid_subnode_data):
         assert data_node.empty
-        data_node.replace([True, False])
+        data_node.replace([valid_subnode_data, valid_subnode_data])
         assert not data_node.empty
 
-    def test_getitem(self, backend):
-        schema_subnode = schema.Bool()
-        data_node = backend.module.List(schema.List(schema_subnode),
-                                        parent=None,
-                                        new_params=backend.new_params)
-        data_node.append(False)
-        assert isinstance(data_node[0], backend.module.Bool)
-        assert data_node[0].value is False
+    def test_getitem(self, data_node, valid_subnode_data, backend,
+                     schema_subnode):
+        data_node.append(valid_subnode_data)
+        assert isinstance(data_node[0], getattr(backend.module,
+                                                type(schema_subnode).__name__))
+        if isinstance(valid_subnode_data, np.ndarray):
+            assert np.all(data_node[0].value == valid_subnode_data)
+        else:
+            assert data_node[0].value == valid_subnode_data
 
-    def test_init(self, backend):
-        schema_node = schema.List(schema.Bool())
-        data_node = backend.module.List(schema_node, parent=None,
-                                        new_params=backend.new_params)
-        assert data_node.schema_node == schema_node
+    def test_init(self, data_node, valid_subnode_data, schema_subnode):
+        assert data_node.schema_node.subnode == schema_subnode
         assert data_node._subnodes == []
 
-    def test_len(self, backend):
-        schema_subnode = schema.Bool()
-        data_node = backend.module.List(schema.List(schema_subnode),
-                                        parent=None,
-                                        new_params=backend.new_params)
+    def test_len(self, data_node, valid_subnode_data):
         assert len(data_node) == 0
-        data_node.append(True)
+        data_node.append(valid_subnode_data)
         assert len(data_node) == 1
 
-    def test_replace(self, backend):
-        data_node = backend.module.List(schema.List(schema.Bool()),
-                                        parent=None,
-                                        new_params=backend.new_params)
-        data_node.replace([True, False])
-        assert data_node[0].value is True
-        assert data_node[1].value is False
+    def test_replace(self, data_node, valid_subnode_data):
+        data_node.replace([valid_subnode_data, valid_subnode_data])
+        if isinstance(valid_subnode_data, np.ndarray):
+            assert np.all(data_node[0].value == valid_subnode_data)
+            assert np.all(data_node[1].value == valid_subnode_data)
+        else:
+            assert data_node[0].value == valid_subnode_data
+            assert data_node[1].value == valid_subnode_data
 
-    def test_replace_compilation_in_list(self, backend):
-        schema_subnode = schema.Compilation({'spam': schema.Bool()})
-        data_node = backend.module.List(schema.List(schema_subnode),
+    def test_replace_compilation_in_list(self, backend, schema_subnode,
+                                         valid_subnode_data):
+        schema_compnode = schema.Compilation({'spam': schema_subnode})
+        data_node = backend.module.List(schema.List(schema_compnode),
                                         parent=None,
                                         new_params=backend.new_params)
-        data_node.replace([{'spam': True}, {'spam': False}])
-        assert data_node[0].spam.value is True
-        assert data_node[1].spam.value is False
+        data_node.replace([{'spam': valid_subnode_data},
+                           {'spam': valid_subnode_data}])
+        if isinstance(valid_subnode_data, np.ndarray):
+            assert np.all(data_node[0].spam.value == valid_subnode_data)
+            assert np.all(data_node[1].spam.value == valid_subnode_data)
+        else:
+            assert data_node[0].spam.value == valid_subnode_data
+            assert data_node[1].spam.value == valid_subnode_data
 
-    def test_replace_list_in_list(self, backend):
-        schema_subnode = schema.List(schema.Bool())
-        data_node = backend.module.List(schema.List(schema_subnode),
+    def test_replace_list_in_list(self, backend, schema_subnode,
+                                  valid_subnode_data):
+        schema_lstnode = schema.List(schema_subnode)
+        data_node = backend.module.List(schema.List(schema_lstnode),
                                         parent=None,
                                         new_params=backend.new_params)
-        data_node.replace([[True, False]])
-        assert data_node[0][0].value is True
-        assert data_node[0][1].value is False
+        data_node.replace([[valid_subnode_data, valid_subnode_data]])
+        if isinstance(valid_subnode_data, np.ndarray):
+            assert np.all(data_node[0][0].value == valid_subnode_data)
+            assert np.all(data_node[0][1].value == valid_subnode_data)
+        else:
+            assert data_node[0][0].value == valid_subnode_data
+            assert data_node[0][1].value == valid_subnode_data
 
-    def test_validate(self, backend):
-        schema_subnode = schema.Bool()
-        data_node = backend.module.List(schema.List(schema_subnode),
-                                        parent=None,
-                                        new_params=backend.new_params)
-        data_node.append(True)
+    def test_validate(self, data_node, valid_subnode_data):
+        data_node.append(valid_subnode_data)
         data_node.validate()
 
-    def test_validate_fail(self, backend):
-        schema_subnode = schema.Bool()
-        subnode = schema.List(schema_subnode, max_length=3)
-        data_node = backend.module.List(subnode, parent=None,
-                                        new_params=backend.new_params)
-        data_node.append(True)
-        data_node.append(False)
-        data_node.append(True)
-        data_node.append(False)
+    def test_validate_fail(self, data_node, valid_subnode_data):
+        data_node.schema_node.max_length = 3
+        data_node.append(valid_subnode_data)
+        data_node.append(valid_subnode_data)
+        data_node.append(valid_subnode_data)
+        data_node.append(valid_subnode_data)
         with pytest.raises(schema.ValidationError):
             data_node.validate()
 
