@@ -35,7 +35,7 @@ class Storage:
         to it while using a :class:`Storage` object.
 
     Attributes:
-        storage_path (str): Path to the current storage.
+        storage_path (str): Path to the current storage (backend-specific).
         schema_node: Top-level schema node used for the stored data.
         data: Top-level data node, providing access to all managed data.
     """
@@ -44,16 +44,19 @@ class Storage:
         """Initialize the storage interface.
 
         To create a new storage, ``storage_path`` and ``schema_node`` must be
-        specified. Note that most backends do not automatically write data
-        changes to disk until :meth:`save` is called.
+        specified.
 
         To open a storage that already exists, only ``storage_path`` must be
         specified. In this case, ``schema_node`` is ignored, if given
         additionally.
 
+        .. note::
+            Most backends cache changes to the data in memory. For writing
+            these to disk or commit them to a database (backend-specific), they
+            provide a method like ``save`` that must be called explicitly.
+
         Args:
-            storage_path (str): Path to the storage (format depending on the
-                specific backend).
+            storage_path (str): Path to the storage (backend-specific).
             schema_node: Top-level schema node for the data hierarchy.
         """
         self.storage_path = storage_path
@@ -67,8 +70,10 @@ class Storage:
         top-level data node is complete. In most cases, this will be a
         :class:`dsch.data.Compilation` or :class:`dsch.data.List`, which
         recursively check their sub-nodes for completeness.
-        When the Storage is complete, this means that all available data fields
-        are filled out.
+        When the Storage is complete, this means that all required data fields
+        are filled out. Compilation fields marked as optional via
+        :attr:`.schema.Compilation.optionals` are not considered in this
+        process.
 
         Returns:
             bool: ``True`` if the stored data is complete, ``False`` otherwise.
@@ -109,7 +114,7 @@ class Storage:
 class FileStorage(Storage):
     """Storage interface base class for file-based storage.
 
-    FileStorage expand :class:`Storage` by common functionality that is shared
+    FileStorage extends :class:`Storage` by common functionality that is shared
     by all file-based storage mechanisms. This also provides a common interface
     to the user, independent of the specific file format (i.e. backend) in use.
 
@@ -123,16 +128,19 @@ class FileStorage(Storage):
         """Initialize the storage interface to a file.
 
         To create a new storage file, ``storage_path`` and ``schema_node`` must
-        be specified. Note that most backends do not automatically write data
-        changes to disk until :meth:`save` is called.
+        be specified.
 
         To open a storage file that already exists, only ``storage_path`` must
         be specified. In this case, ``schema_node`` is ignored, if given
         additionally.
 
+        .. note::
+            File-based backends cache changes to the data in memory. For
+            writing these to disk, they provide a :meth:`save` method that must
+            be called explicitly.
+
         Args:
-            storage_path (str): Path to the storage (format depending on the
-                specific backend).
+            storage_path (str): Path to the storage file.
             schema_node: Top-level schema node for the data hierarchy.
         """
         super().__init__(storage_path, schema_node)
