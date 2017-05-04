@@ -9,7 +9,7 @@ The data nodes are also responsible for storing the data. Since dsch is built
 to support multiple storage backends, there are specific data node classes
 implementing the respective functionality. The classes in this module provide
 common functionality and are intended to be used as base classes.
-Different backends are implemented in the ``backends`` package.
+Different backends are implemented in the :mod:`dsch.backends` package.
 """
 import importlib
 
@@ -25,6 +25,8 @@ class Compilation:
         schema_node: The schema node that this data node is based on.
         parent: Parent data node object (``None`` if this is the top-level data
             node).
+        complete: Data completeness flag. ``True`` if all required data is
+            present.
         empty: Data absence flag. ``True`` if no data is present.
     """
 
@@ -36,8 +38,8 @@ class Compilation:
         are created from that data storage object, i.e. loading existing data.
         Otherwise, a new Compilation is created with empty sub-nodes, possibly
         using optional ``new_params`` for creation.
-        Note that the data node instances for the sub-nodes are created in both
-        cases.
+        The data node instances for the sub-nodes are recursively created in
+        both cases.
 
         Note: Both ``data_storage`` and ``new_params`` are backend-specific.
 
@@ -77,10 +79,14 @@ class Compilation:
         sub-nodes by including them in
         :attr:`dsch.schema.Compilation.optionals`.
 
-        Note that :attr:`complete` is not simply the inverse of :attr:`empty`.
+        .. note::
+            :attr:`complete` is not simply the inverse of :attr:`empty`, since
+            it is only ``True`` when *all* non-optional fields are filled. This
+            means a Compilation can be non-empty and non-complete at the same
+            time.
 
         Returns:
-            bool: ``True`` if the data node is complete, ``False`` otherwise.
+            bool: ``True`` if the Compilation is complete, ``False`` otherwise.
         """
         for node in [node for name, node in self._subnodes.items()
                      if name not in self.schema_node.optionals]:
@@ -89,7 +95,7 @@ class Compilation:
         return True
 
     def __dir__(self):
-        """Include sub-nodes in :meth:`dir`."""
+        """Include sub-nodes in :func:`dir`."""
         attrs = super().__dir__()
         attrs.extend(self._subnodes.keys())
         return attrs
@@ -102,7 +108,7 @@ class Compilation:
         empty.
 
         Returns:
-            bool: ``True`` if the data node is empty, ``False`` otherwise.
+            bool: ``True`` if the Compilation is empty, ``False`` otherwise.
         """
         for node in self._subnodes.values():
             if not node.empty:
@@ -192,6 +198,7 @@ class ItemNode:
         schema_node: The schema node that this data node is based on.
         parent: Parent data node object (``None`` if this is the top-level data
             node).
+        complete: Data completeness flag. ``True`` if data is present.
         empty: Data absence flag. ``True`` if no data is present.
         value: Actual node data, independent of the backend in use.
     """
@@ -199,6 +206,11 @@ class ItemNode:
     def __init__(self, schema_node, parent, data_storage=None,
                  new_params=None):
         """Initialize data node from a given schema node.
+
+        When ``data_storage`` is given, the data node is created from that
+        storage object, i.e. loading existing data. Otherwise, a new data node
+        is created, using optional ``new_params`` for creation, with an empty
+        value.
 
         Note: Both ``data_storage`` and ``new_params`` are backend-specific.
 
@@ -222,10 +234,6 @@ class ItemNode:
 
         This removes the corresponding storage object entirely, causing the
         data node to be :attr:`empty` afterwards.
-
-        The default implementation simply clears the data storage object.
-        Backend-specific subclasses may for example implement additional
-        clean-up functionality.
         """
         self._storage = None
 
@@ -260,10 +268,6 @@ class ItemNode:
         """Create a new data node from a data storage object.
 
         This initializes the data node using the given data storage object.
-
-        The default implementation simply assigns ``data_storage`` as the data
-        item's data storage object, which should work for most backends.
-        Specific subclasses may override this behaviour, if required.
 
         Args:
             data_storage: Backend-specific data storage object to load.
@@ -328,12 +332,19 @@ class List:
         schema_node: The schema node that this data node is based on.
         parent: Parent data node object (``None`` if this is the top-level data
             node).
+        complete: Data completeness flag. ``True`` if all list items are
+            complete.
         empty: Data absence flag. ``True`` if no data is present.
     """
 
     def __init__(self, schema_node, parent, data_storage=None,
                  new_params=None):
         """Initialize list node from a given schema node.
+
+        When ``data_storage`` is given, the List and all its sub-nodes are
+        created from that data storage object, i.e. loading existing data.
+        Otherwise, a new List is created without sub-nodes, possibly
+        using optional ``new_params`` for creation.
 
         Note: Both ``data_storage`` and ``new_params`` are backend-specific.
 
@@ -359,8 +370,6 @@ class List:
         node. Otherwise, an empty data node is created, which can be useful
         especially for Lists of Compilations.
 
-        Note: This works with actual data values!
-
         Args:
             value: Value to be added to the list.
         """
@@ -371,7 +380,10 @@ class List:
             subnode.replace(value)
 
     def clear(self):
-        """Clear all subnodes."""
+        """Clear all sub-nodes.
+
+        This removes all sub-nodes entirely, yielding an empty List.
+        """
         self._subnodes.clear()
 
     @property
@@ -379,10 +391,14 @@ class List:
         """Check whether the List is currently complete.
 
         A List is considered complete when all of its sub-nodes are complete.
-        Note that an empty List is also considered complete!
+
+        .. warning::
+            An empty List is considered complete! If a minimum number of list
+            items is required, use :attr:`.schema.List.min_length` to apply
+            the corresponding constraint.
 
         Returns:
-            bool: ``True`` if the data node is complete, ``False`` otherwise.
+            bool: ``True`` if the List is complete, ``False`` otherwise.
         """
         for node in self._subnodes:
             if not node.complete:
@@ -396,7 +412,7 @@ class List:
         A List is considered empty when no sub-nodes are present.
 
         Returns:
-            bool: ``True`` if the data node is empty, ``False`` otherwise.
+            bool: ``True`` if the List is empty, ``False`` otherwise.
         """
         return len(self._subnodes) == 0
 
