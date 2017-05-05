@@ -9,7 +9,19 @@ import numpy as np
 from .. import data, helpers, schema, storage
 
 
-class Array(data.Array):
+class _ItemNode(data.ItemNode):
+    """Common base class for data nodes for the npz backend."""
+
+    def save(self):
+        """Export the node data as a data storage object.
+
+        Returns:
+            dict: Data storage object with the node's data.
+        """
+        return self._storage
+
+
+class Array(data.Array, _ItemNode):
     """Array-type data node for the npz backend."""
 
     def replace(self, new_value):
@@ -24,14 +36,6 @@ class Array(data.Array):
         """
         self._storage = new_value
 
-    def save(self):
-        """Export the node data as a data storage object.
-
-        Returns:
-            dict: Data storage object with the node's data.
-        """
-        return self._storage
-
     @property
     def value(self):
         """Return the actual node data, independent of the backend in use.
@@ -45,7 +49,7 @@ class Array(data.Array):
         return self._storage
 
 
-class Bool(data.ItemNode):
+class Bool(_ItemNode):
     """Bool-type data node for the npz backend."""
 
     def replace(self, new_value):
@@ -59,14 +63,6 @@ class Bool(data.ItemNode):
                 backend in use.
         """
         self._storage = np.array([new_value], dtype='bool')
-
-    def save(self):
-        """Export the node data as a data storage object.
-
-        Returns:
-            dict: Data storage object with the node's data.
-        """
-        return self._storage
 
     @property
     def value(self):
@@ -100,7 +96,7 @@ class Compilation(data.Compilation):
         return data_storage
 
 
-class Date(data.Date):
+class Date(data.Date, _ItemNode):
     """Date-type data node for the npz backend."""
 
     def replace(self, new_value):
@@ -116,14 +112,6 @@ class Date(data.Date):
         self._storage = np.array([new_value.year, new_value.month,
                                   new_value.day], dtype='int')
 
-    def save(self):
-        """Export the node data as a data storage object.
-
-        Returns:
-            dict: Data storage object with the node's data.
-        """
-        return self._storage
-
     @property
     def value(self):
         """Return the actual node data, independent of the backend in use.
@@ -137,7 +125,7 @@ class Date(data.Date):
         return datetime.date(*self._storage.tolist())
 
 
-class DateTime(data.DateTime):
+class DateTime(data.DateTime, _ItemNode):
     """DateTime-type data node for the npz backend."""
 
     def replace(self, new_value):
@@ -154,14 +142,6 @@ class DateTime(data.DateTime):
                                   new_value.day, new_value.hour,
                                   new_value.minute, new_value.second,
                                   new_value.microsecond], dtype='int')
-
-    def save(self):
-        """Export the node data as a data storage object.
-
-        Returns:
-            dict: Data storage object with the node's data.
-        """
-        return self._storage
 
     @property
     def value(self):
@@ -195,7 +175,7 @@ class List(data.List):
         return data_storage
 
 
-class Scalar(data.ItemNode):
+class Scalar(_ItemNode):
     """Scalar-type data node for the npz backend."""
 
     def _init_from_storage(self, data_storage):
@@ -219,14 +199,6 @@ class Scalar(data.ItemNode):
                 backend in use.
         """
         self._storage = np.dtype(self.schema_node.dtype).type(new_value)
-
-    def save(self):
-        """Export the node data as a data storage object.
-
-        Returns:
-            dict: Data storage object with the node's data.
-        """
-        return self._storage
 
     @property
     def value(self):
@@ -291,7 +263,7 @@ class Storage(storage.FileStorage):
                  **store_data)
 
 
-class String(data.ItemNode):
+class String(_ItemNode):
     """String-type data node for the npz backend."""
 
     def replace(self, new_value):
@@ -306,14 +278,6 @@ class String(data.ItemNode):
         """
         self._storage = np.array(new_value, dtype='U')
 
-    def save(self):
-        """Export the node data as a data storage object.
-
-        Returns:
-            dict: Data storage object with the node's data.
-        """
-        return self._storage
-
     @property
     def value(self):
         """Return the actual node data, independent of the backend in use.
@@ -327,7 +291,7 @@ class String(data.ItemNode):
         return str(self._storage)
 
 
-class Time(data.Time):
+class Time(data.Time, _ItemNode):
     """Time-type data node for the npz backend."""
 
     def replace(self, new_value):
@@ -343,14 +307,6 @@ class Time(data.Time):
         self._storage = np.array([new_value.hour, new_value.minute,
                                   new_value.second, new_value.microsecond],
                                  dtype='int')
-
-    def save(self):
-        """Export the node data as a data storage object.
-
-        Returns:
-            dict: Data storage object with the node's data.
-        """
-        return self._storage
 
     @property
     def value(self):
