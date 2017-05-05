@@ -2,7 +2,16 @@ import numpy as np
 import scipy.io as sio
 from .. import data
 from . import npz
-from .npz import Array, Bool, Date, DateTime, Scalar, String, Time
+
+
+class Array(npz.Array):
+    """Array-type data node for the mat backend."""
+    pass
+
+
+class Bool(npz.Bool):
+    """Bool-type data node for the mat backend."""
+    pass
 
 
 class Compilation(npz.Compilation):
@@ -32,6 +41,16 @@ class Compilation(npz.Compilation):
             self._subnodes[node_name] = data.data_node_from_schema(
                 subnode, self.__module__, self,
                 data_storage=data_storage[node_name])
+
+
+class Date(npz.Date):
+    """Date-type data node for the mat backend."""
+    pass
+
+
+class DateTime(npz.DateTime):
+    """DateTime-type data node for the mat backend."""
+    pass
 
 
 class List(npz.List):
@@ -73,6 +92,11 @@ class List(npz.List):
         return data_storage
 
 
+class Scalar(npz.Scalar):
+    """Scalar-type data node for the mat backend."""
+    pass
+
+
 class Storage(npz.Storage):
     """Interface to ``.mat`` files.
 
@@ -102,3 +126,13 @@ class Storage(npz.Storage):
         store_data = {'data': self.data.save(),
                       'schema': self._schema_to_json()}
         sio.savemat(self.storage_path, store_data)
+
+
+class String(npz.String):
+    """String-type data node for the mat backend."""
+    pass
+
+
+class Time(npz.Time):
+    """Time-type data node for the mat backend."""
+    pass
