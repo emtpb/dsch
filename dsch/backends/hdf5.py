@@ -242,6 +242,60 @@ class DateTime(data.DateTime, _ItemNode):
         return datetime.datetime(*self._storage.value.tolist())
 
 
+class List(data.List):
+    """List-type data node for the HDF5 backend."""
+
+    def append(self, value=None):
+        """Append a new data node to the list.
+
+        If a ``value`` is given, it is automatically applied to the new data
+        node. Otherwise, an empty data node is created, which can be useful
+        especially for Lists of Compilations.
+
+        Note: This works with actual data values!
+
+        Args:
+            value: Value to be added to the list.
+        """
+        new_params = {'name': 'item_{}'.format(len(self)),
+                      'parent': self._storage}
+        subnode = data.data_node_from_schema(self.schema_node.subnode,
+                                             self.__module__, self,
+                                             new_params=new_params)
+        self._subnodes.append(subnode)
+        if value is not None:
+            subnode.replace(value)
+
+    def clear(self):
+        """Clear all subnodes."""
+        for name in self._storage.keys():
+            del self._storage[name]
+        super().clear()
+
+    def _init_from_storage(self, data_storage):
+        """Create a new data node from a data storage object.
+
+        This initializes the data node using the given data storage object.
+
+        Args:
+            data_storage (:class:`h5py.Dataset`): Data storage object to be
+                imported.
+        """
+        super()._init_from_storage(data_storage)
+        self._storage = data_storage
+
+    def _init_new(self, new_params):
+        """Initialize new, empty List data node.
+
+        This creates a new HDF5 group to hold the List's sub-nodes.
+
+        Args:
+            new_params (dict): Dict including the HDF5 group name as ``name``
+                and the HDF5 parent object as ``parent``.
+        """
+        self._storage = new_params['parent'].create_group(new_params['name'])
+
+
 class Scalar(_ItemNode):
     """Scalar-type data node for the HDF5 backend."""
 
@@ -325,60 +379,6 @@ class Storage(storage.FileStorage):
         *not* guaranteed to fulfill the schema's constraints.
         """
         self._storage.flush()
-
-
-class List(data.List):
-    """List-type data node for the HDF5 backend."""
-
-    def append(self, value=None):
-        """Append a new data node to the list.
-
-        If a ``value`` is given, it is automatically applied to the new data
-        node. Otherwise, an empty data node is created, which can be useful
-        especially for Lists of Compilations.
-
-        Note: This works with actual data values!
-
-        Args:
-            value: Value to be added to the list.
-        """
-        new_params = {'name': 'item_{}'.format(len(self)),
-                      'parent': self._storage}
-        subnode = data.data_node_from_schema(self.schema_node.subnode,
-                                             self.__module__, self,
-                                             new_params=new_params)
-        self._subnodes.append(subnode)
-        if value is not None:
-            subnode.replace(value)
-
-    def clear(self):
-        """Clear all subnodes."""
-        for name in self._storage.keys():
-            del self._storage[name]
-        super().clear()
-
-    def _init_from_storage(self, data_storage):
-        """Create a new data node from a data storage object.
-
-        This initializes the data node using the given data storage object.
-
-        Args:
-            data_storage (:class:`h5py.Dataset`): Data storage object to be
-                imported.
-        """
-        super()._init_from_storage(data_storage)
-        self._storage = data_storage
-
-    def _init_new(self, new_params):
-        """Initialize new, empty List data node.
-
-        This creates a new HDF5 group to hold the List's sub-nodes.
-
-        Args:
-            new_params (dict): Dict including the HDF5 group name as ``name``
-                and the HDF5 parent object as ``parent``.
-        """
-        self._storage = new_params['parent'].create_group(new_params['name'])
 
 
 class String(_ItemNode):
