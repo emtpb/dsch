@@ -18,7 +18,7 @@ class _ItemNode(data.ItemNode):
         This removes the corresponding storage object entirely, causing the
         data node to be :attr:`empty` afterwards.
         """
-        self._storage = None
+        super().clear()
         try:
             del self._parent[self._dataset_name]
         except KeyError:
