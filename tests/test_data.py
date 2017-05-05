@@ -1,9 +1,10 @@
 from collections import namedtuple
 import datetime
 import h5py
+import importlib
 import numpy as np
 import pytest
-from dsch import helpers, schema
+from dsch import schema
 
 
 backend_data = namedtuple('backend_data', ('module', 'new_params'))
@@ -16,7 +17,8 @@ def backend(request, tmpdir):
         new_params = {'name': 'test_data', 'parent': hdf5file['/']}
     elif request.param in ('mat', 'npz'):
         new_params = None
-    return backend_data(module=helpers.backend_module(request.param),
+    return backend_data(module=importlib.import_module('dsch.backends.' +
+                                                       request.param),
                         new_params=new_params)
 
 
