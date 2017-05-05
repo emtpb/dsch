@@ -6,7 +6,7 @@ enhancement proposal <https://docs.scipy.org/doc/numpy/neps/npy-format.html>`_.
 """
 import datetime
 import numpy as np
-from .. import data, helpers, schema, storage
+from .. import data, schema, storage
 
 
 class _ItemNode(data.ItemNode):
@@ -229,7 +229,7 @@ class Storage(storage.FileStorage):
         """Load an existing file from :attr:`storage_path`."""
         with np.load(self.storage_path) as file_:
             self._schema_from_json(file_['_schema'][()])
-            stored_data = helpers.inflate_dotted(file_)
+            stored_data = _inflate_dotted(file_)
 
         if isinstance(self.schema_node, schema.Compilation):
             data_storage = {k: v for k, v in stored_data.items()
@@ -254,11 +254,11 @@ class Storage(storage.FileStorage):
         *not* guaranteed to fulfill the schema's constraints.
         """
         if isinstance(self.schema_node, schema.Compilation):
-            store_data = helpers.flatten_dotted(self.data.save())
+            store_data = _flatten_dotted(self.data.save())
         else:
             # If the top-level node is not a Compilation, the default name
             # 'data' is used for the node.
-            store_data = helpers.flatten_dotted({'data': self.data.save()})
+            store_data = _flatten_dotted({'data': self.data.save()})
         np.savez(self.storage_path, _schema=self._schema_to_json(),
                  **store_data)
 
@@ -319,3 +319,64 @@ class Time(data.Time, _ItemNode):
             Node data.
         """
         return datetime.time(*self._storage.tolist())
+
+
+def _inflate_dotted(input_dict):
+    """Convert flat dict with dotted key notation into nested dict.
+
+    Given a flat dict with dotted keys for nested items, e.g.
+        >>> input_dict = {'spam.eggs': 23, 'answer': 42}
+
+    create a nested dict
+        >>> output_dict = _inflate_dotted(input_dict)
+        >>> output_dict == {'spam': {'eggs': 23}, 'answer': 42}
+        True
+
+    Args:
+        dict: Flat dict with dotted key notation.
+
+    Returns:
+        dict: Nested dict.
+    """
+    output_dict = {}
+    for key, value in input_dict.items():
+        ref = output_dict
+        parts = key.split('.')
+        for part in parts[:-1]:
+            if part not in ref:
+                ref[part] = {}
+            ref = ref[part]
+        ref[parts[-1]] = value
+    return output_dict
+
+
+def _flatten_dotted(input_dict, prefix=''):
+    """Convert nested dict into flat dict with dotted key notation.
+
+    Given a nested dict, e.g.
+        >>> input_dict = {'spam': {'eggs': 23}, 'answer': 42}
+
+    create a flat dict with dotted keys for the nested items
+        >>> output_dict = _flatten_dotted(input_dict)
+        >>> output_dict == {'spam.eggs': 23, 'answer': 42}
+        True
+
+    Args:
+        dict: Nested dict
+        string: Key prefix, used for recursion. Should be left at the default
+            for normal use.
+
+    Returns:
+        dict: Flattened dict with dotted notation.
+    """
+    output_dict = {}
+    for key, value in input_dict.items():
+        if prefix:
+            dotted = prefix + '.' + key
+        else:
+            dotted = key
+        if isinstance(value, dict):
+            output_dict.update(_flatten_dotted(value, dotted))
+        else:
+            output_dict[dotted] = value
+    return output_dict
