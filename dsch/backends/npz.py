@@ -9,12 +9,8 @@ import numpy as np
 from .. import data, helpers, schema, storage
 
 
-class Array(data.ItemNode):
+class Array(data.Array):
     """Array-type data node for the npz backend."""
-
-    def __getitem__(self, key):
-        """Pass slicing/indexing operations directly to NumPy array."""
-        return self._storage[key]
 
     def replace(self, new_value):
         """Completely replace the current node value.
@@ -28,14 +24,6 @@ class Array(data.ItemNode):
         """
         self._storage = new_value
 
-    def resize(self, size):
-        """Resize the array to the desired size.
-
-        Args:
-            size (tuple): Desired array shape.
-        """
-        self._storage.resize(size)
-
     def save(self):
         """Export the node data as a data storage object.
 
@@ -43,27 +31,6 @@ class Array(data.ItemNode):
             dict: Data storage object with the node's data.
         """
         return self._storage
-
-    def __setitem__(self, key, value):
-        """Pass slicing/indexing operations directly to NumPy array."""
-        self._storage[key] = value
-
-    def validate(self):
-        """Validate the node value against the schema node specification.
-
-        If validation succeeds, the method terminates silently. Otherwise, an
-        exception is raised.
-
-        Raises:
-            :exc:`dsch.schema.ValidationError`: if validation fails.
-        """
-        independent_values = []
-        node_names = self.schema_node.depends_on or []
-        for node_name in node_names:
-            if node_name:
-                independent_values.append(getattr(self.parent, node_name)
-                                          .value)
-        self.schema_node.validate(self.value, independent_values)
 
     @property
     def value(self):
@@ -133,22 +100,8 @@ class Compilation(data.Compilation):
         return data_storage
 
 
-class Date(data.ItemNode):
+class Date(data.Date):
     """Date-type data node for the npz backend."""
-
-    def _init_new(self, new_params):
-        """Initialize new Date data node.
-
-        For :class:`Date`, the current date is applied to the node if
-        the corresponding schema node's :attr:`dsch.schema.Date.set_on_create`
-        is ``True``. Otherwise, the dataset is left empty and can be filled by
-        calling meth:`replace`.
-
-        Args:
-            new_params: Argument ignored for this class.
-        """
-        if self.schema_node.set_on_create:
-            self.replace(datetime.date.today())
 
     def replace(self, new_value):
         """Completely replace the current node value.
@@ -184,22 +137,8 @@ class Date(data.ItemNode):
         return datetime.date(*self._storage.tolist())
 
 
-class DateTime(data.ItemNode):
+class DateTime(data.DateTime):
     """DateTime-type data node for the npz backend."""
-
-    def _init_new(self, new_params):
-        """Initialize new DateTime data node.
-
-        For :class:`DateTime`, the current date and time is applied to the node
-        if the corresponding schema node's
-        :attr:`dsch.schema.DateTime.set_on_create` is ``True``. Otherwise, the
-        dataset is left empty and can be filled by calling meth:`replace`.
-
-        Args:
-            new_params: Argument ignored for this class.
-        """
-        if self.schema_node.set_on_create:
-            self.replace(datetime.datetime.now())
 
     def replace(self, new_value):
         """Completely replace the current node value.
@@ -388,22 +327,8 @@ class String(data.ItemNode):
         return str(self._storage)
 
 
-class Time(data.ItemNode):
+class Time(data.Time):
     """Time-type data node for the npz backend."""
-
-    def _init_new(self, new_params):
-        """Initialize new Time data node.
-
-        For :class:`Time`, the current time is applied to the node if
-        the corresponding schema node's :attr:`dsch.schema.Time.set_on_create`
-        is ``True``. Otherwise, the dataset is left empty and can be filled by
-        calling meth:`replace`.
-
-        Args:
-            new_params: Argument ignored for this class.
-        """
-        if self.schema_node.set_on_create:
-            self.replace(datetime.datetime.now().time())
 
     def replace(self, new_value):
         """Completely replace the current node value.

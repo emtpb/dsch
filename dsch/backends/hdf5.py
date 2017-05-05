@@ -70,12 +70,8 @@ class _ItemNode(data.ItemNode):
                                                     data=new_value)
 
 
-class Array(_ItemNode):
+class Array(data.Array, _ItemNode):
     """Array-type data node for the HDF5 backend."""
-
-    def __getitem__(self, key):
-        """Pass slicing/indexing operations directly to HDF5 dataset."""
-        return self._storage[key]
 
     def replace(self, new_value):
         """Completely replace the current node value.
@@ -105,35 +101,6 @@ class Array(_ItemNode):
             dtype=self.schema_node.dtype,
             maxshape=maxshape,
         )
-
-    def resize(self, size):
-        """Resize the array to the desired size.
-
-        Args:
-            size (tuple): Desired array size.
-        """
-        self._storage.resize(size)
-
-    def __setitem__(self, key, value):
-        """Pass slicing/indexing operations directly to HDF5 dataset."""
-        self._storage[key] = value
-
-    def validate(self):
-        """Validate the node value against the schema node specification.
-
-        If validation succeeds, the method terminates silently. Otherwise, an
-        exception is raised.
-
-        Raises:
-            :exc:`dsch.schema.ValidationError`: if validation fails.
-        """
-        independent_values = []
-        node_names = self.schema_node.depends_on or []
-        for node_name in node_names:
-            if node_name:
-                independent_values.append(getattr(self.parent, node_name)
-                                          .value)
-        self.schema_node.validate(self.value, independent_values)
 
     @property
     def value(self):
@@ -213,24 +180,8 @@ class Compilation(data.Compilation):
                 subnode, self.__module__, self, new_params=new_params_sub)
 
 
-class Date(_ItemNode):
+class Date(data.Date, _ItemNode):
     """Date-type data node for the HDF5 backend."""
-
-    def _init_new(self, new_params):
-        """Initialize new Date data node.
-
-        For :class:`Date`, the corresponding HDF5 dataset is only created if
-        the corresponding schema node's :attr:`dsch.schema.Date.set_on_create`
-        is ``True``. Otherwise, the dataset is left empty and can be filled by
-        calling meth:`replace`.
-
-        Args:
-            new_params (dict): Dict including the HDF5 dataset name as ``name``
-                and the HDF5 parent object as ``parent``.
-        """
-        super()._init_new(new_params)
-        if self.schema_node.set_on_create:
-            self.replace(datetime.date.today())
 
     def replace(self, new_value):
         """Completely replace the current node value.
@@ -259,24 +210,8 @@ class Date(_ItemNode):
         return datetime.date(*self._storage.value.tolist())
 
 
-class DateTime(_ItemNode):
+class DateTime(data.DateTime, _ItemNode):
     """DateTime-type data node for the HDF5 backend."""
-
-    def _init_new(self, new_params):
-        """Initialize new DateTime data node.
-
-        For :class:`DateTime`, the corresponding HDF5 dataset is only created
-        if the corresponding schema node's
-        :attr:`dsch.schema.DateTime.set_on_create` is ``True``. Otherwise, the
-        dataset is left empty and can be filled by calling meth:`replace`.
-
-        Args:
-            new_params (dict): Dict including the HDF5 dataset name as ``name``
-                and the HDF5 parent object as ``parent``.
-        """
-        super()._init_new(new_params)
-        if self.schema_node.set_on_create:
-            self.replace(datetime.datetime.now())
 
     def replace(self, new_value):
         """Completely replace the current node value.
@@ -480,24 +415,8 @@ class String(_ItemNode):
         return self._storage.value
 
 
-class Time(_ItemNode):
+class Time(data.Time, _ItemNode):
     """Time-type data node for the HDF5 backend."""
-
-    def _init_new(self, new_params):
-        """Initialize new Time data node.
-
-        For :class:`Time`, the corresponding HDF5 dataset is only created if
-        the corresponding schema node's :attr:`dsch.schema.Time.set_on_create`
-        is ``True``. Otherwise, the dataset is left empty and can be filled by
-        calling meth:`replace`.
-
-        Args:
-            new_params (dict): Dict including the HDF5 dataset name as ``name``
-                and the HDF5 parent object as ``parent``.
-        """
-        super()._init_new(new_params)
-        if self.schema_node.set_on_create:
-            self.replace(datetime.datetime.now().time())
 
     def replace(self, new_value):
         """Completely replace the current node value.

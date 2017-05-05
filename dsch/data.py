@@ -11,7 +11,187 @@ implementing the respective functionality. The classes in this module provide
 common functionality and are intended to be used as base classes.
 Different backends are implemented in the :mod:`dsch.backends` package.
 """
+import datetime
 import importlib
+
+
+class ItemNode:
+    """Generic data item node.
+
+    :class:`ItemNode` is the base class for data nodes, providing common
+    functionality and the common interface. Subclasses may add functionality
+    depending on the node type and backend (e.g. compression settings).
+
+    Note that this is only the base class for item nodes, i.e. nodes that
+    directly hold data. Collection nodes, i.e. :class:`Compilation` and
+    :class:`List` are *not* based on this class.
+
+    Attributes:
+        schema_node: The schema node that this data node is based on.
+        parent: Parent data node object (``None`` if this is the top-level data
+            node).
+        complete: Data completeness flag. ``True`` if data is present.
+        empty: Data absence flag. ``True`` if no data is present.
+        value: Actual node data, independent of the backend in use.
+    """
+
+    def __init__(self, schema_node, parent, data_storage=None,
+                 new_params=None):
+        """Initialize data node from a given schema node.
+
+        When ``data_storage`` is given, the data node is created from that
+        storage object, i.e. loading existing data. Otherwise, a new data node
+        is created, using optional ``new_params`` for creation, with an empty
+        value.
+
+        Note: Both ``data_storage`` and ``new_params`` are backend-specific.
+
+        Args:
+            schema_node: Schema node to create the data node for.
+            parent: Parent data node object (``None`` if this is the top-level
+                data node).
+            data_storage: Backend-specific data storage object to load.
+            new_params: Backend-specific metadata for data node creation.
+        """
+        self.schema_node = schema_node
+        self.parent = parent
+        self._storage = None
+        if data_storage is not None:
+            self._init_from_storage(data_storage)
+        else:
+            self._init_new(new_params)
+
+    def clear(self):
+        """Clear the data that is held by this data node.
+
+        This removes the corresponding storage object entirely, causing the
+        data node to be :attr:`empty` afterwards.
+        """
+        self._storage = None
+
+    @property
+    def complete(self):
+        """Check whether the data node is currently complete.
+
+        A data node is considered complete when a corresponding storage object
+        exists. For non-containing nodes (i.e. all node types except
+        :class:`Compilation` and :class:`List`), this is always the inverse of
+        :attr:`empty`, but the property is still provided for interface
+        compatibility.
+
+        Returns:
+            bool: ``True`` if the data node is complete, ``False`` otherwise.
+        """
+        return not self.empty
+
+    @property
+    def empty(self):
+        """Check whether the data node is currently empty.
+
+        A data node is considered empty when no corresponding storage object
+        exists. For applying a new value, see :meth:`replace`.
+
+        Returns:
+            bool: ``True`` if the data node is empty, ``False`` otherwise.
+        """
+        return self._storage is None
+
+    def _init_from_storage(self, data_storage):
+        """Create a new data node from a data storage object.
+
+        This initializes the data node using the given data storage object.
+
+        Args:
+            data_storage: Backend-specific data storage object to load.
+        """
+        self._storage = data_storage
+
+    def _init_new(self, new_params):
+        """Initialize new, empty data node.
+
+        The default implementation does nothing. It is provided for interface
+        consistency and for possible overriding by backend-specific subclasses.
+
+        Args:
+            new_params: Backend-specific metadata for data node creation.
+        """
+        pass
+
+    def replace(self, new_value):
+        """Completely replace the current node value.
+
+        Instead of changing parts of the data (e.g. via numpy array slicing),
+        replace the entire data object for this node.
+
+        Args:
+            new_value: New value to apply to the node, independent of the
+                backend in use.
+        """
+        raise NotImplementedError('To be implemented in subclass.')
+
+    def validate(self):
+        """Validate the node value against the schema node specification.
+
+        If validation succeeds, the method terminates silently. Otherwise, an
+        exception is raised.
+
+        Raises:
+            :exc:`dsch.schema.ValidationError`: if validation fails.
+        """
+        self.schema_node.validate(self.value)
+
+    @property
+    def value(self):
+        """Return the actual node data, independent of the backend in use.
+
+        This representation of the data only depends on the corresponding
+        node type, not on the selected storage backend.
+
+        Returns:
+            Node data.
+        """
+        raise NotImplementedError('To be implemented in subclass.')
+
+
+class Array(ItemNode):
+    """Generic Array data node.
+
+    This class implements backend-independent behaviour of Array data nodes.
+    Backend-specific subclasses should derive from this class.
+    """
+
+    def __getitem__(self, key):
+        """Pass slicing/indexing operations directly to NumPy array."""
+        return self._storage[key]
+
+    def resize(self, size):
+        """Resize the array to the desired size.
+
+        Args:
+            size (tuple): Desired array size.
+        """
+        self._storage.resize(size)
+
+    def __setitem__(self, key, value):
+        """Pass slicing/indexing operations directly to NumPy array."""
+        self._storage[key] = value
+
+    def validate(self):
+        """Validate the node value against the schema node specification.
+
+        If validation succeeds, the method terminates silently. Otherwise, an
+        exception is raised.
+
+        Raises:
+            :exc:`dsch.schema.ValidationError`: if validation fails.
+        """
+        independent_values = []
+        node_names = self.schema_node.depends_on or []
+        for node_name in node_names:
+            if node_name:
+                independent_values.append(getattr(self.parent, node_name)
+                                          .value)
+        self.schema_node.validate(self.value, independent_values)
 
 
 class Compilation:
@@ -184,142 +364,51 @@ class Compilation:
             node.validate()
 
 
-class ItemNode:
-    """Generic data node.
+class Date(ItemNode):
+    """Generic Date data node.
 
-    :class:`ItemNode` is the base class for data nodes, providing common
-    functionality and the common interface. Subclasses may add functionality
-    depending on the node type and backend (e.g. compression settings).
-
-    Note that this is only the base class for item nodes, i.e. nodes that
-    directly hold data. Collection nodes, i.e. :class:`Compilation` and
-    :class:`List` are *not* based on this class.
-
-    Attributes:
-        schema_node: The schema node that this data node is based on.
-        parent: Parent data node object (``None`` if this is the top-level data
-            node).
-        complete: Data completeness flag. ``True`` if data is present.
-        empty: Data absence flag. ``True`` if no data is present.
-        value: Actual node data, independent of the backend in use.
+    This class implements backend-independent behaviour of Date data nodes.
+    Backend-specific subclasses should derive from this class.
     """
 
-    def __init__(self, schema_node, parent, data_storage=None,
-                 new_params=None):
-        """Initialize data node from a given schema node.
+    def _init_new(self, new_params):
+        """Initialize new Date data node.
 
-        When ``data_storage`` is given, the data node is created from that
-        storage object, i.e. loading existing data. Otherwise, a new data node
-        is created, using optional ``new_params`` for creation, with an empty
-        value.
-
-        Note: Both ``data_storage`` and ``new_params`` are backend-specific.
+        If the corresponding schema node's
+        :attr:`dsch.schema.Date.set_on_create` is ``True``, the data node's
+        value is automatically initialized with the current date. Otherwise,
+        it is left empty and can be filled by calling meth:`replace`.
 
         Args:
-            schema_node: Schema node to create the data node for.
-            parent: Parent data node object (``None`` if this is the top-level
-                data node).
-            data_storage: Backend-specific data storage object to load.
             new_params: Backend-specific metadata for data node creation.
         """
-        self.schema_node = schema_node
-        self.parent = parent
-        self._storage = None
-        if data_storage is not None:
-            self._init_from_storage(data_storage)
-        else:
-            self._init_new(new_params)
+        super()._init_new(new_params)
+        if self.schema_node.set_on_create:
+            self.replace(datetime.date.today())
 
-    def clear(self):
-        """Clear the data that is held by this data node.
 
-        This removes the corresponding storage object entirely, causing the
-        data node to be :attr:`empty` afterwards.
-        """
-        self._storage = None
+class DateTime(ItemNode):
+    """Generic DateTime data node.
 
-    @property
-    def complete(self):
-        """Check whether the data node is currently complete.
-
-        A data node is considered complete when a corresponding storage object
-        exists. For non-containing nodes (i.e. all node types except
-        :class:`Compilation` and :class:`List`), this is always the inverse of
-        :attr:`empty`, but the property is still provided for interface
-        compatibility.
-
-        Returns:
-            bool: ``True`` if the data node is complete, ``False`` otherwise.
-        """
-        return not self.empty
-
-    @property
-    def empty(self):
-        """Check whether the data node is currently empty.
-
-        A data node is considered empty when no corresponding storage object
-        exists. For applying a new value, see :meth:`replace`.
-
-        Returns:
-            bool: ``True`` if the data node is empty, ``False`` otherwise.
-        """
-        return self._storage is None
-
-    def _init_from_storage(self, data_storage):
-        """Create a new data node from a data storage object.
-
-        This initializes the data node using the given data storage object.
-
-        Args:
-            data_storage: Backend-specific data storage object to load.
-        """
-        self._storage = data_storage
+    This class implements backend-independent behaviour of DateTime data nodes.
+    Backend-specific subclasses should derive from this class.
+    """
 
     def _init_new(self, new_params):
-        """Initialize new, empty data node.
+        """Initialize new DateTime data node.
 
-        The default implementation does nothing. It is provided for interface
-        consistency and for possible overriding by backend-specific subclasses.
+        If the corresponding schema node's
+        :attr:`dsch.schema.DateTIme.set_on_create` is ``True``, the data node's
+        value is automatically initialized with the current date and time.
+        Otherwise, it is left empty and can be filled by calling
+        meth:`replace`.
 
         Args:
             new_params: Backend-specific metadata for data node creation.
         """
-        pass
-
-    def replace(self, new_value):
-        """Completely replace the current node value.
-
-        Instead of changing parts of the data (e.g. via numpy array slicing),
-        replace the entire data object for this node.
-
-        Args:
-            new_value: New value to apply to the node, independent of the
-                backend in use.
-        """
-        raise NotImplementedError('To be implemented in subclass.')
-
-    def validate(self):
-        """Validate the node value against the schema node specification.
-
-        If validation succeeds, the method terminates silently. Otherwise, an
-        exception is raised.
-
-        Raises:
-            :exc:`dsch.schema.ValidationError`: if validation fails.
-        """
-        self.schema_node.validate(self.value)
-
-    @property
-    def value(self):
-        """Return the actual node data, independent of the backend in use.
-
-        This representation of the data only depends on the corresponding
-        node type, not on the selected storage backend.
-
-        Returns:
-            Node data.
-        """
-        raise NotImplementedError('To be implemented in subclass.')
+        super()._init_new(new_params)
+        if self.schema_node.set_on_create:
+            self.replace(datetime.datetime.now())
 
 
 class List:
@@ -484,6 +573,30 @@ class List:
         self.schema_node.validate(self)
         for node in self._subnodes:
             node.validate()
+
+
+class Time(ItemNode):
+    """Generic Time data node.
+
+    This class implements backend-independent behaviour of Time data nodes.
+    Backend-specific subclasses should derive from this class.
+    """
+
+    def _init_new(self, new_params):
+        """Initialize new Time data node.
+
+        For :class:`Time`, the corresponding HDF5 dataset is only created if
+        the corresponding schema node's :attr:`dsch.schema.Time.set_on_create`
+        is ``True``. Otherwise, the dataset is left empty and can be filled by
+        calling meth:`replace`.
+
+        Args:
+            new_params (dict): Dict including the HDF5 dataset name as ``name``
+                and the HDF5 parent object as ``parent``.
+        """
+        super()._init_new(new_params)
+        if self.schema_node.set_on_create:
+            self.replace(datetime.datetime.now().time())
 
 
 def data_node_from_schema(schema_node, module_name, parent, data_storage=None,
