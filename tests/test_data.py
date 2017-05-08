@@ -52,6 +52,16 @@ class ItemNodeTestBase:
         data_node.replace(self.valid_data)
         assert np.all(data_node.value == self.valid_data)
 
+    def test_roundtrip(self, backend):
+        data_node_class = getattr(backend.module, self.class_name)
+        data_node1 = data_node_class(self.schema_node, parent=None,
+                                     new_params=backend.new_params)
+        data_node1.replace(self.valid_data)
+        storage = data_node1._storage
+        data_node2 = data_node_class(self.schema_node, parent=None,
+                                     data_storage=storage)
+        assert np.all(data_node2.value == self.valid_data)
+
     def test_validate(self, data_node):
         data_node.replace(self.valid_data)
         data_node.validate()
