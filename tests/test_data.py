@@ -103,7 +103,8 @@ class TestBool(ItemNodeTestBase):
     schema_node = schema.Bool()
     valid_data = True
 
-@pytest.mark.parametrize('schema_subnode,valid_subnode_data',(
+
+@pytest.mark.parametrize('schema_subnode,valid_subnode_data', (
     (schema.Array(dtype='int32'), np.array([23, 42])),
     (schema.Bool(), True),
     (schema.Date(), datetime.date.today()),
@@ -161,7 +162,8 @@ class TestCompilation:
         assert 'eggs' in data_node._subnodes
 
     def test_replace(self, data_node, valid_subnode_data):
-        data_node.replace({'spam': valid_subnode_data, 'eggs': valid_subnode_data})
+        data_node.replace({'spam': valid_subnode_data,
+                           'eggs': valid_subnode_data})
         if isinstance(valid_subnode_data, np.ndarray):
             assert np.all(data_node.spam.value == valid_subnode_data)
             assert np.all(data_node.eggs.value == valid_subnode_data)
@@ -238,7 +240,7 @@ class TestDateTime(ItemNodeTestBase):
         assert (data_node.value - datetime.datetime.now()).total_seconds() < 1
 
 
-@pytest.mark.parametrize('schema_subnode,valid_subnode_data',(
+@pytest.mark.parametrize('schema_subnode,valid_subnode_data', (
     (schema.Array(dtype='int32'), np.array([23, 42])),
     (schema.Bool(), True),
     (schema.Date(), datetime.date.today()),
