@@ -66,6 +66,26 @@ class TestCompilation:
         assert 'eggs' in comp._subnodes
 
 
+class TestList:
+    def test_init_from_storage(self, hdf5file):
+        test_list = hdf5file.create_group('test_list')
+        test_list.create_dataset('item_0', data=True)
+        test_list.create_dataset('item_1', data=False)
+
+        schema_node = schema.List(schema.Bool())
+        data_node = hdf5.List(schema_node, parent=None,
+                              data_storage=test_list)
+        assert data_node[0].value is True
+        assert data_node[1].value is False
+
+    def test_init_new(self, hdf5file):
+        schema_node = schema.List(schema.Bool())
+        hdf5.List(schema_node, parent=None,
+                  new_params={'name': 'test_list', 'parent': hdf5file})
+        assert 'test_list' in hdf5file
+        assert isinstance(hdf5file['test_list'], h5py.Group)
+
+
 class TestStorage:
     def test_complete(self, tmpdir):
         schema_node = schema.Bool()
@@ -187,23 +207,3 @@ class TestStorage:
         assert 'item_1' in file_['dsch_data']
         assert file_['dsch_data']['item_1'].dtype == 'bool'
         assert not file_['dsch_data']['item_1'].value
-
-
-class TestList:
-    def test_init_from_storage(self, hdf5file):
-        test_list = hdf5file.create_group('test_list')
-        test_list.create_dataset('item_0', data=True)
-        test_list.create_dataset('item_1', data=False)
-
-        schema_node = schema.List(schema.Bool())
-        data_node = hdf5.List(schema_node, parent=None,
-                              data_storage=test_list)
-        assert data_node[0].value is True
-        assert data_node[1].value is False
-
-    def test_init_new(self, hdf5file):
-        schema_node = schema.List(schema.Bool())
-        hdf5.List(schema_node, parent=None,
-                  new_params={'name': 'test_list', 'parent': hdf5file})
-        assert 'test_list' in hdf5file
-        assert isinstance(hdf5file['test_list'], h5py.Group)
