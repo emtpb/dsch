@@ -3,7 +3,7 @@ import h5py
 import numpy as np
 import json
 import pytest
-from dsch import schema
+from dsch import data, schema
 from dsch.backends import hdf5
 
 
@@ -12,86 +12,33 @@ def hdf5file(tmpdir):
     return h5py.File(str(tmpdir.join('hdf5test.h5')))
 
 
-class TestArray:
-    def test_clear(self, hdf5file):
-        schema_node = schema.Array(dtype='int')
-        data_node = hdf5.Array(schema_node, parent=None,
-                               new_params={'name': 'test_array',
-                                           'parent': hdf5file})
-        data_node.replace(np.array([23, 42]))
-        assert 'test_array' in hdf5file
+@pytest.mark.parametrize('schema_node,valid_data', (
+    (schema.Array(dtype='int'), np.array([23, 42])),
+    (schema.Bool(), True),
+    (schema.Date(), datetime.date.today()),
+    (schema.DateTime(), datetime.datetime.now()),
+    (schema.Scalar(dtype='int32'), np.int32(42)),
+    (schema.String(), 'spam'),
+    (schema.Time(), datetime.datetime.now().time()),
+))
+class TestItemNode:
+    @pytest.fixture
+    def data_node(self, schema_node, hdf5file):
+        new_params = {'name': 'test_item', 'parent': hdf5file}
+        return data.data_node_from_schema(schema_node,
+                                          module_name='dsch.backends.hdf5',
+                                          parent=None, new_params=new_params)
+
+    def test_clear(self, data_node, valid_data, hdf5file):
+        data_node.replace(valid_data)
+        assert 'test_item' in hdf5file
         data_node.clear()
-        assert 'test_array' not in hdf5file
+        assert 'test_item' not in hdf5file
 
-    def test_init_from_storage(self, hdf5file):
-        hdf5file.create_dataset('test_array', data=np.array([23, 42]))
-
-        schema_node = schema.Array(dtype='int')
-        data_node = hdf5.Array(schema_node, parent=None,
-                               data_storage=hdf5file['test_array'])
-        assert np.all(data_node._storage == hdf5file['test_array'])
-        assert np.all(data_node.value == np.array([23, 42]))
-
-    def test_init_new(self, hdf5file):
-        schema_node = schema.Array(dtype='int')
-        data_node = hdf5.Array(schema_node, parent=None,
-                               new_params={'name': 'test_array',
-                                           'parent': hdf5file})
-        assert 'test_array' not in hdf5file
-        assert data_node._dataset_name == 'test_array'
+    def test_init_new(self, data_node, valid_data, hdf5file):
+        assert 'test_item' not in hdf5file
+        assert data_node._dataset_name == 'test_item'
         assert data_node._parent == hdf5file
-
-    def test_replace(self, hdf5file):
-        hdf5file.create_dataset('test_array', data=np.array([23, 42]))
-
-        schema_node = schema.Array(dtype='int')
-        data_node = hdf5.Array(schema_node, parent=None,
-                               data_storage=hdf5file['test_array'])
-        data_node.replace(np.array([23, 42]))
-        assert isinstance(data_node._storage, h5py.Dataset)
-        assert np.all(data_node._storage == hdf5file['test_array'])
-        assert np.all(data_node.value == np.array([23, 42]))
-
-
-class TestBool:
-    def test_clear(self, hdf5file):
-        schema_node = schema.Bool()
-        data_node = hdf5.Bool(schema_node, parent=None,
-                              new_params={'name': 'test_bool',
-                                          'parent': hdf5file})
-        data_node.replace(True)
-        assert 'test_bool' in hdf5file
-        data_node.clear()
-        assert 'test_bool' not in hdf5file
-
-    def test_init_from_storage(self, hdf5file):
-        hdf5file.create_dataset('test_bool', data=True)
-
-        schema_node = schema.Bool()
-        data_node = hdf5.Bool(schema_node, parent=None,
-                              data_storage=hdf5file['test_bool'])
-        assert data_node._storage == hdf5file['test_bool']
-        assert data_node.value is True
-
-    def test_init_new(self, hdf5file):
-        schema_node = schema.Bool()
-        data_node = hdf5.Bool(schema_node, parent=None,
-                              new_params={'name': 'test_bool',
-                                          'parent': hdf5file})
-        assert 'test_bool' not in hdf5file
-        assert data_node._dataset_name == 'test_bool'
-        assert data_node._parent == hdf5file
-
-    def test_replace(self, hdf5file):
-        hdf5file.create_dataset('test_bool', data=True)
-
-        schema_node = schema.Bool()
-        data_node = hdf5.Bool(schema_node, parent=None,
-                              data_storage=hdf5file['test_bool'])
-        data_node.replace(False)
-        assert isinstance(data_node._storage, h5py.Dataset)
-        assert data_node._storage == hdf5file['test_bool']
-        assert data_node.value is False
 
 
 class TestCompilation:
@@ -117,155 +64,6 @@ class TestCompilation:
         assert isinstance(hdf5file['test_comp'], h5py.Group)
         assert 'spam' in comp._subnodes
         assert 'eggs' in comp._subnodes
-
-
-class TestDate:
-    def test_clear(self, hdf5file):
-        schema_node = schema.Date()
-        data_node = hdf5.Date(schema_node, parent=None,
-                              new_params={'name': 'test_date',
-                                          'parent': hdf5file})
-        data_node.replace(datetime.date(2017, 4, 11))
-        assert 'test_date' in hdf5file
-        data_node.clear()
-        assert 'test_date' not in hdf5file
-
-    def test_init_from_storage(self, hdf5file):
-        hdf5file.create_dataset('test_date', data=np.array([2017, 3, 16]))
-
-        schema_node = schema.Date()
-        data_node = hdf5.Date(schema_node, parent=None,
-                              data_storage=hdf5file['test_date'])
-        assert np.all(data_node._storage == hdf5file['test_date'])
-        assert data_node.value == datetime.date(2017, 3, 16)
-
-    def test_init_new(self, hdf5file):
-        schema_node = schema.Date(set_on_create=False)
-        data_node = hdf5.Date(schema_node, parent=None,
-                              new_params={'name': 'test_date',
-                                          'parent': hdf5file})
-        assert 'test_date' not in hdf5file
-        assert data_node._dataset_name == 'test_date'
-        assert data_node._parent == hdf5file
-
-    def test_init_new_set_on_create(self, hdf5file):
-        schema_node = schema.Date(set_on_create=True)
-        data_node = hdf5.Date(schema_node, parent=None,
-                              new_params={'name': 'test_date',
-                                          'parent': hdf5file})
-        assert 'test_date' in hdf5file
-        assert isinstance(hdf5file['test_date'], h5py.Dataset)
-        assert hdf5file['test_date'].dtype == 'int'
-        assert data_node._storage == hdf5file['test_date']
-
-    def test_replace(self, hdf5file):
-        hdf5file.create_dataset('test_date', data=np.array([2017, 3, 16]))
-
-        schema_node = schema.Date()
-        data_node = hdf5.Date(schema_node, parent=None,
-                              data_storage=hdf5file['test_date'])
-        dt = datetime.date(2017, 3, 16)
-        data_node.replace(dt)
-        assert isinstance(data_node._storage, h5py.Dataset)
-        assert np.all(data_node._storage == hdf5file['test_date'])
-        assert hdf5file['test_date'].dtype == 'int'
-        assert data_node.value == dt
-
-
-class TestDateTime:
-    def test_clear(self, hdf5file):
-        schema_node = schema.DateTime()
-        data_node = hdf5.DateTime(schema_node, parent=None,
-                                  new_params={'name': 'test_datetime',
-                                              'parent': hdf5file})
-        data_node.replace(datetime.datetime(2017, 4, 11, 13, 37, 42, 23))
-        assert 'test_datetime' in hdf5file
-        data_node.clear()
-        assert 'test_datetime' not in hdf5file
-
-    def test_init_from_storage(self, hdf5file):
-        hdf5file.create_dataset('test_datetime',
-                                data=np.array([2017, 3, 16, 13, 37, 42, 23]))
-
-        schema_node = schema.DateTime()
-        data_node = hdf5.DateTime(schema_node, parent=None,
-                                  data_storage=hdf5file['test_datetime'])
-        assert np.all(data_node._storage == hdf5file['test_datetime'])
-        assert data_node.value == datetime.datetime(2017, 3, 16,
-                                                    13, 37, 42, 23)
-
-    def test_init_new(self, hdf5file):
-        schema_node = schema.DateTime(set_on_create=False)
-        data_node = hdf5.DateTime(schema_node, parent=None,
-                                  new_params={'name': 'test_datetime',
-                                              'parent': hdf5file})
-        assert 'test_datetime' not in hdf5file
-        assert data_node._dataset_name == 'test_datetime'
-        assert data_node._parent == hdf5file
-
-    def test_init_new_set_on_create(self, hdf5file):
-        schema_node = schema.DateTime(set_on_create=True)
-        data_node = hdf5.DateTime(schema_node, parent=None,
-                                  new_params={'name': 'test_datetime',
-                                              'parent': hdf5file})
-        assert 'test_datetime' in hdf5file
-        assert isinstance(hdf5file['test_datetime'], h5py.Dataset)
-        assert hdf5file['test_datetime'].dtype == 'int'
-        assert data_node._storage == hdf5file['test_datetime']
-
-    def test_replace(self, hdf5file):
-        hdf5file.create_dataset('test_datetime',
-                                data=np.array([2017, 3, 16, 13, 37, 42, 23]))
-
-        schema_node = schema.DateTime()
-        data_node = hdf5.DateTime(schema_node, parent=None,
-                                  data_storage=hdf5file['test_datetime'])
-        dt = datetime.datetime(2017, 3, 16, 13, 37, 42, 23)
-        data_node.replace(dt)
-        assert isinstance(data_node._storage, h5py.Dataset)
-        assert np.all(data_node._storage == hdf5file['test_datetime'])
-        assert data_node.value == dt
-
-
-class TestScalar:
-    def test_clear(self, hdf5file):
-        schema_node = schema.Scalar(dtype='int32')
-        data_node = hdf5.Scalar(schema_node, parent=None,
-                                new_params={'name': 'test_scalar',
-                                            'parent': hdf5file})
-        data_node.replace(42)
-        assert 'test_scalar' in hdf5file
-        data_node.clear()
-        assert 'test_scalar' not in hdf5file
-
-    def test_init_from_storage(self, hdf5file):
-        hdf5file.create_dataset('test_scalar', data=np.int32(42))
-
-        schema_node = schema.Scalar(dtype='int32')
-        data_node = hdf5.Scalar(schema_node, parent=None,
-                                data_storage=hdf5file['test_scalar'])
-        assert data_node._storage == hdf5file['test_scalar']
-        assert data_node.value == 42
-
-    def test_init_new(self, hdf5file):
-        schema_node = schema.Scalar(dtype='int32')
-        data_node = hdf5.Scalar(schema_node, parent=None,
-                                new_params={'name': 'test_scalar',
-                                            'parent': hdf5file})
-        assert 'test_scalar' not in hdf5file
-        assert data_node._dataset_name == 'test_scalar'
-        assert data_node._parent == hdf5file
-
-    def test_replace(self, hdf5file):
-        hdf5file.create_dataset('test_scalar', data=np.int32(42))
-
-        schema_node = schema.Scalar(dtype='int32')
-        data_node = hdf5.Scalar(schema_node, parent=None,
-                                data_storage=hdf5file['test_scalar'])
-        data_node.replace(42)
-        assert isinstance(data_node._storage, h5py.Dataset)
-        assert data_node._storage == hdf5file['test_scalar']
-        assert data_node.value == 42
 
 
 class TestStorage:
@@ -409,96 +207,3 @@ class TestList:
                   new_params={'name': 'test_list', 'parent': hdf5file})
         assert 'test_list' in hdf5file
         assert isinstance(hdf5file['test_list'], h5py.Group)
-
-
-class TestString:
-    def test_clear(self, hdf5file):
-        schema_node = schema.String()
-        data_node = hdf5.String(schema_node, parent=None,
-                                new_params={'name': 'test_string',
-                                            'parent': hdf5file})
-        data_node.replace('spam')
-        assert 'test_string' in hdf5file
-        data_node.clear()
-        assert 'test_string' not in hdf5file
-
-    def test_init_from_storage(self, hdf5file):
-        hdf5file.create_dataset('test_string', data='spam')
-
-        schema_node = schema.String()
-        data_node = hdf5.String(schema_node, parent=None,
-                                data_storage=hdf5file['test_string'])
-        assert data_node._storage == hdf5file['test_string']
-        assert data_node.value == 'spam'
-
-    def test_init_new(self, hdf5file):
-        schema_node = schema.String()
-        data_node = hdf5.Bool(schema_node, parent=None,
-                              new_params={'name': 'test_string',
-                                          'parent': hdf5file})
-        assert 'test_string' not in hdf5file
-        assert data_node._dataset_name == 'test_string'
-        assert data_node._parent == hdf5file
-
-    def test_replace(self, hdf5file):
-        hdf5file.create_dataset('test_string', data='spam')
-
-        schema_node = schema.String()
-        data_node = hdf5.String(schema_node, parent=None,
-                                data_storage=hdf5file['test_string'])
-        data_node.replace('eggs')
-        assert isinstance(data_node._storage, h5py.Dataset)
-        assert data_node._storage == hdf5file['test_string']
-        assert data_node.value == 'eggs'
-
-
-class TestTime:
-    def test_clear(self, hdf5file):
-        schema_node = schema.Time()
-        data_node = hdf5.Time(schema_node, parent=None,
-                              new_params={'name': 'test_time',
-                                          'parent': hdf5file})
-        data_node.replace(datetime.time(13, 37, 42, 23))
-        assert 'test_time' in hdf5file
-        data_node.clear()
-        assert 'test_time' not in hdf5file
-
-    def test_init_from_storage(self, hdf5file):
-        hdf5file.create_dataset('test_time', data=np.array([13, 37, 42, 23]))
-
-        schema_node = schema.Time()
-        data_node = hdf5.Time(schema_node, parent=None,
-                              data_storage=hdf5file['test_time'])
-        assert np.all(data_node._storage == hdf5file['test_time'])
-        assert data_node.value == datetime.time(13, 37, 42, 23)
-
-    def test_init_new(self, hdf5file):
-        schema_node = schema.Time(set_on_create=False)
-        data_node = hdf5.Time(schema_node, parent=None,
-                              new_params={'name': 'test_time',
-                                          'parent': hdf5file})
-        assert 'test_time' not in hdf5file
-        assert data_node._dataset_name == 'test_time'
-        assert data_node._parent == hdf5file
-
-    def test_init_new_set_on_create(self, hdf5file):
-        schema_node = schema.Time(set_on_create=True)
-        data_node = hdf5.Time(schema_node, parent=None,
-                              new_params={'name': 'test_time',
-                                          'parent': hdf5file})
-        assert 'test_time' in hdf5file
-        assert isinstance(hdf5file['test_time'], h5py.Dataset)
-        assert hdf5file['test_time'].dtype == 'int'
-        assert data_node._storage == hdf5file['test_time']
-
-    def test_replace(self, hdf5file):
-        hdf5file.create_dataset('test_time', data=np.array([13, 37, 42, 23]))
-
-        schema_node = schema.Time()
-        data_node = hdf5.Time(schema_node, parent=None,
-                              data_storage=hdf5file['test_time'])
-        dt = datetime.time(13, 37, 42, 23)
-        data_node.replace(dt)
-        assert isinstance(data_node._storage, h5py.Dataset)
-        assert np.all(data_node._storage == hdf5file['test_time'])
-        assert data_node.value == dt
