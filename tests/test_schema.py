@@ -31,33 +31,23 @@ class TestArray:
             schema.Array.from_dict({'node_type': 'SPAM', 'config': {}})
         assert err.value.args[0] == 'Invalid node type in dict.'
 
+    def test_init(self):
+        node = schema.Array(dtype='float', unit='V', max_shape=(3, 2),
+                            min_shape=(1, 1), ndim=2, max_value=42,
+                            min_value=23, depends_on=('spam', 'eggs'))
+        assert node.dtype == 'float'
+        assert node.unit == 'V'
+        assert node.max_shape == (3, 2)
+        assert node.min_shape == (1, 1)
+        assert node.ndim == 2
+        assert node.max_value == 42
+        assert node.min_value == 23
+        assert node.depends_on == ('spam', 'eggs')
+
     def test_init_defaults(self):
         node = schema.Array(dtype='int')
-        assert node.dtype == 'int'
         assert node.unit == ''
         assert node.ndim == 1
-        assert node.max_shape is None
-        assert node.min_shape is None
-        assert node.max_value is None
-        assert node.min_value is None
-        assert node.depends_on is None
-
-    def test_init_defaults_depends_on(self):
-        node = schema.Array(dtype='int', depends_on='spam')
-        assert node.dtype == 'int'
-        assert node.unit == ''
-        assert node.ndim == 1
-        assert node.max_shape is None
-        assert node.min_shape is None
-        assert node.max_value is None
-        assert node.min_value is None
-        assert node.depends_on == ('spam',)
-
-    def test_init_defaults_ndim(self):
-        node = schema.Array(dtype='int', ndim=2)
-        assert node.dtype == 'int'
-        assert node.unit == ''
-        assert node.ndim == 2
         assert node.max_shape is None
         assert node.min_shape is None
         assert node.max_value is None
@@ -66,29 +56,17 @@ class TestArray:
 
     def test_init_defaults_max_shape(self):
         node = schema.Array(dtype='int', max_shape=(5, 1))
-        assert node.dtype == 'int'
-        assert node.unit == ''
         assert node.ndim == 2
         assert node.max_shape == (5, 1)
-        assert node.min_shape is None
-        assert node.max_value is None
-        assert node.min_value is None
-        assert node.depends_on is None
 
     def test_init_defaults_min_shape(self):
         node = schema.Array(dtype='int', min_shape=(2, 1))
-        assert node.dtype == 'int'
-        assert node.unit == ''
         assert node.ndim == 2
-        assert node.max_shape is None
         assert node.min_shape == (2, 1)
-        assert node.max_value is None
-        assert node.min_value is None
-        assert node.depends_on is None
 
     def test_init_fail_depends_on(self):
         with pytest.raises(ValueError) as err:
-            schema.Array(dtype='int', depends_on=('spam', 'eggs'))
+            schema.Array(dtype='int', ndim=1, depends_on=('spam', 'eggs'))
         assert err.value.args[0] == ('Number of independent variables must '
                                      'be equal to the number of array '
                                      'dimensions.')
@@ -225,7 +203,7 @@ class TestBool:
         node.validate(test_data)
 
     @pytest.mark.parametrize('test_data', (0, 1, [23, 42], 'spam',
-                                           np.array([True])))
+                                           np.array([True]), np.bool_(True)))
     def test_validate_fail(self, test_data):
         node = schema.Bool()
         with pytest.raises(schema.ValidationError):
@@ -308,9 +286,6 @@ class TestCompilation:
     def test_init_defaults(self):
         node = schema.Compilation({'spam': schema.Bool(),
                                    'eggs': schema.Bool()})
-        assert len(node.subnodes) == 2
-        assert 'spam' in node.subnodes
-        assert 'eggs' in node.subnodes
         assert node.optionals == []
 
     def test_to_dict(self):
@@ -344,6 +319,14 @@ class TestDate:
             schema.Date.from_dict({'node_type': 'SPAM', 'config': {}})
         assert err.value.args[0] == 'Invalid node type in dict.'
 
+    def test_init(self):
+        node = schema.Date(set_on_create=True)
+        assert node.set_on_create
+
+    def test_init_defaults(self):
+        node = schema.Date()
+        assert not node.set_on_create
+
     def test_to_dict(self):
         node = schema.Date()
         node_dict = node.to_dict()
@@ -375,6 +358,14 @@ class TestDateTime:
         with pytest.raises(ValueError) as err:
             schema.Date.from_dict({'node_type': 'SPAM', 'config': {}})
         assert err.value.args[0] == 'Invalid node type in dict.'
+
+    def test_init(self):
+        node = schema.DateTime(set_on_create=True)
+        assert node.set_on_create
+
+    def test_init_defaults(self):
+        node = schema.DateTime()
+        assert not node.set_on_create
 
     def test_to_dict(self):
         node = schema.DateTime()
@@ -442,8 +433,13 @@ class TestList:
         assert err.value.args[0] == 'Invalid node type in dict.'
 
     def test_init(self):
-        node = schema.List(schema.Bool())
+        node = schema.List(schema.Bool(), max_length=3, min_length=1)
         assert isinstance(node.subnode, schema.Bool)
+        assert node.max_length == 3
+        assert node.min_length == 1
+
+    def test_init_defaults(self):
+        node = schema.List(schema.Bool())
         assert node.max_length is None
         assert node.min_length is None
 
@@ -504,9 +500,16 @@ class TestScalar:
             schema.Scalar.from_dict({'node_type': 'SPAM', 'config': {}})
         assert err.value.args[0] == 'Invalid node type in dict.'
 
+    def test_init(self):
+        node = schema.Scalar(dtype='int32', unit='V', max_value=42,
+                             min_value=23)
+        assert node.dtype == 'int32'
+        assert node.unit == 'V'
+        assert node.max_value == 42
+        assert node.min_value == 23
+
     def test_init_defaults(self):
         node = schema.Scalar(dtype='int32')
-        assert node.dtype == 'int32'
         assert node.unit == ''
         assert node.max_value is None
         assert node.min_value is None
@@ -526,8 +529,7 @@ class TestScalar:
         }
 
     def test_validate(self):
-        node = schema.Scalar(dtype='float64', unit='V', max_value=42,
-                             min_value=23)
+        node = schema.Scalar(dtype='float64', max_value=42, min_value=23)
         node.validate(np.float64(23.5))
 
     def test_validate_fail_max_value(self):
@@ -555,23 +557,28 @@ class TestScalar:
 
 
 class TestString:
-    @pytest.mark.parametrize('config,expected', (
-        ({}, {'min_length': None, 'max_length': None}),
-        ({'min_length': 3}, {'min_length': 3, 'max_length': None}),
-        ({'max_length': 5}, {'min_length': None, 'max_length': 5}),
-        ({'min_length': 3, 'max_length': 5},
-         {'min_length': 3, 'max_length': 5}),
-    ))
-    def test_from_dict(self, config, expected):
-        node_dict = {'node_type': 'String', 'config': config}
+    def test_from_dict(self):
+        node_dict = {'node_type': 'String', 'config': {
+            'max_length': 5, 'min_length': 3
+        }}
         node = schema.String.from_dict(node_dict)
-        for attr, value in expected.items():
-            assert getattr(node, attr) == value
+        assert node.max_length == 5
+        assert node.min_length == 3
 
     def test_from_dict_fail(self):
         with pytest.raises(ValueError) as err:
             schema.String.from_dict({'node_type': 'SPAM', 'config': {}})
         assert err.value.args[0] == 'Invalid node type in dict.'
+
+    def test_init(self):
+        node = schema.String(max_length=5, min_length=3)
+        assert node.max_length == 5
+        assert node.min_length == 3
+
+    def test_init_defaults(self):
+        node = schema.String()
+        assert node.max_length is None
+        assert node.min_length is None
 
     def test_to_dict(self):
         node = schema.String(min_length=3, max_length=5)
@@ -584,13 +591,8 @@ class TestString:
         assert node_dict['config']['min_length'] == 3
         assert node_dict['config']['max_length'] == 5
 
-    @pytest.mark.parametrize('config', (
-        {}, {'min_length': 3}, {'max_length': 5},
-        {'min_length': 3, 'max_length': 5}
-    ))
-    def test_validate(self, config):
-        node_dict = {'node_type': 'String', 'config': config}
-        node = schema.String.from_dict(node_dict)
+    def test_validate(self):
+        node = schema.String(max_length=5, min_length=3)
         node.validate('spam')
 
     @pytest.mark.parametrize('test_data', (0, [23, 42], True, b'spam'))
@@ -628,6 +630,14 @@ class TestTime:
         with pytest.raises(ValueError) as err:
             schema.Time.from_dict({'node_type': 'SPAM', 'config': {}})
         assert err.value.args[0] == 'Invalid node type in dict.'
+
+    def test_init(self):
+        node = schema.Time(set_on_create=True)
+        assert node.set_on_create
+
+    def test_init_defaults(self):
+        node = schema.Time()
+        assert not node.set_on_create
 
     def test_to_dict(self):
         node = schema.Time()
