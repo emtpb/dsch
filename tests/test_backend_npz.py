@@ -67,15 +67,6 @@ class TestList:
 
 
 class TestStorage:
-    def test_complete(self, tmpdir):
-        schema_node = schema.Bool()
-        storage_path = str(tmpdir.join('test_complete.npz'))
-        npz_file = npz.Storage(storage_path=storage_path,
-                               schema_node=schema_node)
-        assert not npz_file.complete
-        npz_file.data.replace(True)
-        assert npz_file.complete
-
     def test_load_compilation(self, tmpdir):
         schema_node = schema.Compilation({'spam': schema.Bool(),
                                           'eggs': schema.Bool()})
