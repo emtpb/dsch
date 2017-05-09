@@ -47,6 +47,25 @@ class TestCompilation:
         assert data_storage['eggs'] == np.array([False])
 
 
+class TestList:
+    def test_init_from_storage(self):
+        data_storage = {'item_0': np.array([True]),
+                        'item_1': np.array([False])}
+        data_node = npz.List(schema.List(schema.Bool()), parent=None,
+                             data_storage=data_storage)
+        assert data_node[0].value is True
+        assert data_node[1].value is False
+
+    def test_save(self):
+        data_node = npz.List(schema.List(schema.Bool()), parent=None)
+        data_node.append(True)
+        data_node.append(False)
+        data_storage = data_node.save()
+        assert len(data_storage) == 2
+        assert data_storage['item_0'] == np.array([True])
+        assert data_storage['item_1'] == np.array([False])
+
+
 class TestStorage:
     def test_complete(self, tmpdir):
         schema_node = schema.Bool()
@@ -157,25 +176,6 @@ class TestStorage:
             assert 'data.item_1' in file_
             assert file_['data.item_1'].dtype == 'bool'
             assert not file_['data.item_1'][0]
-
-
-class TestList:
-    def test_init_from_storage(self):
-        data_storage = {'item_0': np.array([True]),
-                        'item_1': np.array([False])}
-        data_node = npz.List(schema.List(schema.Bool()), parent=None,
-                             data_storage=data_storage)
-        assert data_node[0].value is True
-        assert data_node[1].value is False
-
-    def test_save(self):
-        data_node = npz.List(schema.List(schema.Bool()), parent=None)
-        data_node.append(True)
-        data_node.append(False)
-        data_storage = data_node.save()
-        assert len(data_storage) == 2
-        assert data_storage['item_0'] == np.array([True])
-        assert data_storage['item_1'] == np.array([False])
 
 
 def test_inflate_dotted():

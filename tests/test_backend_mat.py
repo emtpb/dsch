@@ -17,6 +17,26 @@ class TestCompilation:
         assert data_node.eggs.value is False
 
 
+class TestList:
+    def test_init_from_storage(self):
+        data_storage = np.zeros((2,), dtype=np.object)
+        data_storage[0] = np.array([True])
+        data_storage[1] = np.array([False])
+        data_node = mat.List(schema.List(schema.Bool()), parent=None,
+                             data_storage=data_storage)
+        assert data_node[0].value is True
+        assert data_node[1].value is False
+
+    def test_save(self):
+        data_node = mat.List(schema.List(schema.Bool()), parent=None)
+        data_node.append(True)
+        data_node.append(False)
+        data_storage = data_node.save()
+        assert len(data_storage) == 2
+        assert data_storage[0] == np.array([True])
+        assert data_storage[1] == np.array([False])
+
+
 class TestStorage:
     def test_complete(self, tmpdir):
         schema_node = schema.Bool()
@@ -126,23 +146,3 @@ class TestStorage:
         assert len(file_['data']) == 2
         assert file_['data'][0]
         assert not file_['data'][1]
-
-
-class TestList:
-    def test_init_from_storage(self):
-        data_storage = np.zeros((2,), dtype=np.object)
-        data_storage[0] = np.array([True])
-        data_storage[1] = np.array([False])
-        data_node = mat.List(schema.List(schema.Bool()), parent=None,
-                             data_storage=data_storage)
-        assert data_node[0].value is True
-        assert data_node[1].value is False
-
-    def test_save(self):
-        data_node = mat.List(schema.List(schema.Bool()), parent=None)
-        data_node.append(True)
-        data_node.append(False)
-        data_storage = data_node.save()
-        assert len(data_storage) == 2
-        assert data_storage[0] == np.array([True])
-        assert data_storage[1] == np.array([False])
