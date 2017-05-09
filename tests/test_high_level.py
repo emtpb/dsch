@@ -15,31 +15,6 @@ def storage_path(request, tmpdir):
     return storage_path
 
 
-@pytest.mark.parametrize('schema_node,valid_data,valid_data2', (
-    (schema.Array(dtype='int'), np.array([23, 42]), np.array([1, 2, 3])),
-    (schema.Bool(), True, False),
-    (schema.Date(), datetime.date.today(), datetime.date(1970, 1, 1)),
-    (schema.DateTime(), datetime.datetime.now(),
-     datetime.datetime(1970, 1, 1, 0, 0, 0, 0)),
-    (schema.Scalar(dtype='int32'), np.int32(42), np.int32(23)),
-    (schema.String(), 'spam', 'eggs'),
-    (schema.Time(), datetime.datetime.now().time(),
-     datetime.time(13, 37, 42, 23)),
-))
-def test_item_node(storage_path, schema_node, valid_data, valid_data2):
-    storage = frontend.create(storage_path=storage_path,
-                              schema_node=schema_node)
-    storage.data.replace(valid_data)
-    storage.data.validate()
-    storage.save()
-
-    new_storage = frontend.load(storage_path)
-    assert np.all(new_storage.data.value == valid_data)
-
-    new_storage.data.replace(valid_data2)
-    new_storage.save()
-
-
 example_values1 = {
     schema.Array: np.array([23, 42]),
     schema.Bool: True,
@@ -58,6 +33,30 @@ example_values2 = {
     schema.String: 'eggs',
     schema.Time: datetime.time(1, 2, 3, 4),
 }
+
+
+@pytest.mark.parametrize('schema_node', (
+    schema.Array(dtype='int'),
+    schema.Bool(),
+    schema.Date(),
+    schema.DateTime(),
+    schema.Scalar(dtype='int32'),
+    schema.String(),
+    schema.Time(),
+))
+def test_item_node(storage_path, schema_node):
+    storage = frontend.create(storage_path=storage_path,
+                              schema_node=schema_node)
+    storage.data.replace(example_values1[type(schema_node)])
+    storage.data.validate()
+    storage.save()
+
+    new_storage = frontend.load(storage_path)
+    assert np.all(new_storage.data.value ==
+                  example_values1[type(schema_node)])
+
+    storage.data.replace(example_values2[type(schema_node)])
+    new_storage.save()
 
 
 def apply_example_values(data_node, example_values):
