@@ -50,7 +50,7 @@ def create(storage_path, schema_node, backend=None):
                                   schema_node=schema_node)
 
 
-def load(storage_path, backend=None, require_schema=None, require_valid=True):
+def load(storage_path, backend=None, require_schema=None, force=False):
     """Load a dsch storage from the given path.
 
     Normally, the correct backend is detected automatically by interpreting the
@@ -63,19 +63,18 @@ def load(storage_path, backend=None, require_schema=None, require_valid=True):
     required schema JSON, as can be determined by
     :meth:`.storage.Storage.schema_hash`. If the loaded storage uses a
     different schema, an exception is raised.
-    Similarly, if ``require_valid`` is ``True`` (default), the loaded storage
-    is validated and an exception is raised on failure.
 
-    The combination of ``require_schema`` and ``require_valid`` can be used to
-    ensure that the loaded data really conforms to the desired schema, so that
-    following code, e.g. for data evaluation, can safely depend on the
+    In addition, the loaded storage is validated automatically, unless
+    ``force`` is set to ``True``.
+    This ensures that the loaded data really conforms to the desired schema, so
+    that following code, e.g. for data evaluation, can safely depend on the
     structure, datatypes and met constraints.
 
     Args:
         storage_path (str): Path to the dsch storage (backend-specific).
         backend (str): Backend to be used. By default, perform auto-detection.
         require_schema (str): SHA256 hash of the required schema.
-        require_valid (bool): If ``True``, ensure the data is valid.
+        force (bool): If ``True``, the automatic validation step is skipped.
 
     Returns:
         Storage object.
@@ -83,8 +82,9 @@ def load(storage_path, backend=None, require_schema=None, require_valid=True):
     Raises:
         RuntimeError: if the SHA256 hash given to ``require_schema`` did not
             match.
-        :class:`.schema.ValidationError`: if ``require_valid`` was ``True``,
-            but validation failed.
+        :class:`.schema.ValidationError` or
+            :class:`.data.SubnodeValidationError`: if validation failed and
+            ``force`` was not ``True``.
     """
     if not backend:
         backend = _autodetect_backend(storage_path)
@@ -92,7 +92,7 @@ def load(storage_path, backend=None, require_schema=None, require_valid=True):
     storage = backend_module.Storage(storage_path=storage_path)
     if require_schema and storage.schema_hash() != require_schema:
         raise RuntimeError('Loaded schema does not match the required schema.')
-    if require_valid:
+    if not force:
         storage.data.validate()
     return storage
 

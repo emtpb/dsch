@@ -53,7 +53,7 @@ def test_load_require_valid(backend):
     frontend.load(backend.storage_path)
 
 
-def test_load_require_valid_fail(backend):
+def test_load_validation_fail(backend):
     schema_node = schema.String(max_length=3)
     storage = frontend.create(backend.storage_path, schema_node)
     storage.data.replace('spam')
@@ -61,3 +61,5 @@ def test_load_require_valid_fail(backend):
 
     with pytest.raises(schema.ValidationError):
         frontend.load(backend.storage_path)
+    # With force=True, no exception must be raised.
+    frontend.load(backend.storage_path, force=True)
