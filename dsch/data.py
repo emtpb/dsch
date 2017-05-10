@@ -149,6 +149,23 @@ class ItemNode:
         This representation of the data only depends on the corresponding
         node type, not on the selected storage backend.
 
+        If the node is currently empty, the value is undefined and
+        :class:`NodeEmptyError` is raised.
+
+        Returns:
+            Node data.
+
+        Raises:
+            :exc:`NodeEmptyError`: if the node is currently empty.
+        """
+        if self._storage is None:
+            raise NodeEmptyError()
+        else:
+            return self._value()
+
+    def _value(self):
+        """Return the actual node data, independent of the backend in use.
+
         Returns:
             Node data.
         """
@@ -608,6 +625,18 @@ class Time(ItemNode):
         super()._init_new(new_params)
         if self.schema_node.set_on_create:
             self.replace(datetime.datetime.now().time())
+
+
+class NodeEmptyError(Exception):
+    """Exception indicating an empty data node.
+
+    This exception is raised when requesting a data node's value fails because
+    the node is empty. In that case, the value is undefined.
+    """
+
+    def __init__(self):
+        super().__init__('Node is empty. The value of empty nodes is '
+                         'undefined.')
 
 
 class SubnodeValidationError(Exception):

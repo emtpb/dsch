@@ -74,6 +74,11 @@ class ItemNodeTestBase:
         data_node.replace(self.valid_data)
         assert isinstance(data_node.value, type(self.valid_data))
 
+    def test_value_empty(self, data_node):
+        # No replace() here, just leave the data node empty.
+        with pytest.raises(data.NodeEmptyError):
+            data_node.value
+
 
 class TestArray(ItemNodeTestBase):
     class_name = 'Array'

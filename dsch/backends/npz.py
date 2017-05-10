@@ -36,12 +36,8 @@ class Array(data.Array, _ItemNode):
         """
         self._storage = new_value
 
-    @property
-    def value(self):
+    def _value(self):
         """Return the actual node data, independent of the backend in use.
-
-        This representation of the data only depends on the corresponding
-        schema node, not on the selected backend.
 
         Returns:
             Node data.
@@ -64,12 +60,8 @@ class Bool(_ItemNode):
         """
         self._storage = np.array([new_value], dtype='bool')
 
-    @property
-    def value(self):
+    def _value(self):
         """Return the actual node data, independent of the backend in use.
-
-        This representation of the data only depends on the corresponding
-        schema node, not on the selected backend.
 
         Returns:
             Node data.
@@ -113,12 +105,8 @@ class Date(data.Date, _ItemNode):
         self._storage = np.array([new_value.year, new_value.month,
                                   new_value.day], dtype='int')
 
-    @property
-    def value(self):
+    def _value(self):
         """Return the actual node data, independent of the backend in use.
-
-        This representation of the data only depends on the corresponding
-        schema node, not on the selected backend.
 
         Returns:
             Node data.
@@ -144,12 +132,8 @@ class DateTime(data.DateTime, _ItemNode):
                                   new_value.minute, new_value.second,
                                   new_value.microsecond], dtype='int')
 
-    @property
-    def value(self):
+    def _value(self):
         """Return the actual node data, independent of the backend in use.
-
-        This representation of the data only depends on the corresponding
-        schema node, not on the selected backend.
 
         Returns:
             Node data.
@@ -201,12 +185,8 @@ class Scalar(_ItemNode):
         """
         self._storage = np.dtype(self.schema_node.dtype).type(new_value)
 
-    @property
-    def value(self):
+    def _value(self):
         """Return the actual node data, independent of the backend in use.
-
-        This representation of the data only depends on the corresponding
-        schema node, not on the selected backend.
 
         Returns:
             Node data.
@@ -279,12 +259,8 @@ class String(_ItemNode):
         """
         self._storage = np.array(new_value, dtype='U')
 
-    @property
-    def value(self):
+    def _value(self):
         """Return the actual node data, independent of the backend in use.
-
-        This representation of the data only depends on the corresponding
-        schema node, not on the selected backend.
 
         Returns:
             Node data.
@@ -309,12 +285,8 @@ class Time(data.Time, _ItemNode):
                                   new_value.second, new_value.microsecond],
                                  dtype='int')
 
-    @property
-    def value(self):
+    def _value(self):
         """Return the actual node data, independent of the backend in use.
-
-        This representation of the data only depends on the corresponding
-        schema node, not on the selected backend.
 
         Returns:
             Node data.

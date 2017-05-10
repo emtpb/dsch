@@ -102,18 +102,12 @@ class Array(data.Array, _ItemNode):
             maxshape=maxshape,
         )
 
-    @property
-    def value(self):
+    def _value(self):
         """Return the actual node data, independent of the backend in use.
-
-        This representation of the data only depends on the corresponding
-        schema node, not on the selected backend.
 
         Returns:
             Node data.
         """
-        if self._storage is None:
-            raise RuntimeError('Empty data node has no value.')
         return self._storage.value
 
 
@@ -136,18 +130,12 @@ class Bool(_ItemNode):
             self._storage = self._parent.create_dataset(self._dataset_name,
                                                         data=new_value)
 
-    @property
-    def value(self):
+    def _value(self):
         """Return the actual node data, independent of the backend in use.
-
-        This representation of the data only depends on the corresponding
-        schema node, not on the selected backend.
 
         Returns:
             Node data.
         """
-        if self._storage is None:
-            raise RuntimeError('Empty data node has no value.')
         return bool(self._storage.value)
 
 
@@ -216,12 +204,8 @@ class Date(data.Date, _ItemNode):
                              dtype='int')
         super().replace(repr_data)
 
-    @property
-    def value(self):
+    def _value(self):
         """Return the actual node data, independent of the backend in use.
-
-        This representation of the data only depends on the corresponding
-        schema node, not on the selected backend.
 
         Returns:
             Node data.
@@ -248,12 +232,8 @@ class DateTime(data.DateTime, _ItemNode):
                              dtype='int')
         super().replace(repr_data)
 
-    @property
-    def value(self):
+    def _value(self):
         """Return the actual node data, independent of the backend in use.
-
-        This representation of the data only depends on the corresponding
-        schema node, not on the selected backend.
 
         Returns:
             Node data.
@@ -335,18 +315,12 @@ class Scalar(_ItemNode):
             dtype=self.schema_node.dtype,
         )
 
-    @property
-    def value(self):
+    def _value(self):
         """Return the actual node data, independent of the backend in use.
-
-        This representation of the data only depends on the corresponding
-        schema node, not on the selected backend.
 
         Returns:
             Node data.
         """
-        if self._storage is None:
-            raise RuntimeError('Empty data node has no value.')
         return self._storage.value
 
 
@@ -422,18 +396,12 @@ class String(_ItemNode):
             self._storage = self._parent.create_dataset(self._dataset_name,
                                                         data=new_value)
 
-    @property
-    def value(self):
+    def _value(self):
         """Return the actual node data, independent of the backend in use.
-
-        This representation of the data only depends on the corresponding
-        schema node, not on the selected backend.
 
         Returns:
             Node data.
         """
-        if self._storage is None:
-            raise RuntimeError('Empty data node has no value.')
         return self._storage.value
 
 
@@ -455,12 +423,8 @@ class Time(data.Time, _ItemNode):
                              dtype='int')
         super().replace(repr_data)
 
-    @property
-    def value(self):
+    def _value(self):
         """Return the actual node data, independent of the backend in use.
-
-        This representation of the data only depends on the corresponding
-        schema node, not on the selected backend.
 
         Returns:
             Node data.
