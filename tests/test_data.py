@@ -4,7 +4,7 @@ import h5py
 import importlib
 import numpy as np
 import pytest
-from dsch import schema
+from dsch import data, schema
 
 
 backend_data = namedtuple('backend_data', ('module', 'new_params'))
@@ -396,3 +396,19 @@ class TestTime(ItemNodeTestBase):
         dt = datetime.datetime.now().time()
         assert ((data_node.value.hour, data_node.value.minute) ==
                 (dt.hour, dt.minute))
+
+
+def test_validation_error_chain(backend):
+    schema_node = schema.Compilation({
+        'spam': schema.List(schema.Compilation({
+            'eggs': schema.List(schema.String(max_length=3))}))})
+    data_node = backend.module.Compilation(schema_node, parent=None,
+                                           new_params=backend.new_params)
+    data_node.spam.append({'eggs': ['abc', 'def']})
+    data_node.spam.append({'eggs': ['abc', 'def', 'ghij']})
+    with pytest.raises(data.SubnodeValidationError) as err:
+        data_node.validate()
+    assert err.value.node_path() == 'spam[1].eggs[2]'
+    assert err.value.__cause__.node_path() == '[1].eggs[2]'
+    assert err.value.__cause__.__cause__.node_path() == 'eggs[2]'
+    assert err.value.__cause__.__cause__.__cause__.node_path() == '[2]'
