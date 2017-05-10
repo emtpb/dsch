@@ -137,7 +137,7 @@ class ItemNode:
         exception is raised.
 
         Raises:
-            :exc:`dsch.schema.ValidationError`: if validation fails.
+            :exc:`.schema.ValidationError`: if validation fails.
         """
         self.schema_node.validate(self.value)
 
@@ -184,7 +184,7 @@ class Array(ItemNode):
         exception is raised.
 
         Raises:
-            :exc:`dsch.schema.ValidationError`: if validation fails.
+            :exc:`.schema.ValidationError`: if validation fails.
         """
         independent_values = []
         node_names = self.schema_node.depends_on or []
@@ -258,7 +258,7 @@ class Compilation:
         A Compilation is considered complete when all non-optional sub-nodes
         are individually complete. This allows defining exceptions for specific
         sub-nodes by including them in
-        :attr:`dsch.schema.Compilation.optionals`.
+        :attr:`.schema.Compilation.optionals`.
 
         .. note::
             :attr:`complete` is not simply the inverse of :attr:`empty`, since
@@ -360,7 +360,7 @@ class Compilation:
         exception is raised.
 
         Raises:
-            :exc:`dsch.schema.ValidationError`: if validation fails.
+            :exc:`.data.SubnodeValidationError`: if validation fails.
         """
         for node_name, node in self._subnodes.items():
             try:
@@ -380,7 +380,7 @@ class Date(ItemNode):
         """Initialize new Date data node.
 
         If the corresponding schema node's
-        :attr:`dsch.schema.Date.set_on_create` is ``True``, the data node's
+        :attr:`.schema.Date.set_on_create` is ``True``, the data node's
         value is automatically initialized with the current date. Otherwise,
         it is left empty and can be filled by calling meth:`replace`.
 
@@ -403,7 +403,7 @@ class DateTime(ItemNode):
         """Initialize new DateTime data node.
 
         If the corresponding schema node's
-        :attr:`dsch.schema.DateTIme.set_on_create` is ``True``, the data node's
+        :attr:`.schema.DateTime.set_on_create` is ``True``, the data node's
         value is automatically initialized with the current date and time.
         Otherwise, it is left empty and can be filled by calling
         meth:`replace`.
@@ -573,7 +573,7 @@ class List:
         exception is raised.
 
         Raises:
-            :exc:`dsch.schema.ValidationError`: if validation fails.
+            :exc:`.data.SubnodeValidationError`: if validation fails.
         """
         self.schema_node.validate(self)
         for idx, node in enumerate(self._subnodes):
@@ -594,8 +594,8 @@ class Time(ItemNode):
         """Initialize new Time data node.
 
         For :class:`Time`, the corresponding HDF5 dataset is only created if
-        the corresponding schema node's :attr:`dsch.schema.Time.set_on_create`
-        is ``True``. Otherwise, the dataset is left empty and can be filled by
+        the corresponding schema node's :attr:`.schema.Time.set_on_create` is
+        ``True``. Otherwise, the dataset is left empty and can be filled by
         calling meth:`replace`.
 
         Args:
