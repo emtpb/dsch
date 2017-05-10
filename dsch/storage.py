@@ -172,10 +172,20 @@ class FileStorage(Storage):
         """Create a new file at :attr:`storage_path`."""
         raise NotImplementedError('To be implemented in subclass.')
 
-    def save(self):
+    def save(self, force=False):
         """Save the current data to the file in :attr:`storage_path`.
 
-        Note: This does not perform any validation, so the created file is
-        *not* guaranteed to fulfill the schema's constraints.
+        Before the file is saved, data validation is automatically performed
+        via :meth:`validate`. This can be skipped (although it should not) by
+        setting ``force`` to ``True``.
+
+        Args:
+            force (bool): If ``True``, automatic data validation is skipped.
         """
+        if not force:
+            self.validate()
+        self._save()
+
+    def _save(self):
+        """Save the current data to the file in :attr:`storage_path`."""
         raise NotImplementedError('To be implemented in subclass.')

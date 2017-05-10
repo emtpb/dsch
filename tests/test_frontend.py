@@ -48,7 +48,7 @@ def test_load_validation_fail(backend):
     schema_node = schema.String(max_length=3)
     storage = frontend.create(backend.storage_path, schema_node)
     storage.data.replace('spam')
-    storage.save()
+    storage.save(force=True)
 
     with pytest.raises(schema.ValidationError):
         frontend.load(backend.storage_path)

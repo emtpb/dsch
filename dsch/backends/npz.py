@@ -248,12 +248,8 @@ class Storage(storage.FileStorage):
         self.data = data.data_node_from_schema(self.schema_node,
                                                self.__module__, None)
 
-    def save(self):
-        """Save the current data to the file in :attr:`storage_path`.
-
-        Note: This does not perform any validation, so the created file is
-        *not* guaranteed to fulfill the schema's constraints.
-        """
+    def _save(self):
+        """Save the current data to the file in :attr:`storage_path`."""
         if isinstance(self.schema_node, schema.Compilation):
             store_data = _flatten_dotted(self.data.save())
         else:

@@ -398,12 +398,8 @@ class Storage(storage.FileStorage):
                                                self.__module__, None,
                                                new_params=new_params)
 
-    def save(self):
-        """Save the current data to the file in :attr:`storage_path`.
-
-        Note: This does not perform any validation, so the created file is
-        *not* guaranteed to fulfill the schema's constraints.
-        """
+    def _save(self):
+        """Save the current data to the file in :attr:`storage_path`."""
         self._storage.flush()
 
 

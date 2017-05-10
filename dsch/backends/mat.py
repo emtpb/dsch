@@ -118,12 +118,8 @@ class Storage(npz.Storage):
                                                self.__module__, None,
                                                data_storage=data_storage)
 
-    def save(self):
-        """Save the current data to the file in :attr:`storage_path`.
-
-        Note: This does not perform any validation, so the created file is
-        *not* guaranteed to fulfill the schema's constraints.
-        """
+    def _save(self):
+        """Save the current data to the file in :attr:`storage_path`."""
         store_data = {'schema': self._schema_to_json()}
         output_data = self.data.save()
         if output_data is not None:
