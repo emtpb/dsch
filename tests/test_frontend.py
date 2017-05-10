@@ -44,15 +44,6 @@ def test_load_require_schema(backend):
     frontend.load(backend.storage_path, require_schema=schema_hash)
 
 
-def test_load_require_valid(backend):
-    schema_node = schema.Bool()
-    storage = frontend.create(backend.storage_path, schema_node)
-    storage.data.replace(True)
-    storage.save()
-
-    frontend.load(backend.storage_path)
-
-
 def test_load_validation_fail(backend):
     schema_node = schema.String(max_length=3)
     storage = frontend.create(backend.storage_path, schema_node)
