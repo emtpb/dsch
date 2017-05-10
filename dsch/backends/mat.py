@@ -123,8 +123,10 @@ class Storage(npz.Storage):
         Note: This does not perform any validation, so the created file is
         *not* guaranteed to fulfill the schema's constraints.
         """
-        store_data = {'data': self.data.save(),
-                      'schema': self._schema_to_json()}
+        store_data = {'schema': self._schema_to_json()}
+        output_data = self.data.save()
+        if output_data is not None:
+            store_data['data'] = output_data
         sio.savemat(self.storage_path, store_data)
 
 

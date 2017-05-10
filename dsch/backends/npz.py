@@ -258,7 +258,11 @@ class Storage(storage.FileStorage):
         else:
             # If the top-level node is not a Compilation, the default name
             # 'data' is used for the node.
-            store_data = _flatten_dotted({'data': self.data.save()})
+            output_data = self.data.save()
+            if output_data is not None:
+                store_data = _flatten_dotted({'data': output_data})
+            else:
+                store_data = {}
         np.savez(self.storage_path, _schema=self._schema_to_json(),
                  **store_data)
 

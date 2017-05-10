@@ -25,6 +25,16 @@ class TestStorage:
         storage_obj.data.replace(True)
         assert storage_obj.complete
 
+    @pytest.mark.parametrize('schema_node', (
+        schema.Bool(),
+        schema.Compilation({'spam': schema.Bool(), 'eggs': schema.Bool()}),
+        schema.List(schema.Bool()),
+    ))
+    def test_incomplete_data(self, backend, schema_node):
+        storage_obj = backend.module.Storage(storage_path=backend.storage_path,
+                                             schema_node=schema_node)
+        storage_obj.save()
+
     def test_schema_hash(self):
         schema_node = schema.Bool()
         storage_obj = storage.Storage('', schema_node)
