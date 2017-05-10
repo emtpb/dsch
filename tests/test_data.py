@@ -66,6 +66,10 @@ class ItemNodeTestBase:
         data_node.replace(self.valid_data)
         data_node.validate()
 
+    def test_validate_empty(self, data_node):
+        # No replace() here, just leave the data node empty.
+        data_node.validate()
+
     def test_value(self, data_node):
         data_node.replace(self.valid_data)
         assert isinstance(data_node.value, type(self.valid_data))

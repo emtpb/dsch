@@ -139,7 +139,8 @@ class ItemNode:
         Raises:
             :exc:`.schema.ValidationError`: if validation fails.
         """
-        self.schema_node.validate(self.value)
+        if self._storage is not None:
+            self.schema_node.validate(self.value)
 
     @property
     def value(self):
@@ -186,6 +187,8 @@ class Array(ItemNode):
         Raises:
             :exc:`.schema.ValidationError`: if validation fails.
         """
+        if self._storage is None:
+            return
         independent_values = []
         node_names = self.schema_node.depends_on or []
         for node_name in node_names:
