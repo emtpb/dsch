@@ -319,9 +319,10 @@ class Compilation:
             data_storage (dict): Backend-specific data storage object to load.
         """
         for node_name, subnode in self.schema_node.subnodes.items():
+            node_storage = data_storage.get(node_name, None)
             self._subnodes[node_name] = data_node_from_schema(
                 subnode, self.__module__, self,
-                data_storage=data_storage[node_name])
+                data_storage=node_storage)
 
     def _init_new(self, new_params):
         """Initialize new, empty Compilation.

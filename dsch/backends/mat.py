@@ -113,9 +113,10 @@ class Storage(npz.Storage):
         """Load an existing file from :attr:`storage_path`."""
         file_ = sio.loadmat(self.storage_path, squeeze_me=True)
         self._schema_from_json(file_['schema'])
+        data_storage = file_.get('data', None)
         self.data = data.data_node_from_schema(self.schema_node,
                                                self.__module__, None,
-                                               data_storage=file_['data'])
+                                               data_storage=data_storage)
 
     def save(self):
         """Save the current data to the file in :attr:`storage_path`.

@@ -91,7 +91,8 @@ class Compilation(data.Compilation):
             dict: Data storage object with the node's data.
         """
         data_storage = {}
-        for name, node in self._subnodes.items():
+        for name, node in [(na, no) for na, no in self._subnodes.items()
+                           if not no.empty]:
             data_storage[name] = node.save()
         return data_storage
 
@@ -237,7 +238,7 @@ class Storage(storage.FileStorage):
         else:
             # If the top-level node is not a Compilation, the default name
             # 'data' is used for the node.
-            data_storage = stored_data['data']
+            data_storage = stored_data.get('data', None)
         self.data = data.data_node_from_schema(self.schema_node,
                                                self.__module__, None,
                                                data_storage=data_storage)

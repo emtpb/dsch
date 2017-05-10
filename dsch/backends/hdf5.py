@@ -154,6 +154,25 @@ class Bool(_ItemNode):
 class Compilation(data.Compilation):
     """Compilation-type data node for the HDF5 backend."""
 
+    def _init_from_storage(self, data_storage):
+        """Initialize Compilation from the given data storage object.
+
+        This recursively initializes data nodes for all sub-nodes, using the
+        given data storage object.
+
+        Args:
+            data_storage (dict): Backend-specific data storage object to load.
+        """
+        for node_name, subnode in self.schema_node.subnodes.items():
+            if node_name in data_storage:
+                self._subnodes[node_name] = data.data_node_from_schema(
+                    subnode, self.__module__, self,
+                    data_storage=data_storage[node_name])
+            else:
+                new_params_sub = {'name': node_name, 'parent': data_storage}
+                self._subnodes[node_name] = data.data_node_from_schema(
+                    subnode, self.__module__, self, new_params=new_params_sub)
+
     def _init_new(self, new_params):
         """Initialize new, empty Compilation.
 
@@ -353,7 +372,14 @@ class Storage(storage.FileStorage):
         else:
             # If the top-level node is not a Compilation, apply the default
             # name 'dsch_data'.
-            data_storage = self._storage['dsch_data']
+            if 'dsch_data' in self._storage:
+                data_storage = self._storage['dsch_data']
+            else:
+                new_params = {'name': 'dsch_data', 'parent': self._storage}
+                self.data = data.data_node_from_schema(self.schema_node,
+                                                       self.__module__, None,
+                                                       new_params=new_params)
+                return
         self.data = data.data_node_from_schema(self.schema_node,
                                                self.__module__, None,
                                                data_storage=data_storage)
