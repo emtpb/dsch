@@ -93,7 +93,7 @@ def load(storage_path, backend=None, require_schema=None, force=False):
     if require_schema and storage.schema_hash() != require_schema:
         raise RuntimeError('Loaded schema does not match the required schema.')
     if not force:
-        storage.data.validate()
+        storage.validate()
     return storage
 
 
