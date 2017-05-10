@@ -56,3 +56,10 @@ class TestStorage:
         storage_obj = storage.Storage('', schema.Bool())
         json_data = storage_obj._schema_to_json()
         assert json_data == '{"config": {}, "node_type": "Bool"}'
+
+    def test_validate(self, backend):
+        schema_node = schema.Bool()
+        storage_obj = backend.module.Storage(storage_path=backend.storage_path,
+                                             schema_node=schema_node)
+        storage_obj.data.replace(True)
+        storage_obj.validate()

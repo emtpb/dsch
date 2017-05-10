@@ -110,6 +110,21 @@ class Storage:
         """
         return json.dumps(self.schema_node.to_dict(), sort_keys=True)
 
+    def validate(self):
+        """Validate the entire data storage.
+
+        This recursively validates all individual data nodes inside the
+        storage.
+
+        If validation succeeds, the method terminates silently. Otherwise, an
+        exception is raised.
+
+        Raises:
+            :exc:`.schema.ValidationError` or
+            :exc:`.data.SubnodeValidationError`: if validation fails.
+        """
+        self.data.validate()
+
 
 class FileStorage(Storage):
     """Storage interface base class for file-based storage.
