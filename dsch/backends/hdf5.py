@@ -340,7 +340,8 @@ class Storage(storage.FileStorage):
     def _load(self):
         """Load an existing file from :attr:`storage_path`."""
         self._storage = h5py.File(self.storage_path)
-        self._schema_from_json(self._storage.attrs['dsch_schema'])
+        self.schema_node = schema.node_from_json(
+            self._storage.attrs['dsch_schema'])
         if isinstance(self.schema_node, schema.Compilation):
             data_storage = self._storage
         else:
@@ -361,7 +362,7 @@ class Storage(storage.FileStorage):
     def _new(self):
         """Create a new file at :attr:`storage_path`."""
         self._storage = h5py.File(self.storage_path, 'x')
-        self._storage.attrs['dsch_schema'] = self._schema_to_json()
+        self._storage.attrs['dsch_schema'] = self.schema_node.to_json()
         if isinstance(self.schema_node, schema.Compilation):
             new_params = {'name': '', 'parent': self._storage}
         else:

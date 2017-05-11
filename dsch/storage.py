@@ -12,10 +12,7 @@ This module provides base classes for backends to derive from, so that common
 functionality may be implemented in a single place without unnecessary
 repetition.
 """
-import hashlib
-import json
 import os
-from . import schema
 
 
 class Storage:
@@ -80,17 +77,6 @@ class Storage:
         """
         return self.data.complete
 
-    def _schema_from_json(self, json_str):
-        """Import the top-level schema node from a JSON string.
-
-        Imports the given JSON string and creates a corresponding schema node
-        in :attr:`schema_node`.
-
-        Args:
-            json_str (str): JSON string representing the schema node.
-        """
-        self.schema_node = schema.node_from_dict(json.loads(json_str))
-
     def schema_hash(self):
         """Calculate the SHA256 hash of the (serialized) schema.
 
@@ -100,15 +86,7 @@ class Storage:
         Returns:
             str: SHA256 hash (hex) of the schema.
         """
-        return hashlib.sha256(self._schema_to_json().encode()).hexdigest()
-
-    def _schema_to_json(self):
-        """Export the top-level schema node as a JSON string.
-
-        Returns:
-            str: JSON representation of :attr:`schema_node`
-        """
-        return json.dumps(self.schema_node.to_dict(), sort_keys=True)
+        return self.schema_node.hash()
 
     def validate(self):
         """Validate the entire data storage.

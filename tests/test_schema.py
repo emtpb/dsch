@@ -1,7 +1,24 @@
 import datetime
+import json
 import numpy as np
 import pytest
 from dsch import schema
+
+
+@pytest.mark.parametrize('node', (
+    schema.Array(dtype='int'), schema.Bool(),
+    schema.Compilation({'spam': schema.Bool()}), schema.Date(),
+    schema.DateTime(), schema.List(schema.Bool()),
+    schema.Scalar(dtype='int32'), schema.String(), schema.Time()))
+class TestGenericSchemaNode:
+    def test_to_json(self, node):
+        json_str = node.to_json()
+        node_dict = json.loads(json_str)
+        assert isinstance(node_dict, dict)
+
+    def test_hash(self, node):
+        hash = node.hash()
+        assert len(hash) == 64
 
 
 class TestArray:

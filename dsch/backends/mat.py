@@ -1,6 +1,6 @@
 import numpy as np
 import scipy.io as sio
-from .. import data
+from .. import data, schema
 from . import npz
 
 
@@ -112,7 +112,7 @@ class Storage(npz.Storage):
     def _load(self):
         """Load an existing file from :attr:`storage_path`."""
         file_ = sio.loadmat(self.storage_path, squeeze_me=True)
-        self._schema_from_json(file_['schema'])
+        self.schema_node = schema.node_from_json(file_['schema'])
         data_storage = file_.get('data', None)
         self.data = data.data_node_from_schema(self.schema_node,
                                                self.__module__, None,
@@ -120,7 +120,7 @@ class Storage(npz.Storage):
 
     def _save(self):
         """Save the current data to the file in :attr:`storage_path`."""
-        store_data = {'schema': self._schema_to_json()}
+        store_data = {'schema': self.schema_node.to_json()}
         output_data = self.data.save()
         if output_data is not None:
             store_data['data'] = output_data

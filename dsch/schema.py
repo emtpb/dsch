@@ -30,7 +30,9 @@ This allows to specify arbitrary hierarchically structured schemas.
     Data nodes are defined in the :mod:`dsch.data` module.
 """
 import datetime
+import hashlib
 import inspect
+import json
 import numpy as np
 
 
@@ -54,6 +56,40 @@ class SchemaNode:
         if node_dict['node_type'] != cls.__name__:
             raise ValueError('Invalid node type in dict.')
         return cls(**node_dict['config'])
+
+    def hash(self):
+        """Calculate the node's SHA256 hash.
+
+        The hash is calculated based on the JSON representation of the node.
+        Consequently, identical node configurations result in the same hash.
+
+        Returns:
+            str: SHA256 hash (hex) of the schema.
+        """
+        return hashlib.sha256(self.to_json().encode()).hexdigest()
+
+    def to_dict(self):
+        """Return the node representation as a dict.
+
+        The representation dict includes a field ``node_type`` with the node
+        class name and a field ``config`` with a dict of the configuration
+        options.
+
+        Returns:
+            dict: dict-representation of the node.
+        """
+        raise NotImplementedError('To be implemented in subclass.')
+
+    def to_json(self):
+        """Return the node representation as a JSON string.
+
+        The JSON data structure is identical to the dict returned by
+        :meth:`to_dict`.
+
+        Returns:
+            str: JSON representation of the node.
+        """
+        return json.dumps(self.to_dict(), sort_keys=True)
 
 
 class Array(SchemaNode):
@@ -801,3 +837,15 @@ def node_from_dict(node_dict):
         raise ValueError('Invalid node type specified.')
     node_type = node_types[node_dict['node_type']]
     return node_type.from_dict(node_dict)
+
+
+def node_from_json(json_str):
+    """Create a new node from its JSON representation.
+
+    Args:
+        json_str (str): JSON representation of the node.
+
+    Returns:
+        New schema node with the specified type and configuration.
+    """
+    return node_from_dict(json.loads(json_str))

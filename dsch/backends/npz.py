@@ -209,7 +209,7 @@ class Storage(storage.FileStorage):
     def _load(self):
         """Load an existing file from :attr:`storage_path`."""
         with np.load(self.storage_path) as file_:
-            self._schema_from_json(file_['_schema'][()])
+            self.schema_node = schema.node_from_json(file_['_schema'][()])
             stored_data = _inflate_dotted(file_)
 
         if isinstance(self.schema_node, schema.Compilation):
@@ -240,7 +240,7 @@ class Storage(storage.FileStorage):
                 store_data = _flatten_dotted({'data': output_data})
             else:
                 store_data = {}
-        np.savez(self.storage_path, _schema=self._schema_to_json(),
+        np.savez(self.storage_path, _schema=self.schema_node.to_json(),
                  **store_data)
 
 

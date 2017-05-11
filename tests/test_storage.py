@@ -47,16 +47,6 @@ class TestStorage:
                         '901db11b9483de5bcc6489b1d3b76235')
         assert storage_obj.schema_hash() == nominal_hash
 
-    def test_schema_from_json(self):
-        storage_obj = storage.Storage('')
-        storage_obj._schema_from_json('{"config": {}, "node_type": "Bool"}')
-        assert isinstance(storage_obj.schema_node, schema.Bool)
-
-    def test_schema_to_json(self):
-        storage_obj = storage.Storage('', schema.Bool())
-        json_data = storage_obj._schema_to_json()
-        assert json_data == '{"config": {}, "node_type": "Bool"}'
-
     def test_validate(self, backend):
         schema_node = schema.Bool()
         storage_obj = backend.module.Storage(storage_path=backend.storage_path,
