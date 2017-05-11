@@ -1,7 +1,7 @@
 from collections import namedtuple
 import importlib
 import pytest
-from dsch import schema, storage
+from dsch import schema
 
 
 backend_data = namedtuple('backend_data', ('module', 'storage_path'))
@@ -17,10 +17,13 @@ def backend(request, tmpdir):
 
 
 class TestStorage:
-    def test_complete(self, backend):
+    @pytest.fixture
+    def storage_obj(self, backend):
         schema_node = schema.Bool()
-        storage_obj = backend.module.Storage(storage_path=backend.storage_path,
-                                             schema_node=schema_node)
+        return backend.module.Storage(storage_path=backend.storage_path,
+                                      schema_node=schema_node)
+
+    def test_complete(self, storage_obj):
         assert not storage_obj.complete
         storage_obj.data.replace(True)
         assert storage_obj.complete
@@ -40,16 +43,11 @@ class TestStorage:
                                              schema_node=schema_node)
         assert storage_obj.schema_node
 
-    def test_schema_hash(self):
-        schema_node = schema.Bool()
-        storage_obj = storage.Storage('', schema_node)
+    def test_schema_hash(self, storage_obj):
         nominal_hash = ('45d0233242870dd39f632cb5dd78704b'
                         '901db11b9483de5bcc6489b1d3b76235')
         assert storage_obj.schema_hash() == nominal_hash
 
-    def test_validate(self, backend):
-        schema_node = schema.Bool()
-        storage_obj = backend.module.Storage(storage_path=backend.storage_path,
-                                             schema_node=schema_node)
+    def test_validate(self, storage_obj):
         storage_obj.data.replace(True)
         storage_obj.validate()
