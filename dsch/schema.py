@@ -30,10 +30,33 @@ This allows to specify arbitrary hierarchically structured schemas.
     Data nodes are defined in the :mod:`dsch.data` module.
 """
 import datetime
+import inspect
 import numpy as np
 
 
-class Array:
+class SchemaNode:
+    """Base class for all kinds of schema nodes.
+
+    All schema node classes must derive from this, providing very general
+    functionality.
+    """
+
+    @classmethod
+    def from_dict(cls, node_dict):
+        """Create a new instance from a dict representation.
+
+        Args:
+            node_dict: dict-representation of the node to be loaded.
+
+        Returns:
+            New schema node instance.
+        """
+        if node_dict['node_type'] != cls.__name__:
+            raise ValueError('Invalid node type in dict.')
+        return cls(**node_dict['config'])
+
+
+class Array(SchemaNode):
     """Schema node for NumPy ndarray values.
 
     This node type accepts values of type :class:`numpy.ndarray`.
@@ -124,20 +147,6 @@ class Array:
             raise ValueError('Number of independent variables must be equal '
                              'to the number of array dimensions.')
 
-    @classmethod
-    def from_dict(cls, node_dict):
-        """Create a new instance from a dict representation.
-
-        Args:
-            node_dict: dict-representation of the node to be loaded.
-
-        Returns:
-            :class:`Array`: New array-type schema node.
-        """
-        if node_dict['node_type'] != 'Array':
-            raise ValueError('Invalid node type in dict.')
-        return cls(**node_dict['config'])
-
     def to_dict(self):
         """Return the node representation as a dict.
 
@@ -222,27 +231,13 @@ class Array:
                                           value.size, dim)
 
 
-class Bool:
+class Bool(SchemaNode):
     """Schema node for scalar boolean values.
 
     This node type only accepts values of type :class:`bool`.
 
     No configuration is required.
     """
-
-    @classmethod
-    def from_dict(cls, node_dict):
-        """Create a new instance from a dict representation.
-
-        Args:
-            node_dict: dict-representation of the node to be loaded.
-
-        Returns:
-            :class:`Bool`: New bool-type schema node.
-        """
-        if node_dict['node_type'] != 'Bool':
-            raise ValueError('Invalid node type in dict.')
-        return cls(**node_dict['config'])
 
     def to_dict(self):
         """Return the node representation as a dict.
@@ -276,7 +271,7 @@ class Bool:
                                   type(test_data))
 
 
-class Compilation:
+class Compilation(SchemaNode):
     """Schema node for compound values composed from multiple named sub-nodes.
 
     Usually, a :class:`Compilation` is used to name and group related data.
@@ -352,7 +347,7 @@ class Compilation:
         }}
 
 
-class Date:
+class Date(SchemaNode):
     """Schema node for date values.
 
     This node type accepts regular Python dates, i.e. :class:`datetime.date`
@@ -374,20 +369,6 @@ class Date:
                 node creation.
         """
         self.set_on_create = set_on_create
-
-    @classmethod
-    def from_dict(cls, node_dict):
-        """Create a new instance from a dict representation.
-
-        Args:
-            node_dict: dict-representation of the node to be loaded.
-
-        Returns:
-            :class:`Date`: New date-type schema node.
-        """
-        if node_dict['node_type'] != 'Date':
-            raise ValueError('Invalid node type in dict.')
-        return cls(**node_dict['config'])
 
     def to_dict(self):
         """Return the node representation as a dict.
@@ -422,7 +403,7 @@ class Date:
                                   type(test_data))
 
 
-class DateTime:
+class DateTime(SchemaNode):
     """Schema node for datetime values.
 
     This node type accepts regular Python datetimes, i.e.
@@ -444,20 +425,6 @@ class DateTime:
                 on data node creation.
         """
         self.set_on_create = set_on_create
-
-    @classmethod
-    def from_dict(cls, node_dict):
-        """Create a new instance from a dict representation.
-
-        Args:
-            node_dict: dict-representation of the node to be loaded.
-
-        Returns:
-            :class:`DateTime`: New datetime-type schema node.
-        """
-        if node_dict['node_type'] != 'DateTime':
-            raise ValueError('Invalid node type in dict.')
-        return cls(**node_dict['config'])
 
     def to_dict(self):
         """Return the node representation as a dict.
@@ -492,7 +459,7 @@ class DateTime:
                                   type(test_data))
 
 
-class List:
+class List(SchemaNode):
     """Schema node for lists of same-type elements.
 
     A :class:`List` is used to represent multiple data items that must meet the
@@ -584,7 +551,7 @@ class List:
                                   self.min_length, len(test_data))
 
 
-class Scalar:
+class Scalar(SchemaNode):
     """Schema node for NumPy scalar values.
 
     This node type accepts scalar values of all numeric NumPy scalar types,
@@ -626,20 +593,6 @@ class Scalar:
         self.unit = unit
         self.max_value = max_value
         self.min_value = min_value
-
-    @classmethod
-    def from_dict(cls, node_dict):
-        """Create a new instance from a dict representation.
-
-        Args:
-            node_dict: dict-representation of the node to be loaded.
-
-        Returns:
-            :class:`Scalar`: New scalar-type schema node.
-        """
-        if node_dict['node_type'] != 'Scalar':
-            raise ValueError('Invalid node type in dict.')
-        return cls(**node_dict['config'])
 
     def to_dict(self):
         """Return the node representation as a dict.
@@ -689,7 +642,7 @@ class Scalar:
                                   test_data.dtype)
 
 
-class String:
+class String(SchemaNode):
     """Schema node for string values.
 
     This node type accepts regular Python strings, i.e. :class:`str` objects.
@@ -710,20 +663,6 @@ class String:
         """
         self.min_length = min_length
         self.max_length = max_length
-
-    @classmethod
-    def from_dict(cls, node_dict):
-        """Create a new instance from a dict representation.
-
-        Args:
-            node_dict: dict-representation of the node to be loaded.
-
-        Returns:
-            :class:`String`: New string-type schema node.
-        """
-        if node_dict['node_type'] != 'String':
-            raise ValueError('Invalid node type in dict.')
-        return cls(**node_dict['config'])
 
     def to_dict(self):
         """Return the node representation as a dict.
@@ -764,7 +703,7 @@ class String:
                                   self.min_length, len(test_data))
 
 
-class Time:
+class Time(SchemaNode):
     """Schema node for time values.
 
     This node type accepts regular Python times, i.e. :class:`datetime.time`
@@ -786,20 +725,6 @@ class Time:
                 node creation.
         """
         self.set_on_create = set_on_create
-
-    @classmethod
-    def from_dict(cls, node_dict):
-        """Create a new instance from a dict representation.
-
-        Args:
-            node_dict: dict-representation of the node to be loaded.
-
-        Returns:
-            :class:`Time`: New time-type schema node.
-        """
-        if node_dict['node_type'] != 'Time':
-            raise ValueError('Invalid node type in dict.')
-        return cls(**node_dict['config'])
 
     def to_dict(self):
         """Return the node representation as a dict.
@@ -871,8 +796,7 @@ def node_from_dict(node_dict):
         New schema node with the specified type and configuration.
     """
     node_types = {name: cls for name, cls in globals().items()
-                  if not name.startswith('_') and
-                  name not in ('ValidationError', 'node_from_dict')}
+                  if inspect.isclass(cls) and issubclass(cls, SchemaNode)}
     if node_dict['node_type'] not in node_types:
         raise ValueError('Invalid node type specified.')
     node_type = node_types[node_dict['node_type']]
