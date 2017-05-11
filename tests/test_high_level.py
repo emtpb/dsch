@@ -1,7 +1,12 @@
 import datetime
 import numpy as np
 import pytest
-from dsch import frontend, schema
+import dsch
+
+
+# Ensure dsch.schema is automatically imported alongside the dsch package.
+# Normally, we would get the "schema" shorthand via "from dsch import schema".
+schema = dsch.schema
 
 
 @pytest.fixture(params=('hdf5', 'mat', 'npz'))
@@ -45,13 +50,13 @@ example_values2 = {
     schema.Time(),
 ))
 def test_item_node(storage_path, schema_node):
-    storage = frontend.create(storage_path=storage_path,
-                              schema_node=schema_node)
+    storage = dsch.create(storage_path=storage_path,
+                          schema_node=schema_node)
     storage.data.replace(example_values1[type(schema_node)])
     storage.data.validate()
     storage.save()
 
-    new_storage = frontend.load(storage_path)
+    new_storage = dsch.load(storage_path)
     assert np.all(new_storage.data.value ==
                   example_values1[type(schema_node)])
 
@@ -124,14 +129,14 @@ def test_compilation(storage_path):
         'test_listlist': schema.List(schema.List(schema.Bool())),
     })
 
-    storage = frontend.create(storage_path=storage_path,
-                              schema_node=schema_node)
+    storage = dsch.create(storage_path=storage_path,
+                          schema_node=schema_node)
 
     apply_example_values(storage.data, example_values1)
     storage.data.validate()
     storage.save()
 
-    new_storage = frontend.load(storage_path)
+    new_storage = dsch.load(storage_path)
     assert_example_values(new_storage.data, example_values1)
 
     apply_example_values(new_storage.data, example_values2)
@@ -167,14 +172,14 @@ def test_list(storage_path):
             'test_listlist': schema.List(schema.List(schema.Bool())),
         }))
 
-    storage = frontend.create(storage_path=storage_path,
-                              schema_node=schema_node)
+    storage = dsch.create(storage_path=storage_path,
+                          schema_node=schema_node)
 
     apply_example_values(storage.data, example_values1)
     storage.data.validate()
     storage.save()
 
-    new_storage = frontend.load(storage_path)
+    new_storage = dsch.load(storage_path)
     assert_example_values(new_storage.data, example_values1)
 
     apply_example_values(new_storage.data, example_values2)
