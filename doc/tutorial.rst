@@ -25,7 +25,7 @@ A schema that represents this data could be described like this::
                                     max_value=100)
     })
 
-Here, we use a :class:`dsch.schema.Compilation` as a container for our data fields.
+Here, we use a :class:`~dsch.schema.Compilation` as a container for our data fields.
 This allows us to name the individual fields, as well as group them together.
 Also, we define the units to be used for the physical quantities and sensible value limits for the humidity.
 
@@ -37,9 +37,9 @@ DSCH can store data using a number of backends, e.g. different file formats.
 However, backends could also be implemented for systems like databases, which mostly do not work with regular files.
 Therefore, we use the term "storage" instead of "file" to identify a place where we can save our data to.
 
-To open a storage, we can either use :func:`dsch.load` or :func:`dsch.create`, depending on whether the storage already exists.
+To open a storage, we can either use :func:`dsch.load() <dsch.frontend.load>` or :func:`dsch.create() <dsch.frontend.create>`, depending on whether the storage already exists.
 In both cases, we must provide a location for the storage, e.g. the path to a file.
-Since we started from scratch, we must use :func:`dsch.create`, which requires our previously defined ``schema`` as an argument::
+Since we started from scratch, we must use :func:`dsch.create() <dsch.frontend.create>`, which requires our previously defined ``schema`` as an argument::
 
     storage = dsch.create('test.h5', schema)
 
@@ -50,7 +50,7 @@ If we wanted to open an existing storage, we would not need to provide the schem
 Note that in both cases, we did not have to explicitly state the backend to be used.
 This is because DSCH automatically detects that this is a file path ending in ".h5" and chooses the HDF5 backend accordingly.
 If we wrote ``test.npz``, the NumPy npz backend would be chosen instead.
-Of course, autodetection can also be overridden, see :func:`dsch.load` and :func:`dsch.create`.
+Of course, autodetection can also be overridden, see :func:`~dsch.frontend.load` and :func:`~dsch.frontend.create`.
 
 
 Accessing Data
@@ -129,7 +129,7 @@ Since we previously set that value to 42, validation succeeds (i.e. terminates s
 
     >>> storage.data.humidity.validate()
 
-However, if we set an out-of range value, a :class:`dsch.schema.ValidationError` is raised::
+However, if we set an out-of range value, a :class:`~dsch.schema.ValidationError` is raised::
 
     >>> storage.data.humidity.replace(123)
     >>> storage.data.humidity.validate()
@@ -142,14 +142,14 @@ Of course, we can also validate the entire storage in a single step::
     [...]
     SubnodeValidationError: Field "humidity" failed validation: Maximum value exceeded. (Expected: 100. Got: 123.0)
 
-Note that now, a :class:`dsch.data.SubnodeValidationError` is raised, providing details on the affected node.
+Note that now, a :class:`~dsch.data.SubnodeValidationError` is raised, providing details on the affected node.
 
 
 Storing Data
 ------------
 
 For all current backends, changes to the data inside a storage are not automatically written to disk.
-To do that, you must call :meth:`dsch.storage.FileStorage.save` explicitly::
+To do that, you must call :meth:`~dsch.storage.FileStorage.save` explicitly::
 
     >>> storage.save()
     [...]

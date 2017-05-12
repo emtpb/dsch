@@ -8,7 +8,7 @@ Nested schemas
 
 The example schema from the :ref:`Tutorial <tutorial>` is a very simple one, so let's extend it!
 Suppose we do not only want to store a single measurement result of our weather station, but multiple results taken at different times.
-A simple solution for this would be to wrap the previous schema in a :class:`dsch.schema.List`::
+A simple solution for this would be to wrap the previous schema in a :class:`~dsch.schema.List`::
 
     schema_list = dsch.schema.List(
         dsch.schema.Compilation({
@@ -19,7 +19,7 @@ A simple solution for this would be to wrap the previous schema in a :class:`dsc
         })
     )
 
-If we now create a storage for this schema, we can use :meth:`dsch.data.List.append` to add individual measurement results to the list::
+If we now create a storage for this schema, we can use :meth:`~dsch.data.List.append` to add individual measurement results to the list::
 
     storage_list = dsch.create('list.h5', schema_list)
     storage_list.data.append({
