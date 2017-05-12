@@ -697,6 +697,25 @@ class SubnodeValidationError(Exception):
             fmt = '[{loc}]{post}'
         return fmt.format(loc=self._location, post=post)
 
+    def original_cause(self):
+        """Get the exception originally causing the chain.
+
+        This recursively follows the exception chain back to the original
+        :class:`.schema.ValidationError` that further describes the problem.
+
+        Returns:
+            :class:`.schema.ValidationError`: Original cause exception.
+        """
+        if isinstance(self.__cause__, SubnodeValidationError):
+            return self.__cause__.original_cause()
+        elif isinstance(self.__cause__, schema.ValidationError):
+            return self.__cause__
+
+    def __str__(self):
+        """Return a nicely printable string representation."""
+        return 'Node "{node_path}" failed validation: {msg}'.format(
+            node_path=self.node_path(), msg=self.original_cause())
+
 
 def data_node_from_schema(schema_node, module_name, parent, data_storage=None,
                           new_params=None):

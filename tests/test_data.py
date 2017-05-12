@@ -421,3 +421,6 @@ def test_validation_error_chain(backend):
     assert err.value.__cause__.node_path() == '[1].eggs[2]'
     assert err.value.__cause__.__cause__.node_path() == 'eggs[2]'
     assert err.value.__cause__.__cause__.__cause__.node_path() == '[2]'
+    assert str(err.value).startswith(
+        'Node "spam[1].eggs[2]" failed validation:')
+    assert str(err.value).endswith(str(err.value.original_cause()))

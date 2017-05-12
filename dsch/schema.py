@@ -818,6 +818,11 @@ class ValidationError(Exception):
         self.expected = expected
         self.got = got
 
+    def __str__(self):
+        """Return a nicely printable string representation."""
+        return '{msg} (Expected: {exp}. Got: {got})'.format(
+            msg=self.message, exp=self.expected, got=self.got)
+
 
 def node_from_dict(node_dict):
     """Create a new node from its ``node_dict``.
