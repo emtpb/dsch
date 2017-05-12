@@ -161,3 +161,9 @@ Of course, when we provide a sensible value again, we can easily save our file::
 
     >>> storage.data.humidity.replace(42)
     >>> storage.save()
+
+
+Further Reading
+---------------
+
+The :ref:`Advanced Topics <advanced>` page provides details and examples for advanced applications, such as more complex schemas and validation.
