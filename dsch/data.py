@@ -635,6 +635,7 @@ class NodeEmptyError(Exception):
     """
 
     def __init__(self):
+        """Initialize new NodeEmptyError instance."""
         super().__init__('Node is empty. The value of empty nodes is '
                          'undefined.')
 
