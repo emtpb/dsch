@@ -14,6 +14,7 @@ User's Guide
 .. toctree::
     :maxdepth: 2
 
+    tutorial
     api
     project
 
