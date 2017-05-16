@@ -93,13 +93,13 @@ Of course, we can also assign new variables for any node, providing a shortcut f
 Modifying Data
 --------------
 
-The data stored in a data node can be completely replaced by calling the ``replace`` method.
+The data stored in a data node can be changed by setting the ``value`` attribute.
 This is also the way to apply an initial value to an empty node::
 
     import datetime
-    storage.data.time.replace(datetime.datetime.now())
-    storage.data.temperature.replace(21)
-    storage.data.humidity.replace(42)
+    storage.data.time.value = datetime.datetime.now()
+    storage.data.temperature.value = 21
+    storage.data.humidity.value = 42
 
 Now, we can inspect the filled data structure::
 
@@ -131,7 +131,7 @@ Since we previously set that value to 42, validation succeeds (i.e. terminates s
 
 However, if we set an out-of range value, a :class:`~dsch.schema.ValidationError` is raised::
 
-    >>> storage.data.humidity.replace(123)
+    >>> storage.data.humidity.value = 123
     >>> storage.data.humidity.validate()
     [...]
     ValidationError: Maximum value exceeded. (Expected: 100. Got: 123.0)
@@ -159,7 +159,7 @@ Oh, right, we still have that invalid value set for ``humidity``!
 As we can see, the default is to automatically validate data before saving, preventing us from accidentally producing files with invalid for physically impossible values.
 Of course, when we provide a sensible value again, we can easily save our file::
 
-    >>> storage.data.humidity.replace(42)
+    >>> storage.data.humidity.value = 42
     >>> storage.save()
 
 

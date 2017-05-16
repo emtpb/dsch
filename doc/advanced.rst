@@ -36,8 +36,8 @@ Each list item is a Compilation that behaves exactly like in the previous sectio
 Alternatively, if you prefer to work with the data nodes directly, the argument to ``append`` can be omitted::
 
     storage_list.data.append()
-    storage_list.data[0].time.replace(datetime.datetime.now())
-    storage_list.data[0].temperature.replace(21)
-    storage_list.data[0].humidity.replace(42)
+    storage_list.data[0].time.value = datetime.datetime.now()
+    storage_list.data[0].temperature.value = 21
+    storage_list.data[0].humidity.value = 42
 
 By nesting Lists and Compilations, arbitrary schemas can be composed.
