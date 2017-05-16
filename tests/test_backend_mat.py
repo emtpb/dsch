@@ -92,8 +92,8 @@ class TestStorage:
         storage_path = str(tmpdir.join('test_save_compilation.mat'))
         mat_file = mat.Storage(storage_path=storage_path,
                                schema_node=schema_node)
-        mat_file.data.spam.replace(True)
-        mat_file.data.eggs.replace(False)
+        mat_file.data.spam.value = True
+        mat_file.data.eggs.value = False
         mat_file.save()
 
         file_ = sio.loadmat(storage_path, squeeze_me=True)
@@ -111,7 +111,7 @@ class TestStorage:
         storage_path = str(tmpdir.join('test_save_item.mat'))
         mat_file = mat.Storage(storage_path=storage_path,
                                schema_node=schema_node)
-        mat_file.data.replace(True)
+        mat_file.data.value = True
         mat_file.save()
 
         file_ = sio.loadmat(storage_path, squeeze_me=True)

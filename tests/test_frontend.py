@@ -26,7 +26,7 @@ def test_create(backend):
 def test_load(backend):
     schema_node = schema.Bool()
     storage = frontend.create(backend.storage_path, schema_node)
-    storage.data.replace(True)
+    storage.data.value = True
     storage.save()
 
     new_storage = frontend.load(backend.storage_path)
@@ -37,7 +37,7 @@ def test_load(backend):
 def test_load_require_schema(backend):
     schema_node = schema.Bool()
     storage = frontend.create(backend.storage_path, schema_node)
-    storage.data.replace(True)
+    storage.data.value = True
     storage.save()
 
     schema_hash = storage.schema_hash()
@@ -47,7 +47,7 @@ def test_load_require_schema(backend):
 def test_load_validation_fail(backend):
     schema_node = schema.String(max_length=3)
     storage = frontend.create(backend.storage_path, schema_node)
-    storage.data.replace('spam')
+    storage.data.value = 'spam'
     storage.save(force=True)
 
     with pytest.raises(schema.ValidationError):

@@ -25,7 +25,7 @@ class TestStorage:
 
     def test_complete(self, storage_obj):
         assert not storage_obj.complete
-        storage_obj.data.replace(True)
+        storage_obj.data.value = True
         assert storage_obj.complete
 
     @pytest.mark.parametrize('schema_node', (
@@ -49,5 +49,5 @@ class TestStorage:
         assert storage_obj.schema_hash() == nominal_hash
 
     def test_validate(self, storage_obj):
-        storage_obj.data.replace(True)
+        storage_obj.data.value = True
         storage_obj.validate()

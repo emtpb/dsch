@@ -30,7 +30,7 @@ class TestItemNode:
                                           parent=None, new_params=new_params)
 
     def test_clear(self, data_node, valid_data, hdf5file):
-        data_node.replace(valid_data)
+        data_node.value = valid_data
         assert 'test_item' in hdf5file
         data_node.clear()
         assert 'test_item' not in hdf5file
@@ -147,8 +147,8 @@ class TestStorage:
         file_name = str(tmpdir.join('test_save_compilation.hdf5'))
         hdf5_file = hdf5.Storage(storage_path=file_name,
                                  schema_node=schema_node)
-        hdf5_file.data.spam.replace(True)
-        hdf5_file.data.eggs.replace(False)
+        hdf5_file.data.spam.value = True
+        hdf5_file.data.eggs.value = False
         hdf5_file.save()
 
         file_ = h5py.File(file_name, 'r')
@@ -167,7 +167,7 @@ class TestStorage:
         file_name = str(tmpdir.join('test_save_item.h5'))
         hdf5_file = hdf5.Storage(storage_path=file_name,
                                  schema_node=schema_node)
-        hdf5_file.data.replace(True)
+        hdf5_file.data.value = True
         hdf5_file.save()
         del hdf5_file
 

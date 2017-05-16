@@ -52,7 +52,7 @@ example_values2 = {
 def test_item_node(storage_path, schema_node):
     storage = dsch.create(storage_path=storage_path,
                           schema_node=schema_node)
-    storage.data.replace(example_values1[type(schema_node)])
+    storage.data.value = example_values1[type(schema_node)]
     storage.data.validate()
     storage.save()
 
@@ -60,7 +60,7 @@ def test_item_node(storage_path, schema_node):
     assert np.all(new_storage.data.value ==
                   example_values1[type(schema_node)])
 
-    storage.data.replace(example_values2[type(schema_node)])
+    storage.data.value = example_values2[type(schema_node)]
     new_storage.save()
 
 
@@ -75,7 +75,7 @@ def apply_example_values(data_node, example_values):
         for item in data_node:
             apply_example_values(item, example_values)
     else:
-        data_node.replace(example_values[type(data_node.schema_node)])
+        data_node.value = example_values[type(data_node.schema_node)]
 
 
 def assert_example_values(data_node, example_values):

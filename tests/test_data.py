@@ -30,52 +30,52 @@ class ItemNodeTestBase:
                                new_params=backend.new_params)
 
     def test_clear(self, data_node):
-        data_node.replace(self.valid_data)
+        data_node.value = self.valid_data
         data_node.clear()
         assert data_node._storage is None
 
     def test_complete(self, data_node):
         assert not data_node.complete
-        data_node.replace(self.valid_data)
+        data_node.value = self.valid_data
         assert data_node.complete
 
     def test_empty(self, data_node):
         assert data_node.empty
-        data_node.replace(self.valid_data)
+        data_node.value = self.valid_data
         assert not data_node.empty
 
     def test_init_new(self, data_node):
         assert data_node.schema_node == self.schema_node
         assert data_node._storage is None
 
-    def test_replace(self, data_node):
-        data_node.replace(self.valid_data)
-        assert np.all(data_node.value == self.valid_data)
-
     def test_roundtrip(self, backend):
         data_node_class = getattr(backend.module, self.class_name)
         data_node1 = data_node_class(self.schema_node, parent=None,
                                      new_params=backend.new_params)
-        data_node1.replace(self.valid_data)
+        data_node1.value = self.valid_data
         storage = data_node1._storage
         data_node2 = data_node_class(self.schema_node, parent=None,
                                      data_storage=storage)
         assert np.all(data_node2.value == self.valid_data)
 
+    def test_set_value(self, data_node):
+        data_node.value = self.valid_data
+        assert np.all(data_node.value == self.valid_data)
+
     def test_validate(self, data_node):
-        data_node.replace(self.valid_data)
+        data_node.value = self.valid_data
         data_node.validate()
 
     def test_validate_empty(self, data_node):
-        # No replace() here, just leave the data node empty.
+        # No .value = ... here, just leave the data node empty.
         data_node.validate()
 
     def test_value(self, data_node):
-        data_node.replace(self.valid_data)
+        data_node.value = self.valid_data
         assert isinstance(data_node.value, type(self.valid_data))
 
     def test_value_empty(self, data_node):
-        # No replace() here, just leave the data node empty.
+        # No .value = ... here, just leave the data node empty.
         with pytest.raises(data.NodeEmptyError):
             data_node.value
 
@@ -86,20 +86,20 @@ class TestArray(ItemNodeTestBase):
     valid_data = np.array([23, 42])
 
     def test_getitem(self, data_node):
-        data_node.replace(self.valid_data)
+        data_node.value = self.valid_data
         for idx, item in enumerate(self.valid_data):
             assert data_node[idx] == item
         assert np.all(data_node[()] == self.valid_data)
 
     def test_resize(self, data_node):
-        data_node.replace(np.array([42]))
+        data_node.value = np.array([42])
         assert data_node.value.shape == (1,)
         data_node.resize((5,))
         assert data_node.value.ndim == 1
         assert data_node.value.shape == (5,)
 
     def test_setitem(self, data_node):
-        data_node.replace(np.array([5, 23, 42]))
+        data_node.value = np.array([5, 23, 42])
         data_node[0] = 1
         assert np.all(data_node.value == np.array([1, 23, 42]))
         data_node[1:] = np.array([2, 3])
@@ -112,8 +112,8 @@ class TestArray(ItemNodeTestBase):
             'time': schema.Array(dtype='float'),
             'voltage': schema.Array(dtype='float', depends_on='time'),
         }), parent=None, new_params=backend.new_params)
-        comp.time.replace(np.array([0, 1, 2], dtype='float'))
-        comp.voltage.replace(np.array([2, 3, 5], dtype='float'))
+        comp.time.value = np.array([0, 1, 2], dtype='float')
+        comp.voltage.value = np.array([2, 3, 5], dtype='float')
         comp.voltage.validate()
 
 
@@ -142,28 +142,28 @@ class TestCompilation:
         return data_node
 
     def test_clear(self, data_node, valid_subnode_data):
-        data_node.spam.replace(valid_subnode_data)
-        data_node.eggs.replace(valid_subnode_data)
+        data_node.spam.value = valid_subnode_data
+        data_node.eggs.value = valid_subnode_data
         data_node.clear()
         assert data_node.spam._storage is None
         assert data_node.eggs._storage is None
 
     def test_complete(self, data_node, valid_subnode_data):
         assert not data_node.complete
-        data_node.spam.replace(valid_subnode_data)
+        data_node.spam.value = valid_subnode_data
         assert not data_node.complete
-        data_node.eggs.replace(valid_subnode_data)
+        data_node.eggs.value = valid_subnode_data
         assert data_node.complete
 
     def test_complete_optionals(self, data_node, valid_subnode_data):
         data_node.schema_node.optionals.append('eggs')
         assert not data_node.complete
-        data_node.spam.replace(valid_subnode_data)
+        data_node.spam.value = valid_subnode_data
         assert data_node.complete
 
     def test_empty(self, data_node, valid_subnode_data):
         assert data_node.empty
-        data_node.spam.replace(valid_subnode_data)
+        data_node.spam.value = valid_subnode_data
         assert not data_node.empty
 
     def test_dir(self, data_node, valid_subnode_data):
@@ -221,8 +221,8 @@ class TestCompilation:
             assert data_node.spam[1].value == valid_subnode_data
 
     def test_validate(self, data_node, valid_subnode_data):
-        data_node.spam.replace(valid_subnode_data)
-        data_node.eggs.replace(valid_subnode_data)
+        data_node.spam.value = valid_subnode_data
+        data_node.eggs.value = valid_subnode_data
         data_node.validate()
 
 
@@ -298,7 +298,7 @@ class TestList:
         assert data_node.complete
         data_node.append()
         assert not data_node.complete
-        data_node[0].replace(valid_subnode_data)
+        data_node[0].value = valid_subnode_data
         assert data_node.complete
 
     def test_empty(self, data_node, valid_subnode_data):

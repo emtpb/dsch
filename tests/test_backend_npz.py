@@ -19,7 +19,7 @@ def test_save_item_node(schema_node, valid_data):
     data_node = data.data_node_from_schema(schema_node,
                                            module_name='dsch.backends.npz',
                                            parent=None)
-    data_node.replace(valid_data)
+    data_node.value = valid_data
     assert np.all(data_node.save() == data_node._storage)
 
 
@@ -38,8 +38,8 @@ class TestCompilation:
         schema_node = schema.Compilation({'spam': schema.Bool(),
                                           'eggs': schema.Bool()})
         data_node = npz.Compilation(schema_node, parent=None)
-        data_node.spam.replace(True)
-        data_node.eggs.replace(False)
+        data_node.spam.value = True
+        data_node.eggs.value = False
         data_storage = data_node.save()
         assert 'spam' in data_storage
         assert 'eggs' in data_storage
@@ -118,8 +118,8 @@ class TestStorage:
         storage_path = str(tmpdir.join('test_save_compilation.npz'))
         npz_file = npz.Storage(storage_path=storage_path,
                                schema_node=schema_node)
-        npz_file.data.spam.replace(True)
-        npz_file.data.eggs.replace(False)
+        npz_file.data.spam.value = True
+        npz_file.data.eggs.value = False
         npz_file.save()
 
         with np.load(storage_path) as file_:
@@ -138,7 +138,7 @@ class TestStorage:
         storage_path = str(tmpdir.join('test_save_item.npz'))
         npz_file = npz.Storage(storage_path=storage_path,
                                schema_node=schema_node)
-        npz_file.data.replace(True)
+        npz_file.data.value = True
         npz_file.save()
 
         with np.load(storage_path) as file_:

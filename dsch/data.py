@@ -90,7 +90,7 @@ class ItemNode:
         """Check whether the data node is currently empty.
 
         A data node is considered empty when no corresponding storage object
-        exists. For applying a new value, see :meth:`replace`.
+        exists. For applying a new value, set :attr:`value`.
 
         Returns:
             bool: ``True`` if the data node is empty, ``False`` otherwise.
@@ -162,6 +162,18 @@ class ItemNode:
             raise NodeEmptyError()
         else:
             return self._value()
+
+    @value.setter
+    def value(self, new_value):
+        """Apply a new value to the data node.
+
+        This is a convenience shortcut to :meth:`replace`.
+
+        Args:
+            new_value: New value to apply to the node, independent of the
+                backend in use.
+        """
+        self.replace(new_value)
 
     def _value(self):
         """Return the actual node data, independent of the backend in use.
@@ -402,14 +414,14 @@ class Date(ItemNode):
         If the corresponding schema node's
         :attr:`.schema.Date.set_on_create` is ``True``, the data node's
         value is automatically initialized with the current date. Otherwise,
-        it is left empty and can be filled by calling meth:`replace`.
+        it is left empty and can be filled by setting :attr:`value`.
 
         Args:
             new_params: Backend-specific metadata for data node creation.
         """
         super()._init_new(new_params)
         if self.schema_node.set_on_create:
-            self.replace(datetime.date.today())
+            self.value = datetime.date.today()
 
 
 class DateTime(ItemNode):
@@ -425,15 +437,14 @@ class DateTime(ItemNode):
         If the corresponding schema node's
         :attr:`.schema.DateTime.set_on_create` is ``True``, the data node's
         value is automatically initialized with the current date and time.
-        Otherwise, it is left empty and can be filled by calling
-        meth:`replace`.
+        Otherwise, it is left empty and can be filled by setting :attr:`value`.
 
         Args:
             new_params: Backend-specific metadata for data node creation.
         """
         super()._init_new(new_params)
         if self.schema_node.set_on_create:
-            self.replace(datetime.datetime.now())
+            self.value = datetime.datetime.now()
 
 
 class List:
@@ -616,7 +627,7 @@ class Time(ItemNode):
         For :class:`Time`, the corresponding HDF5 dataset is only created if
         the corresponding schema node's :attr:`.schema.Time.set_on_create` is
         ``True``. Otherwise, the dataset is left empty and can be filled by
-        calling meth:`replace`.
+        setting :attr:`value`.
 
         Args:
             new_params (dict): Dict including the HDF5 dataset name as ``name``
@@ -624,7 +635,7 @@ class Time(ItemNode):
         """
         super()._init_new(new_params)
         if self.schema_node.set_on_create:
-            self.replace(datetime.datetime.now().time())
+            self.value = datetime.datetime.now().time()
 
 
 class NodeEmptyError(Exception):
