@@ -20,7 +20,8 @@ setup(
     use_scm_version=True,
 
     packages=[
-        'dsch'
+        'dsch',
+        'dsch.backends',
     ],
 
     # Runtime dependencies
