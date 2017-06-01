@@ -4,6 +4,7 @@ Tutorial
 ========
 
 This tutorial will give you a quick overview on working with DSCH.
+Just make sure you have :ref:`installed <installation>` it and get started!
 
 
 Defining a Schema
