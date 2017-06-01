@@ -62,7 +62,7 @@ class List(npz.List):
         This recursively initializes data nodes for all sub-nodes, using the
         given data storage object.
 
-        The mat backend's implementatino uses NumPy object arrays, as per
+        The mat backend's implementation uses NumPy object arrays, as per
         https://docs.scipy.org/doc/scipy/reference/tutorial/io.html, causing
         the List to be represented as a cell array in MATLAB.
 
@@ -71,10 +71,9 @@ class List(npz.List):
                 storage object to load.
         """
         for field in data_storage:
-            node_storage = field
             subnode = data.data_node_from_schema(self.schema_node.subnode,
                                                  self.__module__, self,
-                                                 data_storage=node_storage)
+                                                 data_storage=field)
             self._subnodes.append(subnode)
 
     def save(self):

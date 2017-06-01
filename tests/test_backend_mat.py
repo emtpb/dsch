@@ -76,7 +76,6 @@ class TestStorage:
         data = np.zeros((2,), dtype=np.object)
         data[0] = np.array([True])
         data[1] = np.array([False])
-        # test_data = {'data': {'item_0': True, 'item_1': False},
         test_data = {'data': data, 'schema': schema_data}
         sio.savemat(storage_path, test_data)
 
