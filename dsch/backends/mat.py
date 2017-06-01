@@ -70,6 +70,11 @@ class List(npz.List):
             data_storage (:class:`numpy.ndarray`): Backend-specific data
                 storage object to load.
         """
+        # If the list layer got squeezed away, we need to re-introduce it here
+        if not isinstance(data_storage, np.ndarray) \
+                or data_storage.shape == ():
+            data_storage = np.array([data_storage], dtype=np.object)
+
         for field in data_storage:
             subnode = data.data_node_from_schema(self.schema_node.subnode,
                                                  self.__module__, self,

@@ -64,27 +64,27 @@ def test_item_node(storage_path, schema_node):
     new_storage.save()
 
 
-def apply_example_values(data_node, example_values):
+def apply_example_values(data_node, example_values, num_list_items=2):
     if isinstance(data_node.schema_node, schema.Compilation):
         for subnode_name in data_node.schema_node.subnodes:
             apply_example_values(getattr(data_node, subnode_name),
                                  example_values)
     elif isinstance(data_node.schema_node, schema.List):
-        data_node.append()
-        data_node.append()
+        for _ in range(num_list_items):
+            data_node.append()
         for item in data_node:
             apply_example_values(item, example_values)
     else:
         data_node.value = example_values[type(data_node.schema_node)]
 
 
-def assert_example_values(data_node, example_values):
+def assert_example_values(data_node, example_values, num_list_items=2):
     if isinstance(data_node.schema_node, schema.Compilation):
         for subnode_name in data_node.schema_node.subnodes:
             assert_example_values(getattr(data_node, subnode_name),
                                   example_values)
     elif isinstance(data_node.schema_node, schema.List):
-        assert len(data_node) == 2
+        assert len(data_node) == num_list_items
         for item in data_node:
             assert_example_values(item, example_values)
     else:
@@ -143,7 +143,8 @@ def test_compilation(storage_path):
     new_storage.save()
 
 
-def test_list(storage_path):
+@pytest.mark.parametrize('num_list_items', (0, 1, 2))
+def test_list(storage_path, num_list_items):
     schema_node = schema.List(
         schema.Compilation({
             'test_array': schema.Array(dtype='int'),
@@ -175,12 +176,12 @@ def test_list(storage_path):
     storage = dsch.create(storage_path=storage_path,
                           schema_node=schema_node)
 
-    apply_example_values(storage.data, example_values1)
+    apply_example_values(storage.data, example_values1, num_list_items)
     storage.data.validate()
     storage.save()
 
     new_storage = dsch.load(storage_path)
-    assert_example_values(new_storage.data, example_values1)
+    assert_example_values(new_storage.data, example_values1, num_list_items)
 
-    apply_example_values(new_storage.data, example_values2)
+    apply_example_values(new_storage.data, example_values2, num_list_items)
     new_storage.save()
