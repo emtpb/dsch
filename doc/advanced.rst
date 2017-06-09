@@ -60,3 +60,15 @@ This behaviour can be achived by simply passing a list of ``optionals`` during s
 
 In this example, the ``comment`` field would be ignored when checking :attr:`~dsch.data.Compilation.complete`.
 Each entry of ``optionals`` must match the name of one of the Compilation's subnodes.
+
+
+Checking for specific schemas
+-----------------------------
+
+When loading a storage, DSCH can ensure it conforms to a specific schema.
+Then, subsequent processing code can rely on the data to really be structured in the expected way.
+Schemas are automatically identified by a SHA256 hash, which can be queried by calling :meth:`~dsch.storage.Storage.schema_hash`.
+Once determined, it can be given to :func:`~dsch.frontend.load` as the ``require_schema`` argument, causing DSCH to raise a :exc:`RuntimeError` if the to-be-loaded storage has a different schema::
+
+    hash = known_good_storage.schema_hash()
+    unknown_storage = dsch.load(path_to_storage, require_schema=hash)
