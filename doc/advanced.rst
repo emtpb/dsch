@@ -62,6 +62,25 @@ In this example, the ``comment`` field would be ignored when checking :attr:`~ds
 Each entry of ``optionals`` must match the name of one of the Compilation's subnodes.
 
 
+Inter-node validation
+---------------------
+
+Usually, validation only covers a single node at a time, so each node's value is validated against the exact node's constraints.
+However, this is insufficient for e.g. digital signals, like a measured voltage over time, which could be represented as two :class:`~dsch.schema.Array` instances ``voltage`` and ``time``.
+In this case, ``time`` is the independent variable and ``voltage`` depends on ``time``, implicitly requiring the length of the arrays to be equal and the dimensionality of ``time`` to be 1.
+
+Automatic validation of these constraints can be achived by providing a ``depends_on`` argument to the dependent variable's schema node::
+
+    schema = dsch.schema.Compilation({
+        'time': dsch.schema.Array(dtype='float'),
+        'voltage': dsch.schema.Array(dtype='float', depends_on=('time',))
+    })
+
+That argument must be an iterable of field names corresponding to all independent variables, so this also works for arrays of higher dimensionality.
+For example, a 2-dimensional matrix could have two entries in ``depends_on``, one for each dimension.
+If no independent variable exists for a particular dimension, ``None`` may be specified instead of a field name.
+
+
 Checking for specific schemas
 -----------------------------
 
