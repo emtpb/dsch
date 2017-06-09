@@ -41,3 +41,22 @@ Alternatively, if you prefer to work with the data nodes directly, the argument 
     storage_list.data[0].humidity.value = 42
 
 By nesting Lists and Compilations, arbitrary schemas can be composed.
+
+
+Optional fields in Compilations
+-------------------------------
+
+Some data structures may contain truly optional fields.
+For example, a measurement result might contain a "comment" field that is not strictly required fir the dataset to make sense.
+In this case, :attr:`~dsch.data.Compilation.complete` should return ``True`` even if no comment is provided, because the measurement result is, in fact, complete without it.
+This behaviour can be achived by simply passing a list of ``optionals`` during schema node initialization of the Compilation::
+
+    subnodes = {
+        'time': dsch.schema.Array(dtype='float', unit='s'),
+        'voltage': dsch.schema.Array(dtype='float', unit='V'),
+        'comment': dsch.schema.String(),
+    }
+    schema = dsch.schema.Compilation(subnodes, optionals=['comment'])
+
+In this example, the ``comment`` field would be ignored when checking :attr:`~dsch.data.Compilation.complete`.
+Each entry of ``optionals`` must match the name of one of the Compilation's subnodes.
