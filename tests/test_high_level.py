@@ -185,3 +185,24 @@ def test_list(storage_path, num_list_items):
 
     apply_example_values(new_storage.data, example_values2, num_list_items)
     new_storage.save()
+
+
+def test_list_item_order(storage_path):
+    """Ensure correct item order in lists.
+
+    Background: When lists consist of more than 10 items, the ordering should
+    still be 0, 1, 2, ... instead of 0, 1, 10, 11, 2, 3, ..., with the latter
+    being a possible result of simple sorting algorithms.
+    """
+    schema_node = schema.List(schema.Scalar(dtype='int32'))
+    storage = dsch.create(storage_path=storage_path,
+                          schema_node=schema_node)
+
+    num_test_items = 25
+    for value in range(num_test_items):
+        storage.data.append(value)
+    storage.save()
+
+    new_storage = dsch.load(storage_path)
+    for index in range(num_test_items):
+        assert new_storage.data[index].value == index

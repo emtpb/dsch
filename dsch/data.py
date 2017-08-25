@@ -567,7 +567,8 @@ class List:
         Args:
             data_storage (dict): Backend-specific data storage object to load.
         """
-        for _, node_storage in sorted(data_storage.items()):
+        for idx in range(len(data_storage)):
+            node_storage = data_storage['item_{}'.format(idx)]
             subnode = data_node_from_schema(self.schema_node.subnode,
                                             self.__module__, self,
                                             data_storage=node_storage)
