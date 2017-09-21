@@ -36,7 +36,7 @@ class TestStorage:
     def test_incomplete_data(self, backend, schema_node):
         storage_obj = backend.module.Storage(storage_path=backend.storage_path,
                                              schema_node=schema_node)
-        storage_obj.save(force=True)
+        storage_obj.save()
         del storage_obj
 
         storage_obj = backend.module.Storage(storage_path=backend.storage_path,
