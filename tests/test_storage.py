@@ -43,6 +43,21 @@ class TestStorage:
                                              schema_node=schema_node)
         assert storage_obj.schema_node
 
+    def test_missing_optional_data(self, backend):
+        schema_node = schema.Compilation({
+            'ham': schema.Compilation({'spam': schema.Bool(),
+                                       'eggs': schema.Bool()},)
+        })
+        storage_obj = backend.module.Storage(storage_path=backend.storage_path,
+                                             schema_node=schema_node)
+        storage_obj.data.ham.spam.value = True
+        storage_obj.save()
+        del storage_obj
+
+        storage_obj = backend.module.Storage(storage_path=backend.storage_path,
+                                             schema_node=schema_node)
+        assert hasattr(storage_obj.data.ham, 'eggs')
+
     def test_schema_hash(self, storage_obj):
         nominal_hash = ('45d0233242870dd39f632cb5dd78704b'
                         '901db11b9483de5bcc6489b1d3b76235')

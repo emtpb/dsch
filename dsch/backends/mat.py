@@ -38,9 +38,17 @@ class Compilation(npz.Compilation):
             data_storage = data_storage[()]
 
         for node_name, subnode in self.schema_node.subnodes.items():
+            # Work around the fact that we cannot use
+            # data_storage.get(node_name) because data_storage is not a dict,
+            # but a numpy.ndarray.
+            try:
+                node_storage = data_storage[node_name]
+            except ValueError:
+                node_storage = None
+
             self._subnodes[node_name] = data.data_node_from_schema(
                 subnode, self.__module__, self,
-                data_storage=data_storage[node_name])
+                data_storage=node_storage)
 
 
 class Date(npz.Date):
