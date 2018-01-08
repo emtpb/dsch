@@ -47,7 +47,7 @@ Optional fields in Compilations
 -------------------------------
 
 Some data structures may contain truly optional fields.
-For example, a measurement result might contain a "comment" field that is not strictly required fir the dataset to make sense.
+For example, a measurement result might contain a "comment" field that is not strictly required for the dataset to make sense.
 In this case, :attr:`~dsch.data.Compilation.complete` should return ``True`` even if no comment is provided, because the measurement result is, in fact, complete without it.
 This behaviour can be achived by simply passing a list of ``optionals`` during schema node initialization of the Compilation::
 
