@@ -122,11 +122,8 @@ class FileStorage(Storage):
         """Initialize the storage interface to a file.
 
         To create a new storage file, ``storage_path`` and ``schema_node`` must
-        be specified.
-
-        To open a storage file that already exists, only ``storage_path`` must
-        be specified. In this case, ``schema_node`` is ignored, if given
-        additionally.
+        be specified. When loading an existing file, ``schema_node`` must not
+        be given.
 
         .. note::
             File-based backends cache changes to the data in memory. For
@@ -136,12 +133,24 @@ class FileStorage(Storage):
         Args:
             storage_path (str): Path to the storage file.
             schema_node: Top-level schema node for the data hierarchy.
+
+        Raises:
+            FileExistsError: when trying to create a new storage with an
+                existing path.
+            FileNotFoundError: when trying to open a file that does not exist.
         """
         super().__init__(storage_path, schema_node)
-        if os.path.exists(self.storage_path):
-            self._load()
-        else:
+        if schema_node:
+            # If schema_node is given, we're creating a new file
+            if os.path.exists(self.storage_path):
+                raise FileExistsError('File %s already exists.',
+                                      self.storage_path)
             self._new()
+        else:
+            if not os.path.exists(self.storage_path):
+                raise FileNotFoundError('File %s could not be found.',
+                                        self.storage_path)
+            self._load()
 
     def _load(self):
         """Load an existing file from :attr:`storage_path`."""

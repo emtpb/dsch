@@ -39,8 +39,7 @@ class TestStorage:
         storage_obj.save()
         del storage_obj
 
-        storage_obj = backend.module.Storage(storage_path=backend.storage_path,
-                                             schema_node=schema_node)
+        storage_obj = backend.module.Storage(storage_path=backend.storage_path)
         assert storage_obj.schema_node
 
     def test_missing_optional_data(self, backend):
@@ -54,8 +53,7 @@ class TestStorage:
         storage_obj.save()
         del storage_obj
 
-        storage_obj = backend.module.Storage(storage_path=backend.storage_path,
-                                             schema_node=schema_node)
+        storage_obj = backend.module.Storage(storage_path=backend.storage_path)
         assert hasattr(storage_obj.data.ham, 'eggs')
 
     def test_schema_hash(self, storage_obj):
@@ -66,3 +64,20 @@ class TestStorage:
     def test_validate(self, storage_obj):
         storage_obj.data.value = True
         storage_obj.validate()
+
+def test_file_exists(backend):
+    schema_node = schema.Bool()
+    storage_obj = backend.module.Storage(storage_path=backend.storage_path,
+                                         schema_node=schema_node)
+    storage_obj.save()
+    del storage_obj
+
+    with pytest.raises(FileExistsError):
+        # Give schema_node --> request file creation
+        storage_obj = backend.module.Storage(storage_path=backend.storage_path,
+                                             schema_node=schema_node)
+
+def test_file_not_found(backend):
+    # Omit schema node --> request file loading
+    with pytest.raises(FileNotFoundError):
+        storage_obj = backend.module.Storage(storage_path=backend.storage_path)
