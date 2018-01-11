@@ -56,6 +56,7 @@ class Storage:
             storage_path (str): Path to the storage (backend-specific).
             schema_node: Top-level schema node for the data hierarchy.
         """
+        self.data = None
         self.storage_path = storage_path
         self.schema_node = schema_node
 
