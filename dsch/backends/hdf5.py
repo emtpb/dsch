@@ -111,6 +111,34 @@ class Array(data.Array, _ItemNode):
         return self._storage.value
 
 
+class Bytes(_ItemNode):
+    """Bytes-type data node for the HDF5 backend."""
+
+    def replace(self, new_value):
+        """Completely replace the current node value.
+
+        Instead of changing parts of the data (e.g. via numpy array slicing),
+        replace the entire data for this node.
+
+        Args:
+            new_value: New value to apply to the node, independent of the
+                backend in use.
+        """
+        if self._storage:
+            self._storage[()] = np.void(new_value)
+        else:
+            self._storage = self._parent.create_dataset(
+                self._dataset_name, data=np.void(new_value))
+
+    def _value(self):
+        """Return the actual node data, independent of the backend in use.
+
+        Returns:
+            Node data.
+        """
+        return self._storage.value.tostring()
+
+
 class Bool(_ItemNode):
     """Bool-type data node for the HDF5 backend."""
 

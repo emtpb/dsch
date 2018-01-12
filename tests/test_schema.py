@@ -196,6 +196,69 @@ class TestArray:
         assert err.value.expected == 'numpy.ndarray'
 
 
+class TestBytes:
+    def test_from_dict(self):
+        node_dict = {'node_type': 'Bytes', 'config': {
+            'max_length': 5, 'min_length': 3
+        }}
+        node = schema.Bytes.from_dict(node_dict)
+        assert node.max_length == 5
+        assert node.min_length == 3
+
+    def test_from_dict_fail(self):
+        with pytest.raises(ValueError) as err:
+            schema.Bytes.from_dict({'node_type': 'SPAM', 'config': {}})
+        assert err.value.args[0] == 'Invalid node type in dict.'
+
+    def test_init(self):
+        node = schema.Bytes(max_length=5, min_length=3)
+        assert node.max_length == 5
+        assert node.min_length == 3
+
+    def test_init_defaults(self):
+        node = schema.Bytes()
+        assert node.max_length is None
+        assert node.min_length is None
+
+    def test_to_dict(self):
+        node = schema.Bytes(min_length=3, max_length=5)
+        node_dict = node.to_dict()
+        assert 'node_type' in node_dict
+        assert node_dict['node_type'] == 'Bytes'
+        assert 'config' in node_dict
+        assert 'min_length' in node_dict['config']
+        assert 'max_length' in node_dict['config']
+        assert node_dict['config']['min_length'] == 3
+        assert node_dict['config']['max_length'] == 5
+
+    def test_validate(self):
+        node = schema.Bytes(max_length=5, min_length=3)
+        node.validate(b'spam')
+
+    @pytest.mark.parametrize('test_data', (0, [23, 42], True, 'spam'))
+    def test_validate_fail_type(self, test_data):
+        node = schema.Bytes()
+        with pytest.raises(schema.ValidationError) as err:
+            node.validate(test_data)
+        assert err.value.message == 'Invalid type/value.'
+
+    def test_validate_fail_max_length(self):
+        node = schema.Bytes(max_length=3)
+        with pytest.raises(schema.ValidationError) as err:
+            node.validate(b'abcd')
+        assert err.value.message == 'Maximum bytes length exceeded.'
+        assert err.value.expected == 3
+        assert err.value.got == 4
+
+    def test_validate_fail_min_length(self):
+        node = schema.Bytes(min_length=3)
+        with pytest.raises(schema.ValidationError) as err:
+            node.validate(b'ab')
+        assert err.value.message == 'Minimum bytes length undercut.'
+        assert err.value.expected == 3
+        assert err.value.got == 2
+
+
 class TestBool:
     def test_from_dict(self):
         node = schema.Bool.from_dict({'node_type': 'Bool', 'config': {}})

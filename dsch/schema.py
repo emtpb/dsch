@@ -267,6 +267,67 @@ class Array(SchemaNode):
                                           value.size, dim)
 
 
+class Bytes(SchemaNode):
+    """Schema node for bytes values.
+
+    This node type accepts regular Python byte strings, i.e. :class:`bytes`
+    objects. Constraints can be optionally configured for minimum and maximum
+    length.
+
+    Attributes:
+        min_length (int): Minimum allowed bytes length.
+        max_length (int): Maximum allowed bytes length.
+    """
+
+    def __init__(self, min_length=None, max_length=None):
+        """Initialize bytes-type schema node.
+
+        Args:
+            min_length (int): Minimum allowed bytes length.
+            max_length (int): Maximum allowed bytes length.
+        """
+        self.min_length = min_length
+        self.max_length = max_length
+
+    def to_dict(self):
+        """Return the node representation as a dict.
+
+        The representation dict includes a field ``node_type`` with the node
+        class name and a field ``config`` with a dict of the configuration
+        options.
+
+        Returns:
+            dict: dict-representation of the node.
+        """
+        config = {'min_length': self.min_length, 'max_length': self.max_length}
+        return {'node_type': 'Bytes', 'config': config}
+
+    def validate(self, test_data):
+        """Validate given data against the node's constraints.
+
+        For :class:`String` nodes, this ensures that the given data type is of
+        type :class:`str`, and that the string length is within the limits.
+
+        If validation succeeds, the method terminates silently. Otherwise, an
+        exception is raised.
+
+        Args:
+            test_data: Data to be validated.
+
+        Raises:
+            :exc:`.ValidationError`: if validation fails.
+        """
+        if not isinstance(test_data, bytes):
+            raise ValidationError('Invalid type/value.', 'bytes',
+                                  type(test_data))
+        if self.max_length and len(test_data) > self.max_length:
+            raise ValidationError('Maximum bytes length exceeded.',
+                                  self.max_length, len(test_data))
+        if self.min_length and len(test_data) < self.min_length:
+            raise ValidationError('Minimum bytes length undercut.',
+                                  self.min_length, len(test_data))
+
+
 class Bool(SchemaNode):
     """Schema node for scalar boolean values.
 

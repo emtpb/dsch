@@ -9,6 +9,11 @@ class Array(npz.Array):
     pass
 
 
+class Bytes(npz.Bytes):
+    """Bytes-type data node for the mat backend."""
+    pass
+
+
 class Bool(npz.Bool):
     """Bool-type data node for the mat backend."""
     pass

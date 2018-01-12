@@ -45,6 +45,30 @@ class Array(data.Array, _ItemNode):
         return self._storage
 
 
+class Bytes(_ItemNode):
+    """Bytes-type data node for the npz backend."""
+
+    def replace(self, new_value):
+        """Completely replace the current node value.
+
+        Instead of changing parts of the data (e.g. via numpy array slicing),
+        replace the entire data object for this node.
+
+        Args:
+            new_value: New value to apply to the node, independent of the
+                backend in use.
+        """
+        self._storage = np.array(new_value, dtype='bytes')
+
+    def _value(self):
+        """Return the actual node data, independent of the backend in use.
+
+        Returns:
+            Node data.
+        """
+        return bytes(self._storage)
+
+
 class Bool(_ItemNode):
     """Bool-type data node for the npz backend."""
 

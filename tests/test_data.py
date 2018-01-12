@@ -117,6 +117,12 @@ class TestArray(ItemNodeTestBase):
         comp.voltage.validate()
 
 
+class TestBytes(ItemNodeTestBase):
+    class_name = 'Bytes'
+    schema_node = schema.Bytes()
+    valid_data = b'spam'
+
+
 class TestBool(ItemNodeTestBase):
     class_name = 'Bool'
     schema_node = schema.Bool()
@@ -125,6 +131,7 @@ class TestBool(ItemNodeTestBase):
 
 @pytest.mark.parametrize('schema_subnode,valid_subnode_data', (
     (schema.Array(dtype='int32'), np.array([23, 42])),
+    (schema.Bytes(), b'spam'),
     (schema.Bool(), True),
     (schema.Date(), datetime.date.today()),
     (schema.DateTime(), datetime.datetime.now()),
@@ -261,6 +268,7 @@ class TestDateTime(ItemNodeTestBase):
 
 @pytest.mark.parametrize('schema_subnode,valid_subnode_data', (
     (schema.Array(dtype='int32'), np.array([23, 42])),
+    (schema.Bytes(), b'spam'),
     (schema.Bool(), True),
     (schema.Date(), datetime.date.today()),
     (schema.DateTime(), datetime.datetime.now()),
