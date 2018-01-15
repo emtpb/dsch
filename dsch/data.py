@@ -118,6 +118,23 @@ class ItemNode:
         """
         pass
 
+    def load_from(self, source_node):
+        """Load data by copying from the given source node.
+
+        This is effectively a shorthand for ``self.replace(source_node.value)``
+        with additional checking of node compatibility. Two nodes are
+        considered compatible if their ``schema_node`` attributes are
+        identical.
+
+        Args:
+            source_node: Data node to copy value from.
+        """
+        if source_node.schema_node.hash() != self.schema_node.hash():
+            raise ValueError('Incompatible data nodes: %s and %s.',
+                             source_node.schema_node.hash(),
+                             self.schema_node.hash())
+        self.replace(source_node.value)
+
     def replace(self, new_value):
         """Completely replace the current node value.
 

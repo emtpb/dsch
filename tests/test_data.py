@@ -22,6 +22,18 @@ def backend(request, tmpdir):
                         new_params=new_params)
 
 
+@pytest.fixture(params=('hdf5', 'inmem', 'mat', 'npz'))
+def foreign_backend(request, tmpdir):
+    if request.param == 'hdf5':
+        hdf5file = h5py.File(str(tmpdir.join('hdf5test_foreign.h5')))
+        new_params = {'name': 'test_data', 'parent': hdf5file['/']}
+    elif request.param in ('inmem', 'mat', 'npz'):
+        new_params = None
+    return backend_data(module=importlib.import_module('dsch.backends.' +
+                                                       request.param),
+                        new_params=new_params)
+
+
 class ItemNodeTestBase:
     @pytest.fixture()
     def data_node(self, backend):
@@ -47,6 +59,32 @@ class ItemNodeTestBase:
     def test_init_new(self, data_node):
         assert data_node.schema_node == self.schema_node
         assert data_node._storage is None
+
+    def test_load_from(self, backend, foreign_backend):
+        source_node_class = getattr(foreign_backend.module, self.class_name)
+        source_node = source_node_class(self.schema_node, parent=None,
+                                        new_params=foreign_backend.new_params)
+        source_node.value = self.valid_data
+
+        dest_node_class = getattr(backend.module, self.class_name)
+        dest_node = dest_node_class(self.schema_node, parent=None,
+                                    new_params=backend.new_params)
+        dest_node.load_from(source_node)
+        assert np.all(dest_node.value == source_node.value)
+
+    def test_load_from_incompatible(self, backend, foreign_backend):
+        source_node_class = getattr(foreign_backend.module, 'List')
+        source_node = source_node_class(schema.List(self.schema_node),
+                                        parent=None,
+                                        new_params=foreign_backend.new_params)
+        source_node.append(self.valid_data)
+
+        dest_node_class = getattr(backend.module, self.class_name)
+        dest_node = dest_node_class(self.schema_node, parent=None,
+                                    new_params=backend.new_params)
+        with pytest.raises(ValueError) as err:
+            dest_node.load_from(source_node)
+        assert err.value.args[0].startswith('Incompatible data nodes')
 
     def test_roundtrip(self, backend):
         data_node_class = getattr(backend.module, self.class_name)
