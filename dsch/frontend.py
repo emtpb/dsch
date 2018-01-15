@@ -50,6 +50,23 @@ def create(storage_path, schema_node, backend=None):
                                   schema_node=schema_node)
 
 
+def create_from(storage_path, source_storage, backend=None):
+    """Create a new dsch storage by copying from an existing one.
+
+    The new storage is created, just like with :func:`create`, but the schema
+    is automatically copied from the given ``source_storage``. In addition, all
+    data currently stored in ``source_storage`` is also copied.
+
+    Args:
+        storage_path (str): Path to the new dsch storage (backend-specific).
+        source_storage: dsch storage to copy schema and data from.
+        backend (str): Backend to use for the new dsch storage.
+    """
+    storage = create(storage_path, source_storage.schema_node, backend)
+    storage.data.load_from(source_storage.data)
+    return storage
+
+
 def load(storage_path, backend=None, require_schema=None, force=False):
     """Load a dsch storage from the given path.
 

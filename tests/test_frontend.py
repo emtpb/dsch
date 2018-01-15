@@ -17,6 +17,20 @@ def backend(request, tmpdir):
     return backend
 
 
+@pytest.fixture(params=('hdf5', 'inmem', 'mat', 'npz'))
+def foreign_backend(request, tmpdir):
+    if request.param == 'inmem':
+        storage_path = '::inmem::'
+    else:
+        storage_path = str(tmpdir.join('test_frontend_foreign.' +
+                                       request.param))
+    backend = backend_data(
+        module=importlib.import_module('dsch.backends.' + request.param),
+        storage_path=storage_path
+    )
+    return backend
+
+
 def test_create(backend):
     schema_node = schema.Bool()
     storage = frontend.create(backend.storage_path, schema_node)
@@ -29,6 +43,16 @@ def test_create_inmem():
     storage = frontend.create('::inmem::', schema_node)
     assert isinstance(storage, inmem.Storage)
     assert storage.schema_node == schema_node
+
+
+def test_create_from(backend, foreign_backend):
+    schema_node = schema.Bool()
+    source_storage = frontend.create(foreign_backend.storage_path, schema_node)
+    source_storage.data.value = True
+
+    dest_storage = frontend.create_from(backend.storage_path, source_storage)
+    assert dest_storage.schema_node.hash() == source_storage.schema_node.hash()
+    assert dest_storage.data.value is True
 
 
 def test_load(backend):
