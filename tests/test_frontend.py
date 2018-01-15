@@ -2,6 +2,7 @@ from collections import namedtuple
 import importlib
 import pytest
 from dsch import frontend, schema
+from dsch.backends import inmem
 
 
 backend_data = namedtuple('backend_data', ('module', 'storage_path'))
@@ -20,6 +21,13 @@ def test_create(backend):
     schema_node = schema.Bool()
     storage = frontend.create(backend.storage_path, schema_node)
     assert isinstance(storage, backend.module.Storage)
+    assert storage.schema_node == schema_node
+
+
+def test_create_inmem():
+    schema_node = schema.Bool()
+    storage = frontend.create('::inmem::', schema_node)
+    assert isinstance(storage, inmem.Storage)
     assert storage.schema_node == schema_node
 
 

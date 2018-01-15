@@ -109,7 +109,9 @@ def _autodetect_backend(storage_path):
     Raises:
         ValueError: if automatic detection fails.
     """
-    if storage_path.endswith('.npz'):
+    if storage_path == '::inmem::':
+        return 'inmem'
+    elif storage_path.endswith('.npz'):
         return 'npz'
     elif storage_path.endswith(('.h5', '.hdf5')):
         return 'hdf5'
