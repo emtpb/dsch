@@ -10,12 +10,12 @@ from dsch import data, schema
 backend_data = namedtuple('backend_data', ('module', 'new_params'))
 
 
-@pytest.fixture(params=('hdf5', 'mat', 'npz'))
+@pytest.fixture(params=('hdf5', 'inmem', 'mat', 'npz'))
 def backend(request, tmpdir):
     if request.param == 'hdf5':
         hdf5file = h5py.File(str(tmpdir.join('hdf5test.h5')))
         new_params = {'name': 'test_data', 'parent': hdf5file['/']}
-    elif request.param in ('mat', 'npz'):
+    elif request.param in ('inmem', 'mat', 'npz'):
         new_params = None
     return backend_data(module=importlib.import_module('dsch.backends.' +
                                                        request.param),
