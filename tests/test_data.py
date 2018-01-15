@@ -225,6 +225,32 @@ class TestCompilation:
         assert 'spam' in data_node._subnodes
         assert 'eggs' in data_node._subnodes
 
+    def test_load_from(self, data_node, foreign_backend, schema_subnode,
+                       valid_subnode_data):
+        schema_node = schema.Compilation({'spam': schema_subnode,
+                                          'eggs': schema_subnode})
+        data_node_foreign = foreign_backend.module.Compilation(
+            schema_node, parent=None, new_params=foreign_backend.new_params)
+        data_node_foreign.spam.value = valid_subnode_data
+        data_node_foreign.eggs.value = valid_subnode_data
+        data_node.load_from(data_node_foreign)
+        assert hasattr(data_node, 'spam')
+        assert hasattr(data_node, 'eggs')
+        assert np.all(data_node.spam.value == valid_subnode_data)
+        assert np.all(data_node.eggs.value == valid_subnode_data)
+
+    def test_load_from_incompatible(self, data_node, foreign_backend,
+                                    schema_subnode, valid_subnode_data):
+        schema_node = schema.Compilation({'foo': schema_subnode,
+                                          'bar': schema_subnode})
+        data_node_foreign = foreign_backend.module.Compilation(
+            schema_node, parent=None, new_params=foreign_backend.new_params)
+        data_node_foreign.foo.value = valid_subnode_data
+        data_node_foreign.bar.value = valid_subnode_data
+        with pytest.raises(ValueError) as err:
+            data_node.load_from(data_node_foreign)
+        assert err.value.args[0].startswith('Incompatible data nodes')
+
     def test_replace(self, data_node, valid_subnode_data):
         data_node.replace({'spam': valid_subnode_data,
                            'eggs': valid_subnode_data})
@@ -370,6 +396,28 @@ class TestList:
         assert len(data_node) == 0
         data_node.append(valid_subnode_data)
         assert len(data_node) == 1
+
+    def test_load_from(self, data_node, foreign_backend, schema_subnode,
+                       valid_subnode_data):
+        data_node_foreign = foreign_backend.module.List(
+            schema.List(schema_subnode), parent=None,
+            new_params=foreign_backend.new_params)
+        data_node_foreign.append(valid_subnode_data)
+        data_node_foreign.append(valid_subnode_data)
+        data_node.load_from(data_node_foreign)
+        assert len(data_node) == 2
+        assert np.all(data_node[0].value == valid_subnode_data)
+        assert np.all(data_node[1].value == valid_subnode_data)
+
+    def test_load_from_incompatible(self, data_node, foreign_backend,
+                                    schema_subnode, valid_subnode_data):
+        data_node_foreign = foreign_backend.module.Compilation(
+            schema.Compilation({'spam': schema_subnode}), parent=None,
+            new_params=foreign_backend.new_params)
+        data_node_foreign.spam.value = valid_subnode_data
+        with pytest.raises(ValueError) as err:
+            data_node.load_from(data_node_foreign)
+        assert err.value.args[0].startswith('Incompatible data nodes')
 
     def test_replace(self, data_node, valid_subnode_data):
         data_node.replace([valid_subnode_data, valid_subnode_data])

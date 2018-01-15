@@ -386,6 +386,21 @@ class Compilation:
             self._subnodes[node_name] = data_node_from_schema(
                 subnode, self.__module__, self)
 
+    def load_from(self, source_node):
+        """Load data by copying from the given source node.
+
+        For Compilations, this copies the relevant subnode's data recursively.
+
+        Args:
+            source_node: Data node to copy value from.
+        """
+        if source_node.schema_node.hash() != self.schema_node.hash():
+            raise ValueError('Incompatible data nodes: %s and %s.',
+                             source_node.schema_node.hash(),
+                             self.schema_node.hash())
+        for key, subnode in self._subnodes.items():
+            subnode.load_from(getattr(source_node, key))
+
     def replace(self, new_value):
         """Replace the current compilation values with new ones.
 
@@ -601,6 +616,22 @@ class List:
             new_params: Backend-specific metadata for data node creation.
         """
         pass
+
+    def load_from(self, source_node):
+        """Load data by copying from the given source node.
+
+        For Lists, this copies the relevant subnode's data recursively.
+
+        Args:
+            source_node: Data node to copy value from.
+        """
+        if source_node.schema_node.hash() != self.schema_node.hash():
+            raise ValueError('Incompatible data nodes: %s and %s.',
+                             source_node.schema_node.hash(),
+                             self.schema_node.hash())
+        for idx, subnode in enumerate(source_node):
+            self.append()
+            self[idx].load_from(subnode)
 
     def replace(self, new_value):
         """Replace the current list entries with the given list of entries.
