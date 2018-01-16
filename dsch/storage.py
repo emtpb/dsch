@@ -14,6 +14,8 @@ repetition.
 """
 import os
 
+from . import frontend
+
 
 class Storage:
     """Generic storage interface base class.
@@ -88,6 +90,29 @@ class Storage:
             str: SHA256 hash (hex) of the schema.
         """
         return self.schema_node.hash()
+
+    def save_as(self, storage_path, backend=None):
+        """Create a new storage by copying schema and data.
+
+        .. note::
+            Creating a copy can be useful to migrate existing data to a
+            different storage backend, or to persistently store data that was
+            collected in an in-memory storage.
+
+        This is a convenience method, effectively wrapping
+        :func:`~dsch.frontend.create_from`.
+
+        Args:
+            storage_path (str): Path to the new dsch storage
+                (backend-specific).
+            backend (str): Backend to use for the new dsch storage. If omitted,
+                the backend will be selected based on the ``storage_path``,
+                e.g. file extension.
+
+        Returns:
+            Newly created dsch storage.
+        """
+        return frontend.create_from(storage_path, self, backend)
 
     def validate(self):
         """Validate the entire data storage.
