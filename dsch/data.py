@@ -417,6 +417,26 @@ class Compilation:
         for key, value in new_value.items():
             self._subnodes[key].replace(value)
 
+    def __setattr__(self, attr_name, new_value):
+        """Prevent accidental (re-)setting of sub-nodes.
+
+        When the user wishes to change a value of a Compilation's sub-node,
+        they must access something like ``comp.sub.value``. If the ``value`` is
+        omitted or forgotten, a write operation would replace the entire data
+        node with the user's value, breaking dsch behaviour in various places.
+
+        To prevent this, `setattr` operations are only permitted for the
+        Compilation's few actual attributes. For everything else, a
+        :class:`TypeError` is raised, mentioning the ``value`` attribute.
+
+        Raises:
+            TypeError: if attempting to `set` a sub-node.
+        """
+        if attr_name not in ('schema_node', 'parent', '_subnodes'):
+            raise TypeError('Cannot set compilation sub-node. Did you mean to '
+                            'access ".{}.value"?'.format(attr_name))
+        super().__setattr__(attr_name, new_value)
+
     def validate(self):
         """Recursively validate all sub-node values.
 
@@ -645,6 +665,24 @@ class List:
         self.clear()
         for item in new_value:
             self.append(item)
+
+    def __setitem__(self, idx, new_value):
+        """Prevent accidental (re-)setting of items.
+
+        When the user wishes to change a value of a List item, they must access
+        something like ``lst[0].value``. If the ``value`` is omitted or
+        forgotten, a write operation would replace the entire data node with
+        the user's value, breaking dsch behaviour in various places.
+
+        Therefore, `setitem` operations are generally not permitted. If
+        attempted, a :class:`TypeError` is raised, mentioning the ``value``
+        attribute.
+
+        Raises:
+            TypeError: if attempting to `set` a list item.
+        """
+        raise TypeError('Cannot set list item directly. Did you mean to '
+                        'access "[{}].value"?'.format(idx))
 
     def validate(self):
         """Recursively validate all sub-node values.
