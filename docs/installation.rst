@@ -1,33 +1,55 @@
 .. _installation:
 
+************
 Installation
+************
+
+
+Stable release
+==============
+
+To install dsch, run this command in your terminal:
+
+.. code-block:: console
+
+   $ pip install dsch
+
+This is the preferred method to install dsch, as it
+will always install the most recent stable release.
+
+If you don't have `pip`_ installed, this `Python installation guide`_ can guide
+you through the process.
+Note that on systems that still use legacy Python as the default, you will have
+to use ``pip3`` instead of ``pip``, as dsch only supports Python 3.
+
+.. _pip: https://pip.pypa.io
+.. _Python installation guide: http://docs.python-guide.org/en/latest/starting/installation/
+
+
+From sources
 ============
 
-From PyPI
----------
+The sources for dsch can be downloaded from the
+`Github repo`_.
 
-DSCH wheels are available on `PyPI <https://pypi.python.org/pypi/dsch>`_, so it can be installed on the command line via `pip <https://docs.python.org/3/installing/>`_::
+You can either clone the public repository:
 
-    $ pip install dsch
+.. code-block:: console
 
-On some systems where Python 2 is still the default, you may need to use ``pip3`` instead::
+   $ git clone git://github.com/emtpb/dsch
 
-    $ pip3 install dsch
+Or download the `tarball`_:
 
-Note that DSCH is neither developed for nor tested against any versions of Python 2.
+.. code-block:: console
+
+   $ curl -OL https://github.com/emtpb/dsch/tarball/master
+
+Once you have a copy of the source, you can install it with:
+
+.. code-block:: console
+
+   $ python setup.py install
 
 
-From Source
------------
-
-If you wish to install from source instead of using a wheel, you can either use the source distribution from PyPI::
-
-    $ pip install --no-binary=dsch dsch
-
-or you can clone or download the source from the `GitHub repository <https://github.com/emtpb/dsch>`_ and install it using ``pip`` (or ``pip3``)::
-
-    $ pip install .
-
-or::
-
-    $ python setup.py install
+.. _Github repo: https://github.com/emtpb/dsch
+.. _tarball: https://github.com/emtpb/dsch/tarball/master
