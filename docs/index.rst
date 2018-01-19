@@ -20,7 +20,6 @@ Contents
    tutorial
    advanced
    api
-   project
    authors
    changelog
 
