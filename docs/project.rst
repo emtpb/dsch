@@ -1,17 +1,21 @@
+************
 Project Info
-============
+************
 
 Development
------------
+===========
 
-DSCH is currently developed at the `Measurement Engineering Group <https://emt.uni-paderborn.de>`_ at `Paderborn University <https://uni-paderborn.de>`_ by Manuel Webersen.
-The code is available on `Github <https://github.com/emtpb/dsch>`_, as is the `issue tracker <https://github.com/emtpb/dsch/issues>`_.
+DSCH is currently developed at the
+`Measurement Engineering Group <https://emt.uni-paderborn.de>`_ at
+`Paderborn University <https://uni-paderborn.de>`_ by Manuel Webersen.
+The code is available on `Github <https://github.com/emtpb/dsch>`_, as is the
+`issue tracker <https://github.com/emtpb/dsch/issues>`_.
 Any bug reports or contributions are welcome to be submitted there.
 Of course, you can always get in touch directly via email.
 
 
 License
--------
+=======
 
 .. highlight:: none
 
