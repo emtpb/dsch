@@ -26,7 +26,7 @@ setup(
     use_scm_version=True,
 
     # Automatically detect the packages and sub-packages
-    packages=find_packages(include=['dsch']),
+    packages=find_packages(),
 
     # Runtime dependencies
     install_requires=[
