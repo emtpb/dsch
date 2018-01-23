@@ -12,6 +12,7 @@ The user front end in this module provides a convenient, backend-independent
 interface for loading from existing dsch storages and creating new ones.
 """
 import importlib
+import os
 
 
 def create(storage_path, schema_node, backend=None):
@@ -120,6 +121,114 @@ def load(storage_path, backend=None, require_schema=None, force=False):
     if not force:
         storage.validate()
     return storage
+
+
+class PseudoStorage:
+    """Provide abstraction between storages and data nodes.
+
+    ``PseudoStorage`` provides an easy way to manage data with dsch when it is
+    either in a :class:`~dsch.storage.Storage` or in a :mod:`~dsch.data`-node.
+    Being able to handle both variants with the same code base is relevant
+    especially for libraries that support schema extension.
+
+    Schema extension means that when a library defines its dsch schema, other
+    code (higher-level libraries or applications) may incorporate it into a
+    broader schema. That way, the application can use a single schema for its
+    specific purposes while retaining compatibility with the library's schema.
+    To support this, the library must be able to handle its own schema being at
+    either the top level or a subordinate level inside the storage. In the
+    former case, tasks like the creation of the storage are part of the
+    library's responsibility, while in the latter, they are not.
+
+    ``PseudoStorage`` can be initialized with either a :class:`str` or a
+    data node (from :mod:`dsch.data`) object. If a string is given, it is
+    interpreted as a ``storage_path``, just like :func:`create` and
+    :func:`load`. The corresponding storage is made available through
+    :attr:`storage` and its data through :attr:`data`. Alternatively, if a data
+    node is given during initialization, it is direcly made available through
+    :attr:`data`. In that case :attr:`storage` is set to ``None``, indicating
+    that the ``PseudoStorage`` is not managing the actual storage object.
+
+    In addition, the object can be used as a context manager using the ``with``
+    statement. This causes the data to be made available (e.g. by opening a
+    file) when the context is entered and to be cleared (i.e. :attr:`data` set
+    to ``None``) when the context is left. When an entire storage is managed
+    (i.e. the object was initialized with a string), the storage is also saved
+    (see :meth:`dsch.storage.FileStorage.save`) if applicable.
+    If usage as a context manager is not desired, the same functionality is
+    also exposed as :meth:`open` and :meth:`close`.
+
+    Attributes:
+        data: Data node, corresponding to the top-level node of the schema.
+        storage: A dsch storage object, if the ``PseudoStorage`` was
+            initialized with a string.
+    """
+
+    def __init__(self, data_storage, schema_node, defer_open=False):
+        """Create a pseudo-storage for data access abstraction.
+
+        Args:
+            storage: An :class:`str` or an existing data node corresponding to
+                the ``schema_node``. If a string is given, the abstractor
+                creates or loads a storage, using the string as its
+                ``storage_path``. If a data node is given, it is considered a
+                sub-node of a broader storage.
+            schema_node: The top-level node of the desired schema. This is used
+                when creating a new storage, and for validating loaded storages
+                and data nodes.
+            defer_open: If ``True``, the desired data is not made available
+                (potentially by creating or loading a storage) until the
+                runtime context is entered or :meth:`open` is called
+                explicitly.
+        """
+        self._data_storage = data_storage
+        self._schema_node = schema_node
+        self.data = None
+        self.storage = None
+        if not defer_open:
+            self.open()
+
+    def close(self):
+        """Finalize data access.
+
+        This saves and closes the corresponding storage, if applicable.
+        Afterwards, the data is no longer available through :attr:`data`.
+        """
+        if self.storage:
+            if hasattr(self.storage, 'save') and callable(self.storage.save):
+                self.storage.save()
+            self.storage = None
+        self.data = None
+
+    def open(self):
+        """Make the desired data available as :attr:`data`.
+
+        If necessary, this loads or creates a new storage.
+        """
+        if self.data is not None:
+            raise RuntimeError('PseudoStorage is already open.')
+        if isinstance(self._data_storage, str):
+            if os.path.exists(self._data_storage):
+                self.storage = load(self._data_storage,
+                                    require_schema=self._schema_node.hash())
+            else:
+                self.storage = create(self._data_storage,
+                                      schema_node=self._schema_node)
+            self.data = self.storage.data
+        else:
+            self.storage = None
+            if (self._data_storage.schema_node.hash() !=
+                    self._schema_node.hash()):
+                raise RuntimeError('Incompatible schema nodes.')
+            self.data = self._data_storage
+
+    def __enter__(self):
+        if self.data is None:
+            self.open()
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
 
 
 def _autodetect_backend(storage_path):

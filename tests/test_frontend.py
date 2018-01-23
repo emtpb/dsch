@@ -1,5 +1,6 @@
 from collections import namedtuple
 import importlib
+import itertools
 import pytest
 from dsch import frontend, schema
 from dsch.backends import inmem
@@ -86,3 +87,118 @@ def test_load_validation_fail(backend):
         frontend.load(backend.storage_path)
     # With force=True, no exception must be raised.
     frontend.load(backend.storage_path, force=True)
+
+
+class TestMetaStorageNode:
+    """Tests for the MetaStorage class when given a data node."""
+
+    @pytest.fixture
+    def storage(self, foreign_backend):
+        schema_node = schema.Compilation({
+            'spam': schema.Bool(),
+            'eggs': schema.Bytes(),
+        })
+        return frontend.create(foreign_backend.storage_path, schema_node)
+
+    def test_context(self, storage):
+        pseudo = frontend.PseudoStorage(storage.data.spam, schema.Bool(), True)
+        with pseudo as p:
+            assert p.data is not None
+            assert p.storage is None
+        assert pseudo.data is None
+        assert pseudo.storage is None
+
+    def test_init(self, storage):
+        pseudo = frontend.PseudoStorage(storage.data.spam, schema.Bool(), False)
+        assert pseudo.data is not None
+        assert pseudo.storage is None
+
+    def test_init_deferred(self, storage):
+        pseudo = frontend.PseudoStorage(storage.data.spam, schema.Bool(), True)
+        assert pseudo.data is None
+        assert pseudo.storage is None
+
+    def test_open_close(self, storage):
+        pseudo = frontend.PseudoStorage(storage.data.spam, schema.Bool(), True)
+        pseudo.open()
+        assert pseudo.data is not None
+        assert pseudo.storage is None
+        pseudo.close()
+        assert pseudo.data is None
+        assert pseudo.storage is None
+
+    def test_open_fail(self, storage):
+        pseudo = frontend.PseudoStorage(storage.data.spam, schema.Bytes(), True)
+        with pytest.raises(RuntimeError):
+            pseudo.open()
+
+
+class TestMetaStorageStr:
+    """Tests for the MetaStorage class when given a string."""
+
+    @pytest.fixture(params=tuple(
+        (b, e) for b, e in itertools.product(
+            ('hdf5', '::inmem::', 'npz', 'mat'), (False, True)
+        ) if not (b == '::inmem::' and e)
+    ))
+    def storage_path(self, request, tmpdir):
+        """Prepare storage path for all valid variants.
+
+        Variants are tuples ``(backend, existing)``, where ``existing``
+        indicates whether a storage should be created before the test.
+        """
+        backend, existing = request.param
+        if backend in ('hdf5', 'npz', 'mat'):
+            # File backends
+            storage_path = str(tmpdir.join('test_pseudo.' + backend))
+        elif backend == '::inmem::':
+            storage_path = '::inmem::'
+        if existing:
+            storage = frontend.create(storage_path, schema.Bool())
+            storage.data.value = True
+            if hasattr(storage, 'save') and callable(storage.save):
+                storage.save()
+            del storage
+        return storage_path
+
+    @pytest.fixture(params=('hdf5', 'npz', 'mat'))
+    def storage_path_existing(self, request, tmpdir):
+        storage_path = str(tmpdir.join('test_pseudo.' + request.param))
+        storage = frontend.create(storage_path, schema.Bool())
+        storage.data.value = True
+        storage.save()
+        del storage
+        return storage_path
+
+    def test_context(self, storage_path):
+        pseudo = frontend.PseudoStorage(storage_path, schema.Bool(), True)
+        with pseudo as p:
+            assert p.data is not None
+            assert p.storage is not None
+        assert pseudo.data is None
+        assert pseudo.storage is None
+
+    def test_init(self, storage_path):
+        pseudo = frontend.PseudoStorage(storage_path, schema.Bool(), False)
+        assert pseudo.data is not None
+        assert pseudo.storage is not None
+        assert pseudo.storage.storage_path == storage_path
+
+    def test_init_deferred(self, storage_path):
+        pseudo = frontend.PseudoStorage(storage_path, schema.Bool(), True)
+        assert pseudo.data is None
+        assert pseudo.storage is None
+
+    def test_open_close(self, storage_path):
+        pseudo = frontend.PseudoStorage(storage_path, schema.Bool(), True)
+        pseudo.open()
+        assert pseudo.data is not None
+        assert pseudo.storage is not None
+        pseudo.close()
+        assert pseudo.data is None
+        assert pseudo.storage is None
+
+    def test_open_fail(self, storage_path_existing):
+        pseudo = frontend.PseudoStorage(storage_path_existing, schema.Bytes(), True)
+        with pytest.raises(RuntimeError):
+            pseudo.open()
