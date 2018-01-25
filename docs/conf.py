@@ -59,7 +59,7 @@ copyright = "2018, Manuel Webersen"
 
 # Get version number from git via setuptools_scm
 release = get_distribution('dsch').version
-version = '.'.join(release.split('.')[:2])
+version = '.'.join(release.split('.')[:3])
 
 today_fmt = '%Y-%m-%d'
 
