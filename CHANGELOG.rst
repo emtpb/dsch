@@ -23,6 +23,7 @@ Changed
 -------
 * Data nodes in Compilations and Lists can no longer be overwritten
   accidentally when trying to overwrite their stored value.
+* Improve structure and conciseness of docs.
 
 
 `0.1.3`_ - 2018-01-11
