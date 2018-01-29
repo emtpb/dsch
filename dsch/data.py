@@ -13,7 +13,13 @@ Different backends are implemented in the :mod:`dsch.backends` package.
 """
 import datetime
 import importlib
+import asciitree
 from . import schema
+
+
+draw_tree = asciitree.LeftAligned(
+    draw=asciitree.BoxStyle(gfx=asciitree.drawing.BOX_LIGHT, horiz_len=1)
+)
 
 
 class ItemNode:
@@ -135,6 +141,28 @@ class ItemNode:
                              self.schema_node.hash())
         self.replace(source_node.value)
 
+    def node_tree(self):
+        """Return a recursive representation of the (sub)node-tree.
+
+        The representation is a dict with the node's own label as the key and
+        the tree of sub-nodes as the value. The label always starts with the
+        node type in parentheses.
+
+        For leaf nodes, i.e. nodes that do not contain other nodes, the
+        :func:`str`-representation of the value is also included in the label.
+        If no value is set, '<empty>' is printed instead.
+
+        Returns:
+            dict: {label: sub_tree} representation.
+        """
+        try:
+            value = str(self.value)
+        except NodeEmptyError:
+            value = '<empty>'
+        key = '({type_name}): {value}'.format(type_name=type(self).__name__,
+                                              value=value)
+        return {key: {}}
+
     def replace(self, new_value):
         """Completely replace the current node value.
 
@@ -146,6 +174,9 @@ class ItemNode:
                 backend in use.
         """
         raise NotImplementedError('To be implemented in subclass.')
+
+    def __repr__(self):
+        return draw_tree(self.node_tree())
 
     def validate(self):
         """Validate the node value against the schema node specification.
@@ -211,6 +242,28 @@ class Array(ItemNode):
     def __getitem__(self, key):
         """Pass slicing/indexing operations directly to NumPy array."""
         return self._storage[key]
+
+    def node_tree(self):
+        """Return a recursive representation of the (sub)node-tree.
+
+        The representation is a dict with the node's own label as the key and
+        the tree of sub-nodes as the value. The label always starts with the
+        node type in parentheses.
+
+        For Array nodes, the value is *not* included in the label because of
+        its length. Instead, the array shape is shown. If no value is set,
+        '<empty>' is printed instead.
+
+        Returns:
+            dict: {label: sub_tree} representation.
+        """
+        try:
+            value = 'x'.join([str(l) for l in self.value.shape]) + ' array'
+        except NodeEmptyError:
+            value = '<empty>'
+        key = '({type_name}): {value}'.format(type_name=type(self).__name__,
+                                              value=value)
+        return {key: {}}
 
     def resize(self, size):
         """Resize the array to the desired size.
@@ -401,6 +454,26 @@ class Compilation:
         for key, subnode in self._subnodes.items():
             subnode.load_from(getattr(source_node, key))
 
+    def node_tree(self):
+        """Return a recursive representation of the (sub)node-tree.
+
+        The representation is a dict with the node's own label as the key and
+        the tree of sub-nodes as the value. The label always starts with the
+        node type in parentheses.
+
+        For Compilation nodes, all sub-node's representations are printed
+        recursively, prefixed by the sub-node name.
+
+        Returns:
+            dict: {label: sub_tree} representation.
+        """
+        tree = {}
+        for name, subnode in self._subnodes.items():
+            for sub_label, sub_tree in subnode.node_tree().items():
+                key = '{name} {label}'.format(name=name, label=sub_label)
+                tree[key] = sub_tree
+        return {'(Compilation)': tree}
+
     def replace(self, new_value):
         """Replace the current compilation values with new ones.
 
@@ -416,6 +489,9 @@ class Compilation:
         """
         for key, value in new_value.items():
             self._subnodes[key].replace(value)
+
+    def __repr__(self):
+        return draw_tree(self.node_tree())
 
     def __setattr__(self, attr_name, new_value):
         """Prevent accidental (re-)setting of sub-nodes.
@@ -653,6 +729,26 @@ class List:
             self.append()
             self[idx].load_from(subnode)
 
+    def node_tree(self):
+        """Return a recursive representation of the (sub)node-tree.
+
+        The representation is a dict with the node's own label as the key and
+        the tree of sub-nodes as the value. The label always starts with the
+        node type in parentheses.
+
+        For lists, all sub-node's representations are printed recursively,
+        prefixed by the list index in brackets.
+
+        Returns:
+            dict: {label: sub_tree} representation.
+        """
+        tree = {}
+        for idx, subnode in enumerate(self._subnodes):
+            for sub_label, sub_tree in subnode.node_tree().items():
+                key = '[{idx}] {label}'.format(idx=idx, label=sub_label)
+                tree[key] = sub_tree
+        return {'(List)': tree}
+
     def replace(self, new_value):
         """Replace the current list entries with the given list of entries.
 
@@ -665,6 +761,9 @@ class List:
         self.clear()
         for item in new_value:
             self.append(item)
+
+    def __repr__(self):
+        return draw_tree(self.node_tree())
 
     def __setitem__(self, idx, new_value):
         """Prevent accidental (re-)setting of items.
