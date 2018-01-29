@@ -18,6 +18,8 @@ Added
 * In-memory backend, for handling data without needing e.g. a file on disk.
 * Support for copying data between different storages.
 * Support for creating new storages from existing ones, aka. "save as".
+* Human-readable tree-representation of data nodes for use in interactive
+  sessions.
 
 Changed
 -------
