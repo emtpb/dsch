@@ -184,7 +184,7 @@ class List(data.List):
         return data_storage
 
 
-class Scalar(_ItemNode):
+class Scalar(data.Scalar, _ItemNode):
     """Scalar-type data node for the npz backend."""
 
     def _init_from_storage(self, data_storage):

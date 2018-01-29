@@ -72,7 +72,7 @@ class List(data.List):
     pass
 
 
-class Scalar(_ItemNode):
+class Scalar(data.Scalar, _ItemNode):
     """Scalar-type data node for the inmem backend."""
     pass
 

@@ -323,7 +323,7 @@ class List(data.List):
         self._storage = new_params['parent'].create_group(new_params['name'])
 
 
-class Scalar(_ItemNode):
+class Scalar(data.Scalar, _ItemNode):
     """Scalar-type data node for the HDF5 backend."""
 
     def replace(self, new_value):

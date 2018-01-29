@@ -800,6 +800,36 @@ class List:
                 raise SubnodeValidationError(idx) from err
 
 
+class Scalar(ItemNode):
+    """Generic Scalar data node.
+
+    This class implements backend-independent behaviour of Scalar data nodes.
+    Backend-specific subclasses should derive from this class.
+    """
+
+    def node_tree(self):
+        """Return a recursive representation of the (sub)node-tree.
+
+        The representation is a dict with the node's own label as the key and
+        the tree of sub-nodes as the value. The label always starts with the
+        node type in parentheses.
+
+        For Scalar nodes, the :attr:`~dsch.schema.Scalar.unit` is appended to
+        the value, if any. If no value is set, '<empty>' is printed instead.
+
+        Returns:
+            dict: {label: sub_tree} representation.
+        """
+        try:
+            value = '{value} {unit}'.format(value=self.value,
+                                            unit=self.schema_node.unit)
+        except NodeEmptyError:
+            value = '<empty>'
+        key = '({type_name}): {value}'.format(type_name=type(self).__name__,
+                                              value=value)
+        return {key: {}}
+
+
 class Time(ItemNode):
     """Generic Time data node.
 
