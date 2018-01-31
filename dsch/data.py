@@ -501,14 +501,15 @@ class Compilation:
 
         To prevent this, `setattr` operations are only permitted for the
         Compilation's few actual attributes. For everything else, a
-        :class:`TypeError` is raised, mentioning the ``value`` attribute.
+        :exc:`~dsch.exceptions.ResetSubnodeError` is raised, mentioning the
+        ``value`` attribute.
 
         Raises:
-            TypeError: if attempting to `set` a sub-node.
+            dsch.exceptions.ResetSubnodeError: if attempting to `set` a
+                sub-node.
         """
         if attr_name not in ('schema_node', 'parent', '_subnodes'):
-            raise TypeError('Cannot set compilation sub-node. Did you mean to '
-                            'access ".{}.value"?'.format(attr_name))
+            raise exceptions.ResetSubnodeError(attr_name)
         super().__setattr__(attr_name, new_value)
 
     def validate(self):
@@ -772,14 +773,14 @@ class List:
         the user's value, breaking dsch behaviour in various places.
 
         Therefore, `setitem` operations are generally not permitted. If
-        attempted, a :class:`TypeError` is raised, mentioning the ``value``
-        attribute.
+        attempted, a :exc:`~dsch.exceptions.ResetSubnodeError` is raised,
+        mentioning the ``value`` attribute.
 
         Raises:
-            TypeError: if attempting to `set` a list item.
+            dsch.exceptions.ResetSubnodeError: if attempting to `set` a list
+                item.
         """
-        raise TypeError('Cannot set list item directly. Did you mean to '
-                        'access "[{}].value"?'.format(idx))
+        raise exceptions.ResetSubnodeError('[{}]'.format(idx))
 
     def validate(self):
         """Recursively validate all sub-node values.

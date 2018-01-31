@@ -290,7 +290,7 @@ class TestCompilation:
             assert data_node.spam[1].value == valid_subnode_data
 
     def test_setattr(self, data_node, valid_subnode_data):
-        with pytest.raises(TypeError):
+        with pytest.raises(exceptions.ResetSubnodeError):
             data_node.foo = valid_subnode_data
 
     def test_validate(self, data_node, valid_subnode_data):
@@ -459,7 +459,7 @@ class TestList:
             assert data_node[0][1].value == valid_subnode_data
 
     def test_setitem(self, data_node, valid_subnode_data):
-        with pytest.raises(TypeError):
+        with pytest.raises(exceptions.ResetSubnodeError):
             data_node[0] = valid_subnode_data
 
     def test_validate(self, data_node, valid_subnode_data):

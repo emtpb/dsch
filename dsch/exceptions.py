@@ -65,6 +65,19 @@ class NodeEmptyError(DschError):
                          'undefined.')
 
 
+class ResetSubnodeError(DschError):
+    """Exception raised when trying to re-set a data sub-node."""
+
+    def __init__(self, item_id):
+        """Initialize ResetSubnodeError.
+
+        Args:
+            item_id (str): Identifier of the sub-node causing the error.
+        """
+        super().__init__('Cannot set sub-node directly. Did you mean to '
+                         'access "{}.value"?'.format(item_id))
+
+
 class SubnodeValidationError(DschError):
     """Exception used when validation fails for a subnode.
 
