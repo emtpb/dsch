@@ -98,8 +98,8 @@ def test_load_validation_fail(backend):
     frontend.load(backend.storage_path, force=True)
 
 
-class TestMetaStorageNode:
-    """Tests for the MetaStorage class when given a data node."""
+class TestPseudoStorageNode:
+    """Tests for the PseudoStorage class when given a data node."""
 
     @pytest.fixture
     def storage(self, foreign_backend):
@@ -142,8 +142,8 @@ class TestMetaStorageNode:
             pseudo.open()
 
 
-class TestMetaStorageStr:
-    """Tests for the MetaStorage class when given a string."""
+class TestPseudoStorageStr:
+    """Tests for the PseudoStorage class when given a string."""
 
     @pytest.fixture(params=tuple(
         (b, e) for b, e in itertools.product(
