@@ -15,8 +15,8 @@ import datetime
 import importlib
 import asciitree
 from . import schema
-from .exceptions import (NodeEmptyError, SubnodeValidationError,
-                         ValidationError)
+from .exceptions import (IncompatibleNodesError, NodeEmptyError,
+                         SubnodeValidationError, ValidationError)
 
 
 draw_tree = asciitree.LeftAligned(
@@ -138,9 +138,8 @@ class ItemNode:
             source_node: Data node to copy value from.
         """
         if source_node.schema_node.hash() != self.schema_node.hash():
-            raise ValueError('Incompatible data nodes: %s and %s.',
-                             source_node.schema_node.hash(),
-                             self.schema_node.hash())
+            raise IncompatibleNodesError(source_node.schema_node.hash(),
+                                         self.schema_node.hash())
         self.replace(source_node.value)
 
     def node_tree(self):
@@ -450,9 +449,8 @@ class Compilation:
             source_node: Data node to copy value from.
         """
         if source_node.schema_node.hash() != self.schema_node.hash():
-            raise ValueError('Incompatible data nodes: %s and %s.',
-                             source_node.schema_node.hash(),
-                             self.schema_node.hash())
+            raise IncompatibleNodesError(source_node.schema_node.hash(),
+                                         self.schema_node.hash())
         for key, subnode in self._subnodes.items():
             subnode.load_from(getattr(source_node, key))
 
@@ -724,9 +722,8 @@ class List:
             source_node: Data node to copy value from.
         """
         if source_node.schema_node.hash() != self.schema_node.hash():
-            raise ValueError('Incompatible data nodes: %s and %s.',
-                             source_node.schema_node.hash(),
-                             self.schema_node.hash())
+            raise IncompatibleNodesError(source_node.schema_node.hash(),
+                                         self.schema_node.hash())
         for idx, subnode in enumerate(source_node):
             self.append()
             self[idx].load_from(subnode)

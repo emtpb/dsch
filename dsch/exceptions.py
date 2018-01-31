@@ -22,6 +22,21 @@ class NodeEmptyError(DschError):
                          'undefined.')
 
 
+class IncompatibleNodesError(DschError):
+    """Exception used when node operations fail due to incompatible schemas."""
+
+    def __init__(self, hash1, hash2):
+        """Initilize IncompatibleNodesError.
+
+        Args:
+            hash1 (str): Schema hash corresponding to the first node.
+            hash2 (str): Schema hash corresponding to the second node.
+        """
+        msg = 'Nodes with schema hashes {} and {} are incompatible.'.format(
+            hash1, hash2)
+        super().__init__(msg)
+
+
 class SubnodeValidationError(DschError):
     """Exception used when validation fails for a subnode.
 

@@ -4,7 +4,7 @@ import h5py
 import importlib
 import numpy as np
 import pytest
-from dsch import data, schema
+from dsch import data, exceptions, schema
 
 
 backend_data = namedtuple('backend_data', ('module', 'new_params'))
@@ -82,9 +82,8 @@ class ItemNodeTestBase:
         dest_node_class = getattr(backend.module, self.class_name)
         dest_node = dest_node_class(self.schema_node, parent=None,
                                     new_params=backend.new_params)
-        with pytest.raises(ValueError) as err:
+        with pytest.raises(exceptions.IncompatibleNodesError):
             dest_node.load_from(source_node)
-        assert err.value.args[0].startswith('Incompatible data nodes')
 
     def test_roundtrip(self, backend):
         data_node_class = getattr(backend.module, self.class_name)
@@ -247,9 +246,8 @@ class TestCompilation:
             schema_node, parent=None, new_params=foreign_backend.new_params)
         data_node_foreign.foo.value = valid_subnode_data
         data_node_foreign.bar.value = valid_subnode_data
-        with pytest.raises(ValueError) as err:
+        with pytest.raises(exceptions.IncompatibleNodesError):
             data_node.load_from(data_node_foreign)
-        assert err.value.args[0].startswith('Incompatible data nodes')
 
     def test_replace(self, data_node, valid_subnode_data):
         data_node.replace({'spam': valid_subnode_data,
@@ -419,9 +417,8 @@ class TestList:
             schema.Compilation({'spam': schema_subnode}), parent=None,
             new_params=foreign_backend.new_params)
         data_node_foreign.spam.value = valid_subnode_data
-        with pytest.raises(ValueError) as err:
+        with pytest.raises(exceptions.IncompatibleNodesError):
             data_node.load_from(data_node_foreign)
-        assert err.value.args[0].startswith('Incompatible data nodes')
 
     def test_replace(self, data_node, valid_subnode_data):
         data_node.replace([valid_subnode_data, valid_subnode_data])
