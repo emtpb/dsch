@@ -2,9 +2,8 @@ from collections import namedtuple
 import importlib
 import itertools
 import pytest
-from dsch import frontend, schema
+from dsch import exceptions, frontend, schema
 from dsch.backends import inmem
-from dsch.exceptions import InvalidSchemaError
 
 
 backend_data = namedtuple('backend_data', ('module', 'storage_path'))
@@ -93,7 +92,7 @@ def test_load_validation_fail(backend):
     storage.data.value = 'spam'
     storage.save(force=True)
 
-    with pytest.raises(schema.ValidationError):
+    with pytest.raises(exceptions.ValidationError):
         frontend.load(backend.storage_path)
     # With force=True, no exception must be raised.
     frontend.load(backend.storage_path, force=True)
@@ -139,7 +138,7 @@ class TestPseudoStorageNode:
 
     def test_open_fail(self, storage):
         pseudo = frontend.PseudoStorage(storage.data.spam, schema.Bytes(), True)
-        with pytest.raises(InvalidSchemaError):
+        with pytest.raises(exceptions.InvalidSchemaError):
             pseudo.open()
 
 
@@ -210,5 +209,5 @@ class TestPseudoStorageStr:
 
     def test_open_fail(self, storage_path_existing):
         pseudo = frontend.PseudoStorage(storage_path_existing, schema.Bytes(), True)
-        with pytest.raises(InvalidSchemaError):
+        with pytest.raises(exceptions.InvalidSchemaError):
             pseudo.open()

@@ -113,7 +113,7 @@ class ItemNodeTestBase:
 
     def test_value_empty(self, data_node):
         # No .value = ... here, just leave the data node empty.
-        with pytest.raises(data.NodeEmptyError):
+        with pytest.raises(exceptions.NodeEmptyError):
             data_node.value
 
 
@@ -472,7 +472,7 @@ class TestList:
         data_node.append(valid_subnode_data)
         data_node.append(valid_subnode_data)
         data_node.append(valid_subnode_data)
-        with pytest.raises(schema.ValidationError):
+        with pytest.raises(exceptions.ValidationError):
             data_node.validate()
 
 
@@ -514,7 +514,7 @@ def test_validation_error_chain(backend):
                                            new_params=backend.new_params)
     data_node.spam.append({'eggs': ['abc', 'def']})
     data_node.spam.append({'eggs': ['abc', 'def', 'ghij']})
-    with pytest.raises(data.SubnodeValidationError) as err:
+    with pytest.raises(exceptions.SubnodeValidationError) as err:
         data_node.validate()
     assert err.value.node_path() == 'spam[1].eggs[2]'
     assert err.value.__cause__.node_path() == '[1].eggs[2]'

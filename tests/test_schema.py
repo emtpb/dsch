@@ -3,6 +3,7 @@ import json
 import numpy as np
 import pytest
 from dsch import schema
+from dsch.exceptions import ValidationError
 
 
 @pytest.mark.parametrize('node', (
@@ -125,7 +126,7 @@ class TestArray:
         node = schema.Array(dtype='int', ndim=2, depends_on=('spam', 'eggs'))
         spam = np.array([1, 2])
         eggs = np.array([0, 1, 2, 3])
-        with pytest.raises(schema.ValidationError) as err:
+        with pytest.raises(ValidationError) as err:
             node.validate(np.array([[1, 2, 3], [4, 5, 6]]), [spam, eggs])
         assert err.value.message == 'Dependent array size mismatch.'
         assert err.value.expected == 4
@@ -141,7 +142,7 @@ class TestArray:
 
     def test_validate_fail_dtype(self):
         node = schema.Array(dtype='int8')
-        with pytest.raises(schema.ValidationError) as err:
+        with pytest.raises(ValidationError) as err:
             node.validate(np.array([23., 42]), None)
         assert err.value.message == 'Invalid dtype.'
         assert err.value.expected == 'int8'
@@ -149,7 +150,7 @@ class TestArray:
 
     def test_validate_fail_max_shape(self):
         node = schema.Array(dtype='int', max_shape=(3,))
-        with pytest.raises(schema.ValidationError) as err:
+        with pytest.raises(ValidationError) as err:
             node.validate(np.array([1, 2, 3, 4]), None)
         assert err.value.message == 'Maximum array shape exceeded.'
         assert err.value.expected == (3,)
@@ -157,7 +158,7 @@ class TestArray:
 
     def test_validate_fail_min_shape(self):
         node = schema.Array(dtype='int', min_shape=(3, 1))
-        with pytest.raises(schema.ValidationError) as err:
+        with pytest.raises(ValidationError) as err:
             node.validate(np.array([[1, 2], [3, 4]]), None)
         assert err.value.message == 'Minimum array shape undercut.'
         assert err.value.expected == (3, 1)
@@ -165,7 +166,7 @@ class TestArray:
 
     def test_validate_fail_ndim(self):
         node = schema.Array(dtype='int', ndim=1)
-        with pytest.raises(schema.ValidationError) as err:
+        with pytest.raises(ValidationError) as err:
             node.validate(np.array([[1, 2], [3, 4]]), None)
         assert err.value.message == 'Invalid number of array dimensions.'
         assert err.value.expected == 1
@@ -173,7 +174,7 @@ class TestArray:
 
     def test_validate_fail_max_value(self):
         node = schema.Array(dtype='int', max_value=42)
-        with pytest.raises(schema.ValidationError) as err:
+        with pytest.raises(ValidationError) as err:
             node.validate(np.array([23, 43]), None)
         assert err.value.message == 'Maximum array element value exceeded.'
         assert err.value.expected == 42
@@ -181,7 +182,7 @@ class TestArray:
 
     def test_validate_fail_min_value(self):
         node = schema.Array(dtype='int', min_value=23)
-        with pytest.raises(schema.ValidationError) as err:
+        with pytest.raises(ValidationError) as err:
             node.validate(np.array([22, 42]), None)
         assert err.value.message == 'Minimum array element value undercut.'
         assert err.value.expected == 23
@@ -190,7 +191,7 @@ class TestArray:
     @pytest.mark.parametrize('test_data', (0, 1, [23, 42], 'spam'))
     def test_validate_fail_type(self, test_data):
         node = schema.Array(dtype='int')
-        with pytest.raises(schema.ValidationError) as err:
+        with pytest.raises(ValidationError) as err:
             node.validate(test_data, None)
         assert err.value.message == 'Invalid type/value.'
         assert err.value.expected == 'numpy.ndarray'
@@ -238,13 +239,13 @@ class TestBytes:
     @pytest.mark.parametrize('test_data', (0, [23, 42], True, 'spam'))
     def test_validate_fail_type(self, test_data):
         node = schema.Bytes()
-        with pytest.raises(schema.ValidationError) as err:
+        with pytest.raises(ValidationError) as err:
             node.validate(test_data)
         assert err.value.message == 'Invalid type/value.'
 
     def test_validate_fail_max_length(self):
         node = schema.Bytes(max_length=3)
-        with pytest.raises(schema.ValidationError) as err:
+        with pytest.raises(ValidationError) as err:
             node.validate(b'abcd')
         assert err.value.message == 'Maximum bytes length exceeded.'
         assert err.value.expected == 3
@@ -252,7 +253,7 @@ class TestBytes:
 
     def test_validate_fail_min_length(self):
         node = schema.Bytes(min_length=3)
-        with pytest.raises(schema.ValidationError) as err:
+        with pytest.raises(ValidationError) as err:
             node.validate(b'ab')
         assert err.value.message == 'Minimum bytes length undercut.'
         assert err.value.expected == 3
@@ -286,7 +287,7 @@ class TestBool:
                                            np.array([True]), np.bool_(True)))
     def test_validate_fail(self, test_data):
         node = schema.Bool()
-        with pytest.raises(schema.ValidationError):
+        with pytest.raises(ValidationError):
             node.validate(test_data)
 
 
@@ -423,7 +424,7 @@ class TestDate:
                                            np.array([True])))
     def test_validate_fail(self, test_data):
         node = schema.Date()
-        with pytest.raises(schema.ValidationError):
+        with pytest.raises(ValidationError):
             node.validate(test_data)
 
 
@@ -463,7 +464,7 @@ class TestDateTime:
                                            np.array([True])))
     def test_validate_fail(self, test_data):
         node = schema.DateTime()
-        with pytest.raises(schema.ValidationError):
+        with pytest.raises(ValidationError):
             node.validate(test_data)
 
 
@@ -545,7 +546,7 @@ class TestList:
     def test_validate_fail_max_length(self):
         subnode = schema.Bool()
         node = schema.List(subnode, max_length=3)
-        with pytest.raises(schema.ValidationError) as err:
+        with pytest.raises(ValidationError) as err:
             node.validate([1, 2, 3, 4])
         assert err.value.message == 'Maximum list length exceeded.'
         assert err.value.expected == 3
@@ -554,7 +555,7 @@ class TestList:
     def test_validate_fail_min_length(self):
         subnode = schema.Bool()
         node = schema.List(subnode, min_length=3)
-        with pytest.raises(schema.ValidationError) as err:
+        with pytest.raises(ValidationError) as err:
             node.validate([1, 2])
         assert err.value.message == 'Minimum list length undercut.'
         assert err.value.expected == 3
@@ -614,7 +615,7 @@ class TestScalar:
 
     def test_validate_fail_max_value(self):
         node = schema.Scalar(dtype='int32', max_value=42)
-        with pytest.raises(schema.ValidationError) as err:
+        with pytest.raises(ValidationError) as err:
             node.validate(np.int32(43))
         assert err.value.message == 'Maximum value exceeded.'
         assert err.value.expected == 42
@@ -622,7 +623,7 @@ class TestScalar:
 
     def test_validate_fail_min_value(self):
         node = schema.Scalar(dtype='int32', min_value=23)
-        with pytest.raises(schema.ValidationError) as err:
+        with pytest.raises(ValidationError) as err:
             node.validate(np.int32(22))
         assert err.value.message == 'Minimum value undercut.'
         assert err.value.expected == 23
@@ -632,7 +633,7 @@ class TestScalar:
                                            np.array([42])))
     def test_validate_fail_type(self, test_data):
         node = schema.Scalar(dtype='float64')
-        with pytest.raises(schema.ValidationError):
+        with pytest.raises(ValidationError):
             node.validate(test_data)
 
 
@@ -678,13 +679,13 @@ class TestString:
     @pytest.mark.parametrize('test_data', (0, [23, 42], True, b'spam'))
     def test_validate_fail_type(self, test_data):
         node = schema.String()
-        with pytest.raises(schema.ValidationError) as err:
+        with pytest.raises(ValidationError) as err:
             node.validate(test_data)
         assert err.value.message == 'Invalid type/value.'
 
     def test_validate_fail_max_length(self):
         node = schema.String(max_length=3)
-        with pytest.raises(schema.ValidationError) as err:
+        with pytest.raises(ValidationError) as err:
             node.validate('abcd')
         assert err.value.message == 'Maximum string length exceeded.'
         assert err.value.expected == 3
@@ -692,7 +693,7 @@ class TestString:
 
     def test_validate_fail_min_length(self):
         node = schema.String(min_length=3)
-        with pytest.raises(schema.ValidationError) as err:
+        with pytest.raises(ValidationError) as err:
             node.validate('ab')
         assert err.value.message == 'Minimum string length undercut.'
         assert err.value.expected == 3
@@ -735,12 +736,12 @@ class TestTime:
                                            np.array([True])))
     def test_validate_fail(self, test_data):
         node = schema.Time()
-        with pytest.raises(schema.ValidationError):
+        with pytest.raises(ValidationError):
             node.validate(test_data)
 
 
 def test_validation_error():
-    ve = schema.ValidationError('Error message.', 'foo', 'baz')
+    ve = ValidationError('Error message.', 'foo', 'baz')
     assert ve.message == 'Error message.'
     assert ve.expected == 'foo'
     assert ve.got == 'baz'
