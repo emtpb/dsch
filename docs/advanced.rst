@@ -116,6 +116,43 @@ appropriate (i.e. if we are in "library only" mode).
 Using :class:`~dsch.frontend.PseudoStorage` is the recommended way for using
 dsch in library code.
 
+Multiple schema versions
+------------------------
+
+Sometimes, schema changes cannot be avoided, so a new version must be designed.
+However, backwards compatibility is usually desired, at least on the data
+consumption side.
+
+When using :func:`~dsch.frontend.load`, this can be achieved by simply not
+setting the ``required_schema`` argument. Then, the storage's
+:attr:`~dsch.storage.Storage.schema_node` attribute can be checked for
+compatibility and possible adaption of the subsequent data handling steps.
+
+When using :class:`~dsch.frontend.PseudoStorage`, a different approach is
+required since the ``schema_node`` attribute cannot be omitted upon object
+creation. This is because the :class:`~dsch.frontend.PseudoStorage` must "know"
+the desired schema for cases in which it has to create a new storage.
+
+To use multiple schema versions with :class:`~dsch.frontend.PseudoStorage`,
+supply the ``schema_alternatives`` attribute on object creation::
+
+   current_schema = dsch.schema.Compilation(...)
+   old_schema = dsch.schema.Compilation(...)
+   pseudo = dsch.PseudoStorage(storage_path, schema_node=current_schema,
+                               schema_alternatives=(old_schema,))
+
+Now, when loading from a storage or a data node, ``pseudo`` will first check the
+detected schema against ``current_schema`` (because that was specified as
+``schema_node``). If these do not match, every schema in ``schema_alternatives``
+is tried, and only if none of these match, an
+:exc:`~dsch.exceptions.InvalidSchemaError` is raised. For *creating* new
+storages, only the ``schema_node`` is used and ``schema_alternatives`` are not
+considered.
+
+An arbitrary number of alternative schemas can be specified through
+``schema_alternatives``, and each can be given as either the schema node object
+or as a string, representing the corresponding schema node's hash.
+
 
 Querying field state
 ====================
