@@ -14,9 +14,7 @@ Different backends are implemented in the :mod:`dsch.backends` package.
 import datetime
 import importlib
 import asciitree
-from . import schema
-from .exceptions import (IncompatibleNodesError, NodeEmptyError,
-                         SubnodeValidationError, ValidationError)
+from . import exceptions
 
 
 draw_tree = asciitree.LeftAligned(
@@ -138,8 +136,8 @@ class ItemNode:
             source_node: Data node to copy value from.
         """
         if source_node.schema_node.hash() != self.schema_node.hash():
-            raise IncompatibleNodesError(source_node.schema_node.hash(),
-                                         self.schema_node.hash())
+            raise exceptions.IncompatibleNodesError(
+                source_node.schema_node.hash(), self.schema_node.hash())
         self.replace(source_node.value)
 
     def node_tree(self):
@@ -158,7 +156,7 @@ class ItemNode:
         """
         try:
             value = str(self.value)
-        except NodeEmptyError:
+        except exceptions.NodeEmptyError:
             value = '<empty>'
         key = '({type_name}): {value}'.format(type_name=type(self).__name__,
                                               value=value)
@@ -208,7 +206,7 @@ class ItemNode:
             dsch.exceptions.NodeEmptyError: if the node is currently empty.
         """
         if self._storage is None:
-            raise NodeEmptyError()
+            raise exceptions.NodeEmptyError()
         else:
             return self._value()
 
@@ -260,7 +258,7 @@ class Array(ItemNode):
         """
         try:
             value = 'x'.join([str(l) for l in self.value.shape]) + ' array'
-        except NodeEmptyError:
+        except exceptions.NodeEmptyError:
             value = '<empty>'
         key = '({type_name}): {value}'.format(type_name=type(self).__name__,
                                               value=value)
@@ -449,8 +447,8 @@ class Compilation:
             source_node: Data node to copy value from.
         """
         if source_node.schema_node.hash() != self.schema_node.hash():
-            raise IncompatibleNodesError(source_node.schema_node.hash(),
-                                         self.schema_node.hash())
+            raise exceptions.IncompatibleNodesError(
+                source_node.schema_node.hash(), self.schema_node.hash())
         for key, subnode in self._subnodes.items():
             subnode.load_from(getattr(source_node, key))
 
@@ -525,8 +523,9 @@ class Compilation:
         for node_name, node in self._subnodes.items():
             try:
                 node.validate()
-            except (ValidationError, SubnodeValidationError) as err:
-                raise SubnodeValidationError(node_name) from err
+            except (exceptions.ValidationError,
+                    exceptions.SubnodeValidationError) as err:
+                raise exceptions.SubnodeValidationError(node_name) from err
 
 
 class Date(ItemNode):
@@ -722,8 +721,8 @@ class List:
             source_node: Data node to copy value from.
         """
         if source_node.schema_node.hash() != self.schema_node.hash():
-            raise IncompatibleNodesError(source_node.schema_node.hash(),
-                                         self.schema_node.hash())
+            raise exceptions.IncompatibleNodesError(
+                source_node.schema_node.hash(), self.schema_node.hash())
         for idx, subnode in enumerate(source_node):
             self.append()
             self[idx].load_from(subnode)
@@ -795,8 +794,9 @@ class List:
         for idx, node in enumerate(self._subnodes):
             try:
                 node.validate()
-            except (ValidationError, SubnodeValidationError) as err:
-                raise SubnodeValidationError(idx) from err
+            except (exceptions.ValidationError,
+                    exceptions.SubnodeValidationError) as err:
+                raise exceptions.SubnodeValidationError(idx) from err
 
 
 class Scalar(ItemNode):
@@ -822,7 +822,7 @@ class Scalar(ItemNode):
         try:
             value = '{value} {unit}'.format(value=self.value,
                                             unit=self.schema_node.unit)
-        except NodeEmptyError:
+        except exceptions.NodeEmptyError:
             value = '<empty>'
         key = '({type_name}): {value}'.format(type_name=type(self).__name__,
                                               value=value)

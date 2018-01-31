@@ -14,7 +14,7 @@ interface for loading from existing dsch storages and creating new ones.
 import importlib
 import os
 
-from .exceptions import AutodetectBackendError, InvalidSchemaError
+from . import exceptions
 
 
 def create(storage_path, schema_node, backend=None):
@@ -126,9 +126,11 @@ def load(storage_path, backend=None, required_schema=None,
     backend_module = importlib.import_module('dsch.backends.' + backend)
     storage = backend_module.Storage(storage_path=storage_path)
     if required_schema and storage.schema_hash() != required_schema.hash():
-        raise InvalidSchemaError(required_schema.hash(), storage.schema_hash())
+        raise exceptions.InvalidSchemaError(required_schema.hash(),
+                                            storage.schema_hash())
     if required_schema_hash and storage.schema_hash() != required_schema_hash:
-        raise InvalidSchemaError(required_schema_hash, storage.schema_hash())
+        raise exceptions.InvalidSchemaError(required_schema_hash,
+                                            storage.schema_hash())
     if not force:
         storage.validate()
     return storage
@@ -230,8 +232,9 @@ class PseudoStorage:
             self.storage = None
             if (self._data_storage.schema_node.hash() !=
                     self._schema_node.hash()):
-                raise InvalidSchemaError(self._schema_node.hash(),
-                                         self._data_storage.schema_node.hash())
+                raise exceptions.InvalidSchemaError(
+                    self._schema_node.hash(),
+                    self._data_storage.schema_node.hash())
             self.data = self._data_storage
 
     def __enter__(self):
@@ -264,4 +267,4 @@ def _autodetect_backend(storage_path):
     if storage_path.endswith('.mat'):
         return 'mat'
     else:
-        raise AutodetectBackendError(storage_path)
+        raise exceptions.AutodetectBackendError(storage_path)
