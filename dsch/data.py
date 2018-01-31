@@ -187,7 +187,7 @@ class ItemNode:
         exception is raised.
 
         Raises:
-            :exc:`.schema.ValidationError`: if validation fails.
+            dsch.exceptions.ValidationError: if validation fails.
         """
         if self._storage is not None:
             self.schema_node.validate(self.value)
@@ -200,13 +200,13 @@ class ItemNode:
         node type, not on the selected storage backend.
 
         If the node is currently empty, the value is undefined and
-        :class:`NodeEmptyError` is raised.
+        :exc:`~dsch.exceptions.NodeEmptyError` is raised.
 
         Returns:
             Node data.
 
         Raises:
-            :exc:`NodeEmptyError`: if the node is currently empty.
+            dsch.exceptions.NodeEmptyError: if the node is currently empty.
         """
         if self._storage is None:
             raise NodeEmptyError()
@@ -286,7 +286,7 @@ class Array(ItemNode):
         exception is raised.
 
         Raises:
-            :exc:`.schema.ValidationError`: if validation fails.
+            dsch.exceptions.ValidationError: if validation fails.
         """
         if self._storage is None:
             return
@@ -522,7 +522,7 @@ class Compilation:
         exception is raised.
 
         Raises:
-            :exc:`.data.SubnodeValidationError`: if validation fails.
+            dsch.exceptions.SubnodeValidationError: if validation fails.
         """
         for node_name, node in self._subnodes.items():
             try:
@@ -792,7 +792,7 @@ class List:
         exception is raised.
 
         Raises:
-            :exc:`.data.SubnodeValidationError`: if validation fails.
+            dsch.exceptions.SubnodeValidationError: if validation fails.
         """
         self.schema_node.validate(self)
         for idx, node in enumerate(self._subnodes):

@@ -112,9 +112,11 @@ def load(storage_path, backend=None, required_schema=None,
     Raises:
         RuntimeError: if the SHA256 hash given to ``require_schema`` did not
             match.
-        :class:`.schema.ValidationError` or
-            :class:`.data.SubnodeValidationError`: if validation failed and
-            ``force`` was not ``True``.
+        dsch.exceptions.ValidationError: if ``force`` was not ``True`` and
+            validation failed with a regular node as the top-level node.
+        dsch.exceptions.SubnodeValidationError: if ``force`` was not ``True``
+            and validation failed with a :class:`~dsch.data.Compilation` or
+            :class:`dsch.data.List` as the top-level schema node.
     """
     if not backend:
         backend = _autodetect_backend(storage_path)

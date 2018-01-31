@@ -124,8 +124,11 @@ class Storage:
         exception is raised.
 
         Raises:
-            :exc:`.schema.ValidationError` or
-            :exc:`.data.SubnodeValidationError`: if validation fails.
+            dsch.exceptions.ValidationError: if validation fails and the
+                top-level node is a regular node.
+            dsch.exceptions.SubnodeValidationError: if validation fails and the
+                top-level node is a :class:`~dsch.data.Compilation` or
+                :class:`~dsch.data.List`.
         """
         self.data.validate()
 

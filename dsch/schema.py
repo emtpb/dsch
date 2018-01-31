@@ -229,7 +229,7 @@ class Array(SchemaNode):
             independent_values: Values of the independent variables.
 
         Raises:
-            :exc:`.ValidationError`: if validation fails.
+            dsch.exceptions.ValidationError: if validation fails.
         """
         if not isinstance(test_data, np.ndarray):
             raise ValidationError('Invalid type/value.', 'numpy.ndarray',
@@ -317,7 +317,7 @@ class Bytes(SchemaNode):
             test_data: Data to be validated.
 
         Raises:
-            :exc:`.ValidationError`: if validation fails.
+            dsch.exceptions.ValidationError: if validation fails.
         """
         if not isinstance(test_data, bytes):
             raise ValidationError('Invalid type/value.', 'bytes',
@@ -363,7 +363,7 @@ class Bool(SchemaNode):
             test_data: Data to be validated.
 
         Raises:
-            :exc:`.ValidationError`: if validation fails.
+            dsch.exceptions.ValidationError: if validation fails.
         """
         if type(test_data) != bool:
             raise ValidationError('Invalid type/value.', 'bool',
@@ -495,7 +495,7 @@ class Date(SchemaNode):
             test_data: Data to be validated.
 
         Raises:
-            :exc:`.ValidationError`: if validation fails.
+            dsch.exceptions.ValidationError: if validation fails.
         """
         if not isinstance(test_data, datetime.date):
             raise ValidationError('Invalid type/value.', 'datetime.date',
@@ -551,7 +551,7 @@ class DateTime(SchemaNode):
             test_data: Data to be validated.
 
         Raises:
-            :exc:`.ValidationError`: if validation fails.
+            dsch.exceptions.ValidationError: if validation fails.
         """
         if not isinstance(test_data, datetime.datetime):
             raise ValidationError('Invalid type/value.', 'datetime.datetime',
@@ -640,7 +640,7 @@ class List(SchemaNode):
             test_data: Data to be validated.
 
         Raises:
-            :exc:`.ValidationError`: if validation fails.
+            dsch.exceptions.ValidationError: if validation fails.
         """
         if self.max_length and len(test_data) > self.max_length:
             raise ValidationError('Maximum list length exceeded.',
@@ -725,7 +725,7 @@ class Scalar(SchemaNode):
             test_data: Data to be validated.
 
         Raises:
-            :exc:`.ValidationError`: if validation fails.
+            dsch.exceptions.ValidationError: if validation fails.
         """
         if not isinstance(test_data, np.number):
             raise ValidationError('Invalid type/value.', 'numpy.number',
@@ -789,7 +789,7 @@ class String(SchemaNode):
             test_data: Data to be validated.
 
         Raises:
-            :exc:`.ValidationError`: if validation fails.
+            dsch.exceptions.ValidationError: if validation fails.
         """
         if not isinstance(test_data, str):
             raise ValidationError('Invalid type/value.', 'str',
@@ -851,7 +851,7 @@ class Time(SchemaNode):
             test_data: Data to be validated.
 
         Raises:
-            :exc:`.ValidationError`: if validation fails.
+            dsch.exceptions.ValidationError: if validation fails.
         """
         if not isinstance(test_data, datetime.time):
             raise ValidationError('Invalid type/value.', 'datetime.time',

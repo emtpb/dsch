@@ -25,9 +25,9 @@ class NodeEmptyError(DschError):
 class SubnodeValidationError(DschError):
     """Exception used when validation fails for a subnode.
 
-    Validation failure always raises :class:`ValidationError`. However, this
-    only indicates which check has failed (e.g. string length exceeded), but
-    not for which field this has occured.
+    Validation failure always raises :exc:`ValidationError`. However, this only
+    indicates which check has failed (e.g. string length exceeded), but not for
+    which field this has occured.
 
     This class uses exception chaining to recursively determine the full name
     and path of the affected data node, which is provided via
@@ -48,9 +48,9 @@ class SubnodeValidationError(DschError):
         the name of the Array node. Similarly, for :class:`List` nodes as outer
         nodes, ``location`` is set to the corresponding list item's index.
 
-        :class:`SubnodeValidationError` can also be created from other
-        instances of themselves, thus representing nested structures of lists
-        and compilations.
+        :exc:`SubnodeValidationError` can also be created from other instances
+        of themselves, thus representing nested structures of lists and
+        compilations.
 
         Args:
             location (str or int): Node location info.
@@ -84,10 +84,10 @@ class SubnodeValidationError(DschError):
         """Get the exception originally causing the chain.
 
         This recursively follows the exception chain back to the original
-        :class:`.schema.ValidationError` that further describes the problem.
+        :exc:`ValidationError` that further describes the problem.
 
         Returns:
-            :class:`.schema.ValidationError`: Original cause exception.
+            :exc:`ValidationError`: Original cause exception.
         """
         if isinstance(self.__cause__, SubnodeValidationError):
             return self.__cause__.original_cause()
