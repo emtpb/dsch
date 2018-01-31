@@ -76,7 +76,8 @@ def create_from(storage_path, source_storage, backend=None):
     return storage
 
 
-def load(storage_path, backend=None, require_schema=None, force=False):
+def load(storage_path, backend=None, required_schema=None,
+         required_schema_hash=None, force=False):
     """Load a dsch storage from the given path.
 
     Normally, the correct backend is detected automatically by interpreting the
@@ -84,8 +85,9 @@ def load(storage_path, backend=None, require_schema=None, force=False):
     be forced to a desired value by additionally passing a ``backend``
     argument.
 
-    The ``require_schema`` argument can be used to ensure that the loaded
-    storage uses a specific schema. The value must be the SHA256 hash of the
+    The ``required_schema`` or ``required_schema_hash`` arguments can be used to
+    ensure that the loaded storage uses a specific schema. The former is used
+    to supply a schema object while the latter must be the SHA256 hash of the
     required schema JSON, as can be determined by
     :meth:`.storage.Storage.schema_hash`. If the loaded storage uses a
     different schema, an exception is raised.
@@ -99,7 +101,9 @@ def load(storage_path, backend=None, require_schema=None, force=False):
     Args:
         storage_path (str): Path to the dsch storage (backend-specific).
         backend (str): Backend to be used. By default, perform auto-detection.
-        require_schema (str): SHA256 hash of the required schema.
+        required_schema (dsch.schema.SchemaNode): Top-level schema node of the
+            required schema.
+        required_schema_hash (str): SHA256 hash of the required schema.
         force (bool): If ``True``, the automatic validation step is skipped.
 
     Returns:
@@ -116,7 +120,9 @@ def load(storage_path, backend=None, require_schema=None, force=False):
         backend = _autodetect_backend(storage_path)
     backend_module = importlib.import_module('dsch.backends.' + backend)
     storage = backend_module.Storage(storage_path=storage_path)
-    if require_schema and storage.schema_hash() != require_schema:
+    if ((required_schema and storage.schema_hash() != required_schema.hash())
+            or (required_schema_hash and storage.schema_hash() !=
+                required_schema_hash)):
         raise RuntimeError('Loaded schema does not match the required schema.')
     if not force:
         storage.validate()
@@ -210,7 +216,7 @@ class PseudoStorage:
         if isinstance(self._data_storage, str):
             if os.path.exists(self._data_storage):
                 self.storage = load(self._data_storage,
-                                    require_schema=self._schema_node.hash())
+                                    required_schema=self._schema_node)
             else:
                 self.storage = create(self._data_storage,
                                       schema_node=self._schema_node)
