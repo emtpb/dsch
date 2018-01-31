@@ -22,19 +22,6 @@ class AutodetectBackendError(DschError):
                          .format(storage_path))
 
 
-class NodeEmptyError(DschError):
-    """Exception indicating an empty data node.
-
-    This exception is raised when requesting a data node's value fails because
-    the node is empty. In that case, the value is undefined.
-    """
-
-    def __init__(self):
-        """Initialize new NodeEmptyError instance."""
-        super().__init__('Node is empty. The value of empty nodes is '
-                         'undefined.')
-
-
 class IncompatibleNodesError(DschError):
     """Exception used when node operations fail due to incompatible schemas."""
 
@@ -48,6 +35,19 @@ class IncompatibleNodesError(DschError):
         msg = 'Nodes with schema hashes {} and {} are incompatible.'.format(
             hash1, hash2)
         super().__init__(msg)
+
+
+class NodeEmptyError(DschError):
+    """Exception indicating an empty data node.
+
+    This exception is raised when requesting a data node's value fails because
+    the node is empty. In that case, the value is undefined.
+    """
+
+    def __init__(self):
+        """Initialize new NodeEmptyError instance."""
+        super().__init__('Node is empty. The value of empty nodes is '
+                         'undefined.')
 
 
 class SubnodeValidationError(DschError):
