@@ -14,6 +14,8 @@ interface for loading from existing dsch storages and creating new ones.
 import importlib
 import os
 
+from .exceptions import AutodetectBackendError
+
 
 def create(storage_path, schema_node, backend=None):
     """Create a new dsch storage.
@@ -249,7 +251,7 @@ def _autodetect_backend(storage_path):
         str: Corresponding backend name.
 
     Raises:
-        ValueError: if automatic detection fails.
+        dsch.exceptions.AutodetectBackendError: if automatic detection fails.
     """
     if storage_path == '::inmem::':
         return 'inmem'
@@ -260,5 +262,4 @@ def _autodetect_backend(storage_path):
     if storage_path.endswith('.mat'):
         return 'mat'
     else:
-        raise ValueError('Could not automatically detect backend for '
-                         '"{}".'.format(storage_path))
+        raise AutodetectBackendError(storage_path)

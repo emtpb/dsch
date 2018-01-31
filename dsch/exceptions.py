@@ -9,6 +9,19 @@ class DschError(Exception):
     pass
 
 
+class AutodetectBackendError(DschError):
+    """Exception raised when backend autodetection fails."""
+
+    def __init__(self, storage_path):
+        """Initialize AutodetectBackendError.
+
+        Args:
+            storage_path: Storage path that auto-detection failed for.
+        """
+        super().__init__('Coult not auto-detect backend for storage "{}".'
+                         .format(storage_path))
+
+
 class NodeEmptyError(DschError):
     """Exception indicating an empty data node.
 
