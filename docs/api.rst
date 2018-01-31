@@ -14,3 +14,4 @@ This section contains the complete API documentation for different components of
    api/hdf5
    api/npz
    api/mat
+   api/exceptions
