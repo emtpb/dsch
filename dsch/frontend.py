@@ -14,7 +14,7 @@ interface for loading from existing dsch storages and creating new ones.
 import importlib
 import os
 
-from .exceptions import AutodetectBackendError
+from .exceptions import AutodetectBackendError, InvalidSchemaError
 
 
 def create(storage_path, schema_node, backend=None):
@@ -112,8 +112,9 @@ def load(storage_path, backend=None, required_schema=None,
         Storage object.
 
     Raises:
-        RuntimeError: if the SHA256 hash given to ``require_schema`` did not
-            match.
+        dsch.exceptions.InvalidSchemaError: if the loaded storage's schema does
+            not match the schema specified through ``required_schema`` or
+            ``required_schema_hash``.
         dsch.exceptions.ValidationError: if ``force`` was not ``True`` and
             validation failed with a regular node as the top-level node.
         dsch.exceptions.SubnodeValidationError: if ``force`` was not ``True``
@@ -124,10 +125,10 @@ def load(storage_path, backend=None, required_schema=None,
         backend = _autodetect_backend(storage_path)
     backend_module = importlib.import_module('dsch.backends.' + backend)
     storage = backend_module.Storage(storage_path=storage_path)
-    if ((required_schema and storage.schema_hash() != required_schema.hash())
-            or (required_schema_hash and storage.schema_hash() !=
-                required_schema_hash)):
-        raise RuntimeError('Loaded schema does not match the required schema.')
+    if required_schema and storage.schema_hash() != required_schema.hash():
+        raise InvalidSchemaError(required_schema.hash(), storage.schema_hash())
+    if required_schema_hash and storage.schema_hash() != required_schema_hash:
+        raise InvalidSchemaError(required_schema_hash, storage.schema_hash())
     if not force:
         storage.validate()
     return storage
@@ -229,7 +230,8 @@ class PseudoStorage:
             self.storage = None
             if (self._data_storage.schema_node.hash() !=
                     self._schema_node.hash()):
-                raise RuntimeError('Incompatible schema nodes.')
+                raise InvalidSchemaError(self._schema_node.hash(),
+                                         self._data_storage.schema_node.hash())
             self.data = self._data_storage
 
     def __enter__(self):

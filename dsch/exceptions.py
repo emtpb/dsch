@@ -37,6 +37,21 @@ class IncompatibleNodesError(DschError):
         super().__init__(msg)
 
 
+class InvalidSchemaError(DschError):
+    """Exception used when an invalid/incompatible schema is used."""
+
+    def __init__(self, expected_hash, got_hash):
+        """Initilize InvalidSchemaError.
+
+        Args:
+            expected_hash (str): Hash of the expected schema.
+            got_hash (str): Hash of the schema that was received instead.
+        """
+        msg = 'Invalid schema. Expected {} but got {}.'.format(expected_hash,
+                                                               got_hash)
+        super().__init__(msg)
+
+
 class NodeEmptyError(DschError):
     """Exception indicating an empty data node.
 

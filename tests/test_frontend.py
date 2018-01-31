@@ -4,6 +4,7 @@ import itertools
 import pytest
 from dsch import frontend, schema
 from dsch.backends import inmem
+from dsch.exceptions import InvalidSchemaError
 
 
 backend_data = namedtuple('backend_data', ('module', 'storage_path'))
@@ -138,7 +139,7 @@ class TestPseudoStorageNode:
 
     def test_open_fail(self, storage):
         pseudo = frontend.PseudoStorage(storage.data.spam, schema.Bytes(), True)
-        with pytest.raises(RuntimeError):
+        with pytest.raises(InvalidSchemaError):
             pseudo.open()
 
 
@@ -209,5 +210,5 @@ class TestPseudoStorageStr:
 
     def test_open_fail(self, storage_path_existing):
         pseudo = frontend.PseudoStorage(storage_path_existing, schema.Bytes(), True)
-        with pytest.raises(RuntimeError):
+        with pytest.raises(InvalidSchemaError):
             pseudo.open()
