@@ -13,9 +13,10 @@ Different backends are implemented in the :mod:`dsch.backends` package.
 """
 import datetime
 import importlib
-import asciitree
-from . import exceptions
 
+import asciitree
+
+from . import exceptions
 
 draw_tree = asciitree.LeftAligned(
     draw=asciitree.BoxStyle(gfx=asciitree.drawing.BOX_LIGHT, horiz_len=1)

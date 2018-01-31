@@ -11,7 +11,6 @@ names.
 import os
 import pkgutil
 
-
 # Automatically discover all available backends.
 _pkg_path = os.path.dirname(__file__)
 available_backends = tuple([mod[1] for mod in

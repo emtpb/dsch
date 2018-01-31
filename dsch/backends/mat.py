@@ -1,7 +1,8 @@
 import numpy as np
 import scipy.io as sio
-from .. import data, schema
+
 from . import npz
+from .. import data, schema
 
 
 class Array(npz.Array):

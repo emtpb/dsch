@@ -5,7 +5,9 @@ This backend provides support for NumPy's npz format. For details, see
 enhancement proposal <https://docs.scipy.org/doc/numpy/neps/npy-format.html>`_.
 """
 import datetime
+
 import numpy as np
+
 from .. import data, schema, storage
 
 
