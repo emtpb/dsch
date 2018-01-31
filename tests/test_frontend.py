@@ -114,30 +114,49 @@ class TestPseudoStorageNode:
         with pseudo as p:
             assert p.data is not None
             assert p.storage is None
+            assert pseudo.schema_node == storage.data.spam.schema_node
         assert pseudo.data is None
         assert pseudo.storage is None
+        assert pseudo.schema_node is None
 
     def test_init(self, storage):
         pseudo = frontend.PseudoStorage(storage.data.spam, schema.Bool(), False)
         assert pseudo.data is not None
         assert pseudo.storage is None
+        assert pseudo.schema_node is not None
 
     def test_init_deferred(self, storage):
         pseudo = frontend.PseudoStorage(storage.data.spam, schema.Bool(), True)
         assert pseudo.data is None
         assert pseudo.storage is None
+        assert pseudo.schema_node is None
 
     def test_open_close(self, storage):
         pseudo = frontend.PseudoStorage(storage.data.spam, schema.Bool(), True)
         pseudo.open()
         assert pseudo.data is not None
         assert pseudo.storage is None
+        assert pseudo.schema_node == storage.data.spam.schema_node
         pseudo.close()
         assert pseudo.data is None
         assert pseudo.storage is None
+        assert pseudo.schema_node is None
 
     def test_open_fail(self, storage):
-        pseudo = frontend.PseudoStorage(storage.data.spam, schema.Bytes(), True)
+        pseudo = frontend.PseudoStorage(storage.data.spam, schema.Bytes(),
+                                        True)
+        with pytest.raises(exceptions.InvalidSchemaError):
+            pseudo.open()
+
+    def test_schema_alternative(self, storage):
+        pseudo = frontend.PseudoStorage(storage.data.spam, schema.Bytes(),
+                                        True, (schema.Bool(),))
+        pseudo.open()
+        assert pseudo.schema_node == storage.data.spam.schema_node
+
+    def test_schema_alternative_fail(self, storage):
+        pseudo = frontend.PseudoStorage(storage.data.spam, schema.Bytes(),
+                                        True, (schema.String(),))
         with pytest.raises(exceptions.InvalidSchemaError):
             pseudo.open()
 
@@ -184,30 +203,48 @@ class TestPseudoStorageStr:
         with pseudo as p:
             assert p.data is not None
             assert p.storage is not None
+            assert p.schema_node == p.storage.data.schema_node
         assert pseudo.data is None
         assert pseudo.storage is None
+        assert pseudo.schema_node is None
 
     def test_init(self, storage_path):
         pseudo = frontend.PseudoStorage(storage_path, schema.Bool(), False)
         assert pseudo.data is not None
         assert pseudo.storage is not None
         assert pseudo.storage.storage_path == storage_path
+        assert pseudo.schema_node is not None
 
     def test_init_deferred(self, storage_path):
         pseudo = frontend.PseudoStorage(storage_path, schema.Bool(), True)
         assert pseudo.data is None
         assert pseudo.storage is None
+        assert pseudo.schema_node is None
 
     def test_open_close(self, storage_path):
         pseudo = frontend.PseudoStorage(storage_path, schema.Bool(), True)
         pseudo.open()
         assert pseudo.data is not None
         assert pseudo.storage is not None
+        assert pseudo.schema_node == pseudo.storage.data.schema_node
         pseudo.close()
         assert pseudo.data is None
         assert pseudo.storage is None
+        assert pseudo.schema_node is None
 
     def test_open_fail(self, storage_path_existing):
         pseudo = frontend.PseudoStorage(storage_path_existing, schema.Bytes(), True)
+        with pytest.raises(exceptions.InvalidSchemaError):
+            pseudo.open()
+
+    def test_schema_alternative(self, storage_path_existing):
+        pseudo = frontend.PseudoStorage(storage_path_existing, schema.Bytes(),
+                                        True, (schema.Bool(),))
+        pseudo.open()
+        assert pseudo.schema_node == pseudo.storage.data.schema_node
+
+    def test_schema_alternative_fail(self, storage_path_existing):
+        pseudo = frontend.PseudoStorage(storage_path_existing, schema.Bytes(),
+                                        True, (schema.String(),))
         with pytest.raises(exceptions.InvalidSchemaError):
             pseudo.open()

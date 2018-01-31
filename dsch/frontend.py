@@ -14,7 +14,7 @@ interface for loading from existing dsch storages and creating new ones.
 import importlib
 import os
 
-from . import exceptions
+from . import exceptions, schema
 
 
 def create(storage_path, schema_node, backend=None):
@@ -171,13 +171,31 @@ class PseudoStorage:
     If usage as a context manager is not desired, the same functionality is
     also exposed as :meth:`open` and :meth:`close`.
 
+    To support older versions of a schema once schema changes cannot be
+    avoided, ``schema_alternatives`` can be passed on object creation. If an
+    existing storage is loaded (or a data node is passed) based on an
+    alternative schema, no exception is raised and the process continues
+    normally. Note that new storages are always created with the given
+    ``schema_node``.
+    The actual top-level schema node of the available data is made
+    available through :attr:`schema_node`, so it can be easily inspected by
+    subsequent code. ``schema_alternatives`` is an iterable containing either
+    the :class:`~dsch.schema.SchemaNode` object or the corresponding hash for
+    every supported schema.
+
     Attributes:
         data: Data node, corresponding to the top-level node of the schema.
         storage: A dsch storage object, if the ``PseudoStorage`` was
             initialized with a string.
+        schema_node: A :class:`~dsch.schema.SchemaNode` representing the
+            top-level schema node of the actual data loaded. This is either the
+            same as the ``schema_node`` specified on object creation, or one of
+            the schemas listed in ``schema_alternatives`` upton object
+            creation.
     """
 
-    def __init__(self, data_storage, schema_node, defer_open=False):
+    def __init__(self, data_storage, schema_node, defer_open=False,
+                 schema_alternatives=None):
         """Create a pseudo-storage for data access abstraction.
 
         Args:
@@ -193,11 +211,25 @@ class PseudoStorage:
                 (potentially by creating or loading a storage) until the
                 runtime context is entered or :meth:`open` is called
                 explicitly.
+            schema_alternatives: An iterable of schemas that are accepted
+                besides what is given as ``schema_node``. Allows support of
+                previous versions of the schema. Every entry may be either a
+                :class:`~dsch.schema.SchemaNode` or a :class:`str` value
+                representing a :meth:`~dsch.schema.SchemaNode.hash()`.
         """
         self._data_storage = data_storage
         self._schema_node = schema_node
+        self._schema_alternatives = []
+        if schema_alternatives:
+            for alt in schema_alternatives:
+                if isinstance(alt, schema.SchemaNode):
+                    self._schema_alternatives.append(alt.hash())
+                else:
+                    self._schema_alternatives.append(alt)
+
         self.data = None
         self.storage = None
+        self.schema_node = None
         if not defer_open:
             self.open()
 
@@ -212,6 +244,7 @@ class PseudoStorage:
                 self.storage.save()
             self.storage = None
         self.data = None
+        self.schema_node = None
 
     def open(self):
         """Make the desired data available as :attr:`data`.
@@ -222,20 +255,17 @@ class PseudoStorage:
             raise RuntimeError('PseudoStorage is already open.')
         if isinstance(self._data_storage, str):
             if os.path.exists(self._data_storage):
-                self.storage = load(self._data_storage,
-                                    required_schema=self._schema_node)
+                self.storage = load(self._data_storage)
+                self._verify_schema(self.storage.schema_node)
             else:
                 self.storage = create(self._data_storage,
                                       schema_node=self._schema_node)
             self.data = self.storage.data
         else:
             self.storage = None
-            if (self._data_storage.schema_node.hash() !=
-                    self._schema_node.hash()):
-                raise exceptions.InvalidSchemaError(
-                    self._schema_node.hash(),
-                    self._data_storage.schema_node.hash())
+            self._verify_schema(self._data_storage.schema_node)
             self.data = self._data_storage
+        self.schema_node = self.data.schema_node
 
     def __enter__(self):
         if self.data is None:
@@ -244,6 +274,13 @@ class PseudoStorage:
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.close()
+
+    def _verify_schema(self, schema_node):
+        schema_hash = schema_node.hash()
+        if (schema_hash != self._schema_node.hash() and
+                schema_hash not in self._schema_alternatives):
+            raise exceptions.InvalidSchemaError(self._schema_node.hash(),
+                                                schema_hash)
 
 
 def _autodetect_backend(storage_path):
