@@ -15,6 +15,8 @@ import datetime
 import importlib
 import asciitree
 from . import schema
+from .exceptions import (NodeEmptyError, SubnodeValidationError,
+                         ValidationError)
 
 
 draw_tree = asciitree.LeftAligned(
@@ -525,7 +527,7 @@ class Compilation:
         for node_name, node in self._subnodes.items():
             try:
                 node.validate()
-            except (schema.ValidationError, SubnodeValidationError) as err:
+            except (ValidationError, SubnodeValidationError) as err:
                 raise SubnodeValidationError(node_name) from err
 
 
@@ -796,7 +798,7 @@ class List:
         for idx, node in enumerate(self._subnodes):
             try:
                 node.validate()
-            except (schema.ValidationError, SubnodeValidationError) as err:
+            except (ValidationError, SubnodeValidationError) as err:
                 raise SubnodeValidationError(idx) from err
 
 
@@ -852,97 +854,6 @@ class Time(ItemNode):
         super()._init_new(new_params)
         if self.schema_node.set_on_create:
             self.value = datetime.datetime.now().time()
-
-
-class NodeEmptyError(Exception):
-    """Exception indicating an empty data node.
-
-    This exception is raised when requesting a data node's value fails because
-    the node is empty. In that case, the value is undefined.
-    """
-
-    def __init__(self):
-        """Initialize new NodeEmptyError instance."""
-        super().__init__('Node is empty. The value of empty nodes is '
-                         'undefined.')
-
-
-class SubnodeValidationError(Exception):
-    """Exception used when validation fails for a subnode.
-
-    Validation failure always raises :class:`.schema.ValidationError`. However,
-    this only indicates which check has failed (e.g. string length exceeded),
-    but not for which field this has occured.
-
-    This class uses exception chaining to recursively determine the full name
-    and path of the affected data node, which is provided via
-    :meth:`node_path`.
-    """
-
-    def __init__(self, location):
-        """Initialize SubnodeValidationError instance.
-
-        The given parameter identifies the "inner" node (causing the exception)
-        from the scope of the "outer" node (e.g. a :class:`Compilation` or
-        :class:`List`).
-
-        For example, for a :class:`String` node inside a :class:`Compilation`,
-        the string is the inner node, failing validation, and the compilation
-        is the outer node, defining the name of the string node. In this case,
-        the compilation would set ``location`` to the name of the string node.
-        Similarly, for :class:`List` nodes as outer nodes, ``location`` is set
-        to the corresponding list item's index.
-
-        :class:`SubnodeValidationError` can also be created from other
-        instances of themselves, thus representing nested structures of lists
-        and compilations.
-
-        Args:
-            location (:class:`str` or :class:`int`): Node location info.
-        """
-        super().__init__()
-        self._location = location
-
-    def node_path(self):
-        """Recursively determine the path of the node failing validation.
-
-        Returns:
-            str: Full name and path of the node that failed validation.
-        """
-        cause = self.__cause__
-        if isinstance(cause, SubnodeValidationError):
-            cause_path = cause.node_path()
-            if cause_path.startswith('['):
-                post = cause_path
-            else:
-                post = '.' + cause_path
-        elif isinstance(cause, schema.ValidationError):
-            post = ''
-
-        if isinstance(self._location, str):
-            fmt = '{loc}{post}'
-        elif isinstance(self._location, int):
-            fmt = '[{loc}]{post}'
-        return fmt.format(loc=self._location, post=post)
-
-    def original_cause(self):
-        """Get the exception originally causing the chain.
-
-        This recursively follows the exception chain back to the original
-        :class:`.schema.ValidationError` that further describes the problem.
-
-        Returns:
-            :class:`.schema.ValidationError`: Original cause exception.
-        """
-        if isinstance(self.__cause__, SubnodeValidationError):
-            return self.__cause__.original_cause()
-        elif isinstance(self.__cause__, schema.ValidationError):
-            return self.__cause__
-
-    def __str__(self):
-        """Return a nicely printable string representation."""
-        return 'Node "{node_path}" failed validation: {msg}'.format(
-            node_path=self.node_path(), msg=self.original_cause())
 
 
 def data_node_from_schema(schema_node, module_name, parent, data_storage=None,

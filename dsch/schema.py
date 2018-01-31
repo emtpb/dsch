@@ -35,6 +35,8 @@ import inspect
 import json
 import numpy as np
 
+from .exceptions import ValidationError
+
 
 class SchemaNode:
     """Base class for all kinds of schema nodes.
@@ -854,35 +856,6 @@ class Time(SchemaNode):
         if not isinstance(test_data, datetime.time):
             raise ValidationError('Invalid type/value.', 'datetime.time',
                                   type(test_data))
-
-
-class ValidationError(Exception):
-    """Exception used when a schema node's validation fails.
-
-    The :attr:`message` should indicate the kind of validation error and
-    mention the constraint that was not met (e.g. 'Maximum length exceeded.').
-    This message may be directly shown to users.
-    For more information, :attr:`expected` contains a representation of
-    the constraint (e.g. the maximum valid length) and :attr:`got` is the
-    actual value determined for the given data, if applicable.
-
-    Attributes:
-        message (str): Human-readable error message.
-        expected: Expected, i.e. valid value.
-        got: Actual, i.e. invalid value.
-    """
-
-    def __init__(self, message, expected, got=None):
-        """Initialize ValidationError instance."""
-        super().__init__()
-        self.message = message
-        self.expected = expected
-        self.got = got
-
-    def __str__(self):
-        """Return a nicely printable string representation."""
-        return '{msg} (Expected: {exp}. Got: {got})'.format(
-            msg=self.message, exp=self.expected, got=self.got)
 
 
 def node_from_dict(node_dict):
