@@ -18,14 +18,18 @@ Added
 * In-memory backend, for handling data without needing e.g. a file on disk.
 * Support for copying data between different storages.
 * Support for creating new storages from existing ones, aka. "save as".
+* ``PseudoStorage`` abstraction class for unified data access in libraries.
 * Human-readable tree-representation of data nodes for use in interactive
   sessions.
+* Support ``==`` operator for schema nodes.
 
 Changed
 -------
 * Data nodes in Compilations and Lists can no longer be overwritten
   accidentally when trying to overwrite their stored value.
 * Improve structure and conciseness of docs.
+* Change List to evaluate ``empty``-ness recursively.
+* Replace generic exceptions like ``TypeError`` by custom dsch exceptions.
 
 
 `0.1.3`_ - 2018-01-11
