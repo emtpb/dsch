@@ -1,7 +1,9 @@
 import datetime
 import json
+
 import numpy as np
 import pytest
+
 from dsch import schema
 from dsch.exceptions import ValidationError
 

@@ -1,11 +1,12 @@
-from collections import namedtuple
 import datetime
-import h5py
 import importlib
+from collections import namedtuple
+
+import h5py
 import numpy as np
 import pytest
-from dsch import data, exceptions, schema
 
+from dsch import data, exceptions, schema
 
 backend_data = namedtuple('backend_data', ('module', 'new_params'))
 

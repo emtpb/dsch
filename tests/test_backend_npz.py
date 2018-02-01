@@ -1,7 +1,9 @@
 import datetime
 import json
+
 import numpy as np
 import pytest
+
 from dsch import data, schema
 from dsch.backends import npz
 

@@ -1,8 +1,10 @@
 import datetime
+import json
+
 import h5py
 import numpy as np
-import json
 import pytest
+
 from dsch import data, schema
 from dsch.backends import hdf5
 

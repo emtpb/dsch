@@ -1,6 +1,8 @@
 import json
+
 import numpy as np
 import scipy.io as sio
+
 from dsch import schema
 from dsch.backends import mat
 

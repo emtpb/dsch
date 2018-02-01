@@ -1,10 +1,11 @@
-from collections import namedtuple
 import importlib
 import itertools
+from collections import namedtuple
+
 import pytest
+
 from dsch import exceptions, frontend, schema
 from dsch.backends import inmem
-
 
 backend_data = namedtuple('backend_data', ('module', 'storage_path'))
 

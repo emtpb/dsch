@@ -1,8 +1,9 @@
 import datetime
+
 import numpy as np
 import pytest
-import dsch
 
+import dsch
 
 # Ensure dsch.schema is automatically imported alongside the dsch package.
 # Normally, we would get the "schema" shorthand via "from dsch import schema".

@@ -1,8 +1,9 @@
-from collections import namedtuple
 import importlib
-import pytest
-from dsch import schema
+from collections import namedtuple
 
+import pytest
+
+from dsch import schema
 
 backend_data = namedtuple('backend_data', ('module', 'storage_path'))
 
@@ -91,4 +92,3 @@ class TestFileStorage:
 
         storage_obj = backend.module.Storage(storage_path=backend.storage_path)
         assert hasattr(storage_obj.data.ham, 'eggs')
-
