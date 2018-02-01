@@ -42,12 +42,9 @@ class Storage:
     def __init__(self, storage_path, schema_node=None):
         """Initialize the storage interface.
 
-        To create a new storage, ``storage_path`` and ``schema_node`` must be
-        specified.
-
-        To open a storage that already exists, only ``storage_path`` must be
-        specified. In this case, ``schema_node`` is ignored, if given
-        additionally.
+        To create a new storage file, ``storage_path`` and ``schema_node`` must
+        be specified. When loading an existing file, ``schema_node`` must not
+        be given.
 
         .. note::
             Most backends cache changes to the data in memory. For writing
