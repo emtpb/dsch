@@ -22,6 +22,39 @@ class TestGenericSchemaNode:
         assert len(hash) == 64
 
 
+@pytest.mark.parametrize('node1, node2', (
+    (schema.Array(dtype='float'), schema.Array(dtype='float')),
+    (schema.Bool(), schema.Bool()),
+    (schema.Bytes(), schema.Bytes()),
+    (schema.Compilation({'spam': schema.Bool()}),
+     schema.Compilation({'spam': schema.Bool()})),
+    (schema.Date(), schema.Date()),
+    (schema.DateTime(), schema.DateTime()),
+    (schema.List(schema.Bool()), schema.List(schema.Bool())),
+    (schema.Scalar(dtype='int32'), schema.Scalar(dtype='int32')),
+    (schema.String(), schema.String()),
+    (schema.Time(), schema.Time()),
+))
+def test_eq(node1, node2):
+    assert node1 == node2
+
+
+@pytest.mark.parametrize('node1, node2', (
+    (schema.Array(dtype='float'), schema.Array(dtype='float', unit='V')),
+    (schema.Bytes(), schema.Bytes(min_length=3)),
+    (schema.Compilation({'spam': schema.Bool()}),
+     schema.Compilation({'eggs': schema.Bool()})),
+    (schema.Date(), schema.Date(set_on_create=True)),
+    (schema.DateTime(), schema.DateTime(set_on_create=True)),
+    (schema.List(schema.Bool()), schema.List(schema.Bytes())),
+    (schema.Scalar(dtype='int32'), schema.Scalar(dtype='int16')),
+    (schema.String(), schema.String(min_length=3)),
+    (schema.Time(), schema.Time(set_on_create=True)),
+))
+def test_eq(node1, node2):
+    assert not node1 == node2
+
+
 class TestArray:
     def test_from_dict(self):
         node = schema.Array.from_dict({'node_type': 'Array', 'config': {

@@ -46,6 +46,14 @@ class SchemaNode:
     functionality.
     """
 
+    def __eq__(self, other):
+        """Implement the == operator for schema nodes."""
+        try:
+            other_dict = other.to_dict()
+        except AttributeError:
+            return False
+        return self.to_dict() == other_dict
+
     @classmethod
     def from_dict(cls, node_dict):
         """Create a new instance from a dict representation.
