@@ -7,7 +7,7 @@ from dsch.exceptions import ValidationError
 
 
 @pytest.mark.parametrize('node', (
-    schema.Array(dtype='int'), schema.Bool(),
+    schema.Array(dtype='int'), schema.Bool(), schema.Bytes(),
     schema.Compilation({'spam': schema.Bool()}), schema.Date(),
     schema.DateTime(), schema.List(schema.Bool()),
     schema.Scalar(dtype='int32'), schema.String(), schema.Time()))
