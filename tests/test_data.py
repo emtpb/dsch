@@ -380,6 +380,13 @@ class TestList:
         data_node.replace([valid_subnode_data, valid_subnode_data])
         assert not data_node.empty
 
+    def test_empty_recursive(self, data_node, valid_subnode_data):
+        assert data_node.empty
+        data_node.append()
+        data_node.append()
+        # Still empty, because the sub-nodes are empty
+        assert data_node.empty
+
     def test_getitem(self, data_node, valid_subnode_data, backend,
                      schema_subnode):
         data_node.append(valid_subnode_data)

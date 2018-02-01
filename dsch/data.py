@@ -664,12 +664,17 @@ class List:
     def empty(self):
         """Check whether the List is currently empty.
 
-        A List is considered empty when no sub-nodes are present.
+        A List is considered empty when all of its sub-nodes are empty. As a
+        special case, it is also considered empty when there are no sub-nodes
+        present.
 
         Returns:
             bool: ``True`` if the List is empty, ``False`` otherwise.
         """
-        return len(self._subnodes) == 0
+        for subnode in self._subnodes:
+            if not subnode.empty:
+                return False
+        return True
 
     def __getitem__(self, item):
         """Return subnodes via the brackets syntax.
