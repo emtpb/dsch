@@ -9,6 +9,14 @@ This project follows the guidelines of `Keep a changelog`_ and adheres to
 .. _Semantic versioning: https://semver.org/
 
 
+`Unreleased`
+============
+
+Changed
+-------
+* ``h5py`` and ``scipy``, needed for HDF5 and MAT file support, respectively,
+  are now listed as extras / optional dependencies in setup.py.
+
 `0.2.0`_ - 2018-02-01
 =====================
 

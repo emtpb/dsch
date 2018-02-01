@@ -31,10 +31,14 @@ setup(
     # Runtime dependencies
     install_requires=[
         'asciitree',
-        'h5py',
         'numpy',
-        'scipy',
     ],
+
+    # Optional dependencies
+    extras_requires={
+        'HDF5': ['h5py'],
+        'MAT': ['scipy'],
+    },
 
     # Python version requirement
     python_requires='>=3',
