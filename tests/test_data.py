@@ -362,6 +362,11 @@ class TestList:
         else:
             assert data_node._subnodes[0].value == valid_subnode_data
 
+    def test_bool(self, data_node, valid_subnode_data):
+        assert not data_node
+        data_node.append(valid_subnode_data)
+        assert data_node
+
     def test_clear(self, data_node, valid_subnode_data):
         data_node.append(valid_subnode_data)
         assert len(data_node._subnodes) == 1
