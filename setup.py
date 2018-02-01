@@ -35,7 +35,7 @@ setup(
     ],
 
     # Optional dependencies
-    extras_requires={
+    extras_require={
         'HDF5': ['h5py'],
         'MAT': ['scipy'],
     },
