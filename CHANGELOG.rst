@@ -9,8 +9,8 @@ This project follows the guidelines of `Keep a changelog`_ and adheres to
 .. _Semantic versioning: https://semver.org/
 
 
-`Unreleased`
-============
+`0.2.1`_ - 2018-02-02
+=====================
 
 Changed
 -------
@@ -89,6 +89,7 @@ Added
 
 
 .. _Unreleased: https://github.com/emtpb/dsch
+.. _0.2.1: https://github.com/emtpb/dsch/releases/tag/0.2.1
 .. _0.2.0: https://github.com/emtpb/dsch/releases/tag/0.2.0
 .. _0.1.3: https://github.com/emtpb/dsch/releases/tag/0.1.3
 .. _0.1.2: https://github.com/emtpb/dsch/releases/tag/0.1.2
