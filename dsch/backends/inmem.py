@@ -6,6 +6,8 @@ provides a clean way of data with dsch, without littering the workspace with
 temporary files. Also, it can be used to collect and aggregate data *before*
 selecting a storage path, e.g. file name.
 """
+import numpy as np
+
 from .. import data, storage
 
 
@@ -74,7 +76,19 @@ class List(data.List):
 
 class Scalar(data.Scalar, _ItemNode):
     """Scalar-type data node for the inmem backend."""
-    pass
+
+    def replace(self, new_value):
+        """Completely replace the current node value.
+
+        Instead of changing parts of the data (e.g. via numpy array slicing),
+        replace the entire data object for this node.
+
+        Args:
+            new_value: New value to apply to the node, independent of the
+                backend in use.
+        """
+        self._storage = np.dtype(self.schema_node.dtype).type(new_value)
+
 
 
 class Storage(storage.Storage):

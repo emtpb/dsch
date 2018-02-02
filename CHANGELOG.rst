@@ -17,6 +17,12 @@ Changed
 * ``h5py`` and ``scipy``, needed for HDF5 and MAT file support, respectively,
   are now listed as extras / optional dependencies in setup.py.
 
+Fixed
+-----
+* Fix missing type conversion for ``Scalar`` in ``inmem`` backend that causes
+  validation to incorrectly fail in some cases.
+
+
 `0.2.0`_ - 2018-02-01
 =====================
 

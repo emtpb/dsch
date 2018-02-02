@@ -487,8 +487,18 @@ class TestList:
 
 class TestScalar(ItemNodeTestBase):
     class_name = 'Scalar'
-    schema_node = schema.Scalar(dtype='int32')
-    valid_data = np.int32(42)
+    schema_node = None
+    valid_data = None
+
+    @pytest.fixture(params=(
+        (schema.Scalar('float32'), np.float32(0.123)),
+        (schema.Scalar('float'), 0.123),
+        (schema.Scalar('int32'), np.int32(42)),
+        (schema.Scalar('int'), 42),
+    ), autouse=True)
+    def setup_scenario(self, request):
+        self.schema_node = request.param[0]
+        self.valid_data = request.param[1]
 
 
 class TestString(ItemNodeTestBase):
