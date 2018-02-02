@@ -108,10 +108,6 @@ class ItemNodeTestBase:
         # No .value = ... here, just leave the data node empty.
         data_node.validate()
 
-    def test_value(self, data_node):
-        data_node.value = self.valid_data
-        assert isinstance(data_node.value, type(self.valid_data))
-
     def test_value_empty(self, data_node):
         # No .value = ... here, just leave the data node empty.
         with pytest.raises(exceptions.NodeEmptyError):
