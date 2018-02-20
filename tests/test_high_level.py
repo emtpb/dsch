@@ -22,7 +22,7 @@ def storage_path(request, tmpdir):
 
 
 example_values1 = {
-    schema.Array: np.array([23, 42]),
+    schema.Array: np.array([23, 42], dtype='int32'),
     schema.Bool: True,
     schema.Date: datetime.date(1970, 1, 1),
     schema.DateTime: datetime.datetime(1970, 1, 1, 13, 37, 42, 23),
@@ -31,7 +31,7 @@ example_values1 = {
     schema.Time: datetime.time(13, 37, 42, 23),
 }
 example_values2 = {
-    schema.Array: np.array([1, 2, 3]),
+    schema.Array: np.array([1, 2, 3], dtype='int32'),
     schema.Bool: False,
     schema.Date: datetime.date(1984, 5, 23),
     schema.DateTime: datetime.datetime(1984, 5, 23, 1, 2, 3, 4),
@@ -42,7 +42,7 @@ example_values2 = {
 
 
 @pytest.mark.parametrize('schema_node', (
-    schema.Array(dtype='int'),
+    schema.Array(dtype='int32'),
     schema.Bool(),
     schema.Date(),
     schema.DateTime(),
@@ -95,7 +95,7 @@ def assert_example_values(data_node, example_values, num_list_items=2):
 
 def test_compilation(storage_path):
     schema_node = schema.Compilation({
-        'test_array': schema.Array(dtype='int'),
+        'test_array': schema.Array(dtype='int32'),
         'test_bool': schema.Bool(),
         'test_date': schema.Date(),
         'test_datetime': schema.DateTime(),
@@ -103,7 +103,7 @@ def test_compilation(storage_path):
         'test_string': schema.String(),
         'test_time': schema.Time(),
         'test_comp': schema.Compilation({
-            'comp_array': schema.Array(dtype='int'),
+            'comp_array': schema.Array(dtype='int32'),
             'comp_bool': schema.Bool(),
             'comp_date': schema.Date(),
             'comp_datetime': schema.DateTime(),
@@ -111,7 +111,7 @@ def test_compilation(storage_path):
             'comp_string': schema.String(),
             'comp_time': schema.Time(),
         }),
-        'test_list_array': schema.List(schema.Array(dtype='int')),
+        'test_list_array': schema.List(schema.Array(dtype='int32')),
         'test_list_bool': schema.List(schema.Bool()),
         'test_list_date': schema.List(schema.Date()),
         'test_list_datetime': schema.List(schema.DateTime()),
@@ -119,7 +119,7 @@ def test_compilation(storage_path):
         'test_list_string': schema.List(schema.String()),
         'test_list_time': schema.List(schema.Time()),
         'test_complist': schema.List(schema.Compilation({
-            'complist_array': schema.Array(dtype='int'),
+            'complist_array': schema.Array(dtype='int32'),
             'complist_bool': schema.Bool(),
             'complist_date': schema.Date(),
             'complist_datetime': schema.DateTime(),
@@ -148,7 +148,7 @@ def test_compilation(storage_path):
 def test_list(storage_path, num_list_items):
     schema_node = schema.List(
         schema.Compilation({
-            'test_array': schema.Array(dtype='int'),
+            'test_array': schema.Array(dtype='int32'),
             'test_bool': schema.Bool(),
             'test_date': schema.Date(),
             'test_datetime': schema.DateTime(),
@@ -156,7 +156,7 @@ def test_list(storage_path, num_list_items):
             'test_string': schema.String(),
             'test_time': schema.Time(),
             'test_comp': schema.Compilation({
-                'comp_array': schema.Array(dtype='int'),
+                'comp_array': schema.Array(dtype='int32'),
                 'comp_bool': schema.Bool(),
                 'comp_date': schema.Date(),
                 'comp_datetime': schema.DateTime(),
@@ -164,7 +164,7 @@ def test_list(storage_path, num_list_items):
                 'comp_string': schema.String(),
                 'comp_time': schema.Time(),
             }),
-            'test_list_array': schema.List(schema.Array(dtype='int')),
+            'test_list_array': schema.List(schema.Array(dtype='int32')),
             'test_list_bool': schema.List(schema.Bool()),
             'test_list_date': schema.List(schema.Date()),
             'test_list_datetime': schema.List(schema.DateTime()),

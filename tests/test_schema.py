@@ -9,7 +9,7 @@ from dsch.exceptions import ValidationError
 
 
 @pytest.mark.parametrize('node', (
-    schema.Array(dtype='int'), schema.Bool(), schema.Bytes(),
+    schema.Array(dtype='int32'), schema.Bool(), schema.Bytes(),
     schema.Compilation({'spam': schema.Bool()}), schema.Date(),
     schema.DateTime(), schema.List(schema.Bool()),
     schema.Scalar(dtype='int32'), schema.String(), schema.Time()))
@@ -98,7 +98,7 @@ class TestArray:
         assert node.depends_on == ('spam', 'eggs')
 
     def test_init_defaults(self):
-        node = schema.Array(dtype='int')
+        node = schema.Array(dtype='int32')
         assert node.unit == ''
         assert node.ndim == 1
         assert node.max_shape is None
@@ -108,30 +108,30 @@ class TestArray:
         assert node.depends_on is None
 
     def test_init_defaults_max_shape(self):
-        node = schema.Array(dtype='int', max_shape=(5, 1))
+        node = schema.Array(dtype='int32', max_shape=(5, 1))
         assert node.ndim == 2
         assert node.max_shape == (5, 1)
 
     def test_init_defaults_min_shape(self):
-        node = schema.Array(dtype='int', min_shape=(2, 1))
+        node = schema.Array(dtype='int32', min_shape=(2, 1))
         assert node.ndim == 2
         assert node.min_shape == (2, 1)
 
     def test_init_fail_depends_on(self):
         with pytest.raises(ValueError) as err:
-            schema.Array(dtype='int', ndim=1, depends_on=('spam', 'eggs'))
+            schema.Array(dtype='int32', ndim=1, depends_on=('spam', 'eggs'))
         assert err.value.args[0] == ('Number of independent variables must '
                                      'be equal to the number of array '
                                      'dimensions.')
 
     def test_init_fail_shapes(self):
         with pytest.raises(ValueError) as err:
-            schema.Array(dtype='int', max_shape=(3, 2), min_shape=(2,))
+            schema.Array(dtype='int32', max_shape=(3, 2), min_shape=(2,))
         assert err.value.args[0] == ('Shape constraints must have the same '
                                      'length.')
 
     def test_to_dict(self):
-        node = schema.Array(dtype='int', unit='V', max_shape=(3, 2),
+        node = schema.Array(dtype='int32', unit='V', max_shape=(3, 2),
                             min_shape=(1, 1), max_value=42, min_value=23,
                             depends_on=('spam', 'eggs'))
         node_dict = node.to_dict()
@@ -139,7 +139,7 @@ class TestArray:
         assert node_dict['node_type'] == 'Array'
         assert 'config' in node_dict
         assert node_dict['config'] == {
-            'dtype': 'int',
+            'dtype': 'int32',
             'unit': 'V',
             'max_shape': (3, 2),
             'min_shape': (1, 1),
@@ -150,28 +150,30 @@ class TestArray:
         }
 
     def test_validate(self):
-        node = schema.Array(dtype='int', ndim=2, max_shape=(2, 4),
+        node = schema.Array(dtype='int32', ndim=2, max_shape=(2, 4),
                             min_shape=(1, 3), max_value=8, min_value=1,
                             depends_on=('spam', 'eggs'))
-        spam = np.array([1, 2])
-        eggs = np.array([0, 1, 2, 3])
-        node.validate(np.array([[1, 2, 3, 4], [5, 6, 7, 8]]), [spam, eggs])
+        spam = np.array([1, 2], dtype='int32')
+        eggs = np.array([0, 1, 2, 3], dtype='int32')
+        node.validate(np.array([[1, 2, 3, 4], [5, 6, 7, 8]], dtype='int32'),
+                      [spam, eggs])
 
     def test_validate_fail_depends(self):
-        node = schema.Array(dtype='int', ndim=2, depends_on=('spam', 'eggs'))
-        spam = np.array([1, 2])
-        eggs = np.array([0, 1, 2, 3])
+        node = schema.Array(dtype='int32', ndim=2, depends_on=('spam', 'eggs'))
+        spam = np.array([1, 2], dtype='int32')
+        eggs = np.array([0, 1, 2, 3], dtype='int32')
         with pytest.raises(ValidationError) as err:
-            node.validate(np.array([[1, 2, 3], [4, 5, 6]]), [spam, eggs])
+            node.validate(np.array([[1, 2, 3], [4, 5, 6]], dtype='int32'),
+                          [spam, eggs])
         assert err.value.message == 'Dependent array size mismatch.'
         assert err.value.expected == 4
         assert err.value.got == 3
 
     def test_validate_fail_depends_indep_ndim(self):
-        node = schema.Array(dtype='int', ndim=1, depends_on=('spam'))
-        spam = np.array([[1, 2], [3, 4]])
+        node = schema.Array(dtype='int32', ndim=1, depends_on=('spam'))
+        spam = np.array([[1, 2], [3, 4]], dtype='int32')
         with pytest.raises(ValueError) as err:
-            node.validate(np.array([23, 42]), [spam])
+            node.validate(np.array([23, 42], dtype='int32'), [spam])
         assert err.value.args[0] == ('Independent variable array must be one-'
                                      'dimensional.')
 
@@ -184,48 +186,48 @@ class TestArray:
         assert err.value.got == 'float'
 
     def test_validate_fail_max_shape(self):
-        node = schema.Array(dtype='int', max_shape=(3,))
+        node = schema.Array(dtype='int32', max_shape=(3,))
         with pytest.raises(ValidationError) as err:
-            node.validate(np.array([1, 2, 3, 4]), None)
+            node.validate(np.array([1, 2, 3, 4], dtype='int32'), None)
         assert err.value.message == 'Maximum array shape exceeded.'
         assert err.value.expected == (3,)
         assert err.value.got == (4,)
 
     def test_validate_fail_min_shape(self):
-        node = schema.Array(dtype='int', min_shape=(3, 1))
+        node = schema.Array(dtype='int32', min_shape=(3, 1))
         with pytest.raises(ValidationError) as err:
-            node.validate(np.array([[1, 2], [3, 4]]), None)
+            node.validate(np.array([[1, 2], [3, 4]], dtype='int32'), None)
         assert err.value.message == 'Minimum array shape undercut.'
         assert err.value.expected == (3, 1)
         assert err.value.got == (2, 2)
 
     def test_validate_fail_ndim(self):
-        node = schema.Array(dtype='int', ndim=1)
+        node = schema.Array(dtype='int32', ndim=1)
         with pytest.raises(ValidationError) as err:
-            node.validate(np.array([[1, 2], [3, 4]]), None)
+            node.validate(np.array([[1, 2], [3, 4]], dtype='int32'), None)
         assert err.value.message == 'Invalid number of array dimensions.'
         assert err.value.expected == 1
         assert err.value.got == 2
 
     def test_validate_fail_max_value(self):
-        node = schema.Array(dtype='int', max_value=42)
+        node = schema.Array(dtype='int32', max_value=42)
         with pytest.raises(ValidationError) as err:
-            node.validate(np.array([23, 43]), None)
+            node.validate(np.array([23, 43], dtype='int32'), None)
         assert err.value.message == 'Maximum array element value exceeded.'
         assert err.value.expected == 42
         assert err.value.got == np.array([43])
 
     def test_validate_fail_min_value(self):
-        node = schema.Array(dtype='int', min_value=23)
+        node = schema.Array(dtype='int32', min_value=23)
         with pytest.raises(ValidationError) as err:
-            node.validate(np.array([22, 42]), None)
+            node.validate(np.array([22, 42], dtype='int32'), None)
         assert err.value.message == 'Minimum array element value undercut.'
         assert err.value.expected == 23
         assert err.value.got == np.array([22])
 
     @pytest.mark.parametrize('test_data', (0, 1, [23, 42], 'spam'))
     def test_validate_fail_type(self, test_data):
-        node = schema.Array(dtype='int')
+        node = schema.Array(dtype='int32')
         with pytest.raises(ValidationError) as err:
             node.validate(test_data, None)
         assert err.value.message == 'Invalid type/value.'

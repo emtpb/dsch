@@ -15,7 +15,7 @@ def hdf5file(tmpdir):
 
 
 @pytest.mark.parametrize('schema_node,valid_data', (
-    (schema.Array(dtype='int'), np.array([23, 42])),
+    (schema.Array(dtype='int32'), np.array([23, 42], dtype='int32')),
     (schema.Bool(), True),
     (schema.Date(), datetime.date.today()),
     (schema.DateTime(), datetime.datetime.now()),

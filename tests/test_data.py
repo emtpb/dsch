@@ -116,8 +116,8 @@ class ItemNodeTestBase:
 
 class TestArray(ItemNodeTestBase):
     class_name = 'Array'
-    schema_node = schema.Array(dtype='int')
-    valid_data = np.array([23, 42])
+    schema_node = schema.Array(dtype='int32')
+    valid_data = np.array([23, 42], dtype='int32')
 
     def test_getitem(self, data_node):
         data_node.value = self.valid_data
@@ -164,7 +164,7 @@ class TestBool(ItemNodeTestBase):
 
 
 @pytest.mark.parametrize('schema_subnode,valid_subnode_data', (
-    (schema.Array(dtype='int32'), np.array([23, 42])),
+    (schema.Array(dtype='int32'), np.array([23, 42], dtype='int32')),
     (schema.Bytes(), b'spam'),
     (schema.Bool(), True),
     (schema.Date(), datetime.date.today()),
@@ -330,7 +330,7 @@ class TestDateTime(ItemNodeTestBase):
 
 
 @pytest.mark.parametrize('schema_subnode,valid_subnode_data', (
-    (schema.Array(dtype='int32'), np.array([23, 42])),
+    (schema.Array(dtype='int32'), np.array([23, 42], dtype='int32')),
     (schema.Bytes(), b'spam'),
     (schema.Bool(), True),
     (schema.Date(), datetime.date.today()),
@@ -494,7 +494,7 @@ class TestScalar(ItemNodeTestBase):
         (schema.Scalar('float32'), np.float32(0.123)),
         (schema.Scalar('float'), 0.123),
         (schema.Scalar('int32'), np.int32(42)),
-        (schema.Scalar('int'), 42),
+        (schema.Scalar('int32'), 42),
     ), autouse=True)
     def setup_scenario(self, request):
         self.schema_node = request.param[0]
