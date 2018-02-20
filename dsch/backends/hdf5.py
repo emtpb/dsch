@@ -33,7 +33,7 @@ class _ItemNode(data.ItemNode):
         This initializes the data node using the given data storage object.
 
         Args:
-            data_storage (:class:`h5py.Dataset`): Data storage object to be
+            data_storage (h5py.Dataset): Data storage object to be
                 imported.
         """
         super()._init_from_storage(data_storage)
@@ -307,7 +307,7 @@ class List(data.List):
         This initializes the data node using the given data storage object.
 
         Args:
-            data_storage (:class:`h5py.Dataset`): Data storage object to be
+            data_storage (h5py.Dataset): Data storage object to be
                 imported.
         """
         super()._init_from_storage(data_storage)

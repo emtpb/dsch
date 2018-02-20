@@ -34,7 +34,7 @@ class Compilation(npz.Compilation):
         the Compilation to be represented as a struct in MATLAB.
 
         Args:
-            data_storage (:class:`numpy.ndarray`): Backend-specific data
+            data_storage (numpy.ndarray): Backend-specific data
                 storage object to load.
         """
         # For Compilation inside Compilation, scipy.io.loadmat seems to wrap
@@ -81,7 +81,7 @@ class List(npz.List):
         the List to be represented as a cell array in MATLAB.
 
         Args:
-            data_storage (:class:`numpy.ndarray`): Backend-specific data
+            data_storage (numpy.ndarray): Backend-specific data
                 storage object to load.
         """
         # If the list layer got squeezed away, we need to re-introduce it here

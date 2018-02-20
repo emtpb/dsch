@@ -151,7 +151,7 @@ class Array(SchemaNode):
         integer type, such as ``int32``.
 
     Attributes:
-        dtype (:class:`numpy.dtype` or :class:`str`): Required NumPy dtype.
+        dtype (numpy.dtype or str): Required NumPy dtype.
         unit (str): Unit of the physical quantity, e.g. 'V' for volts. Unit
             (and values) should be given without any SI prefixes.
         max_shape (tuple): Maximum allowed array shape.
@@ -168,7 +168,7 @@ class Array(SchemaNode):
         """Initialize array-type schema node.
 
         Args:
-            dtype (:class:`numpy.dtype` or str): Required NumPy dtype.
+            dtype (numpy.dtype or str): Required NumPy dtype.
             unit (str): Unit of the physical quantity, e.g. 'V' for volts. Unit
                 (and values) should be given without any SI prefixes.
             max_shape (tuple): Maximum allowed array shape.
@@ -692,7 +692,7 @@ class Scalar(SchemaNode):
         integer type, such as ``int32``.
 
     Attributes:
-        dtype (:class:`numpy.dtype` or :class:`str`): Required NumPy dtype.
+        dtype (numpy.dtype or str): Required NumPy dtype.
         unit (str): Unit of the physical quantity, e.g. 'V' for volts. Unit
             (and value) should be given without any SI prefixes.
         max_value: Maximum allowed value.
@@ -703,7 +703,7 @@ class Scalar(SchemaNode):
         """Initialize scalar-type schema node.
 
         Args:
-            dtype (:class:`numpy.dtype` or str): Required NumPy dtype.
+            dtype (numpy.dtype or str): Required NumPy dtype.
             unit (str): Unit of the physical quantity, e.g. 'V' for volts. Unit
                 (and value) should be given without any SI prefixes.
             max_value: Maximum allowed value.
