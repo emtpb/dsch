@@ -9,6 +9,14 @@ This project follows the guidelines of `Keep a changelog`_ and adheres to
 .. _Semantic versioning: https://semver.org/
 
 
+`Unreleased`_
+=============
+
+Changed
+-------
+* Improve documentation.
+
+
 `0.2.1`_ - 2018-02-02
 =====================
 

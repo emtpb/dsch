@@ -144,6 +144,12 @@ class Array(SchemaNode):
     dependencies all default to ``None``, effectively disabling the
     corresponding validation step.
 
+    .. warning::
+        Using the generic value of ``int`` (without a size) for :attr:`dtype`
+        not recommended, since its mapping to explicit types is
+        platform-dependent.  Schema nodes should always define an explicit
+        integer type, such as ``int32``.
+
     Attributes:
         dtype (:class:`numpy.dtype` or :class:`str`): Required NumPy dtype.
         unit (str): Unit of the physical quantity, e.g. 'V' for volts. Unit
@@ -678,6 +684,12 @@ class Scalar(SchemaNode):
       This attribute is non-optional, since many backends require knowledge of
       the data type for efficient storage.
     * Minimum and maximum values.
+
+    .. warning::
+        Using the generic value of ``int`` (without a size) for :attr:`dtype`
+        not recommended, since its mapping to explicit types is
+        platform-dependent.  Schema nodes should always define an explicit
+        integer type, such as ``int32``.
 
     Attributes:
         dtype (:class:`numpy.dtype` or :class:`str`): Required NumPy dtype.
