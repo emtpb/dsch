@@ -183,7 +183,7 @@ To do that, you must call :meth:`~dsch.storage.FileStorage.save` explicitly::
 
 Oh, right, we still have that invalid value set for ``humidity``! As we can see,
 data is, by default, automatically validated before saving. This prevents us
-from accidentally producing files with invalid for physically impossible values.
+from accidentally producing files with invalid or physically impossible values.
 Of course, when we provide a sensible value again, we can easily save our file::
 
    >>> storage.data.humidity.value = 42
