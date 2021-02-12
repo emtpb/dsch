@@ -11,6 +11,37 @@ from dsch import data, exceptions, schema
 backend_data = namedtuple('backend_data', ('module', 'new_params'))
 
 
+def compare_values(value1, value2, selector=None):
+    """Numpy-array-aware comparison helper.
+
+    Comparing two Numpy arrays with ``==`` raises ``ValueError``, so they must be
+    handled differently from other types.
+    This function does just that: If one of the values is of type
+    :class:`numpy.ndarray`, the comparison is performed via
+    :func:`numpy.array_equal` instead of the ``==`` operator.
+
+    When supplying the optional third argument, that value is used for the
+    decision instead. This may be useful when e.g. comparing lists of
+    (potential) arrays.
+
+    Args:
+        value1: First value for comparison.
+        value2: Second value for comparison.
+        selector: When given, select comparison mode based on the type of this
+            value.
+
+    Returns:
+        bool: Comparison result.
+    """
+    if selector is not None:
+        array_comparison = isinstance(selector, np.ndarray)
+    else:
+        array_comparison = (isinstance(value1, np.ndarray) or
+                            isinstance(value2, np.ndarray))
+    if array_comparison:
+        return np.array_equal(value1, value2)
+    return value1 == value2
+
 @pytest.fixture(params=('hdf5', 'inmem', 'mat', 'npz'))
 def backend(request, tmpdir):
     if request.param == 'hdf5':
@@ -71,7 +102,7 @@ class ItemNodeTestBase:
         dest_node = dest_node_class(self.schema_node, parent=None,
                                     new_params=backend.new_params)
         dest_node.load_from(source_node)
-        assert np.all(dest_node.value == source_node.value)
+        assert compare_values(dest_node.value, source_node.value)
 
     def test_load_from_incompatible(self, backend, foreign_backend):
         source_node_class = getattr(foreign_backend.module, 'List')
@@ -94,11 +125,11 @@ class ItemNodeTestBase:
         storage = data_node1._storage
         data_node2 = data_node_class(self.schema_node, parent=None,
                                      data_storage=storage)
-        assert np.all(data_node2.value == self.valid_data)
+        assert compare_values(data_node2.value, self.valid_data)
 
     def test_set_value(self, data_node):
         data_node.value = self.valid_data
-        assert np.all(data_node.value == self.valid_data)
+        assert compare_values(data_node.value, self.valid_data)
 
     def test_validate(self, data_node):
         data_node.value = self.valid_data
@@ -123,7 +154,7 @@ class TestArray(ItemNodeTestBase):
         data_node.value = self.valid_data
         for idx, item in enumerate(self.valid_data):
             assert data_node[idx] == item
-        assert np.all(data_node[()] == self.valid_data)
+        assert np.array_equal(data_node[()], self.valid_data)
 
     def test_resize(self, data_node):
         data_node.value = np.array([42])
@@ -135,11 +166,11 @@ class TestArray(ItemNodeTestBase):
     def test_setitem(self, data_node):
         data_node.value = np.array([5, 23, 42])
         data_node[0] = 1
-        assert np.all(data_node.value == np.array([1, 23, 42]))
+        assert np.array_equal(data_node.value, np.array([1, 23, 42]))
         data_node[1:] = np.array([2, 3])
-        assert np.all(data_node.value == np.array([1, 2, 3]))
+        assert np.array_equal(data_node.value, np.array([1, 2, 3]))
         data_node[()] = np.array([42, 23, 5])
-        assert np.all(data_node.value == np.array([42, 23, 5]))
+        assert np.array_equal(data_node.value, np.array([42, 23, 5]))
 
     def test_validate_depends_on(self, backend):
         comp = backend.module.Compilation(schema.Compilation({
@@ -232,8 +263,8 @@ class TestCompilation:
         data_node.load_from(data_node_foreign)
         assert hasattr(data_node, 'spam')
         assert hasattr(data_node, 'eggs')
-        assert np.all(data_node.spam.value == valid_subnode_data)
-        assert np.all(data_node.eggs.value == valid_subnode_data)
+        assert compare_values(data_node.spam.value, valid_subnode_data)
+        assert compare_values(data_node.eggs.value, valid_subnode_data)
 
     def test_load_from_incompatible(self, data_node, foreign_backend,
                                     schema_subnode, valid_subnode_data):
@@ -249,12 +280,8 @@ class TestCompilation:
     def test_replace(self, data_node, valid_subnode_data):
         data_node.replace({'spam': valid_subnode_data,
                            'eggs': valid_subnode_data})
-        if isinstance(valid_subnode_data, np.ndarray):
-            assert np.all(data_node.spam.value == valid_subnode_data)
-            assert np.all(data_node.eggs.value == valid_subnode_data)
-        else:
-            assert data_node.spam.value == valid_subnode_data
-            assert data_node.eggs.value == valid_subnode_data
+        assert compare_values(data_node.spam.value, valid_subnode_data)
+        assert compare_values(data_node.eggs.value, valid_subnode_data)
 
     def test_replace_compilation_in_compilation(self, backend, schema_subnode,
                                                 valid_subnode_data):
@@ -266,12 +293,8 @@ class TestCompilation:
                                                new_params=backend.new_params)
         data_node.replace({'inner': {'spam': valid_subnode_data,
                                      'eggs': valid_subnode_data}})
-        if isinstance(valid_subnode_data, np.ndarray):
-            assert np.all(data_node.inner.spam.value == valid_subnode_data)
-            assert np.all(data_node.inner.eggs.value == valid_subnode_data)
-        else:
-            assert data_node.inner.spam.value == valid_subnode_data
-            assert data_node.inner.eggs.value == valid_subnode_data
+        assert compare_values(data_node.inner.spam.value, valid_subnode_data)
+        assert compare_values(data_node.inner.eggs.value, valid_subnode_data)
 
     def test_replace_list_in_compilation(self, backend, schema_subnode,
                                          valid_subnode_data):
@@ -279,12 +302,8 @@ class TestCompilation:
         data_node = backend.module.Compilation(schema_node, parent=None,
                                                new_params=backend.new_params)
         data_node.replace({'spam': [valid_subnode_data, valid_subnode_data]})
-        if isinstance(valid_subnode_data, np.ndarray):
-            assert np.all(data_node.spam[0].value == valid_subnode_data)
-            assert np.all(data_node.spam[1].value == valid_subnode_data)
-        else:
-            assert data_node.spam[0].value == valid_subnode_data
-            assert data_node.spam[1].value == valid_subnode_data
+        assert compare_values(data_node.spam[0].value, valid_subnode_data)
+        assert compare_values(data_node.spam[1].value, valid_subnode_data)
 
     def test_setattr(self, data_node, valid_subnode_data):
         with pytest.raises(exceptions.ResetSubnodeError):
@@ -354,10 +373,7 @@ class TestList:
         assert isinstance(data_node._subnodes[0],
                           getattr(backend.module,
                                   type(schema_subnode).__name__))
-        if isinstance(valid_subnode_data, np.ndarray):
-            assert np.all(data_node._subnodes[0].value == valid_subnode_data)
-        else:
-            assert data_node._subnodes[0].value == valid_subnode_data
+        assert compare_values(data_node._subnodes[0].value, valid_subnode_data)
 
     def test_bool(self, data_node, valid_subnode_data):
         assert not data_node
@@ -394,10 +410,7 @@ class TestList:
         data_node.append(valid_subnode_data)
         assert isinstance(data_node[0], getattr(backend.module,
                                                 type(schema_subnode).__name__))
-        if isinstance(valid_subnode_data, np.ndarray):
-            assert np.all(data_node[0].value == valid_subnode_data)
-        else:
-            assert data_node[0].value == valid_subnode_data
+        assert compare_values(data_node[0].value, valid_subnode_data)
 
     def test_init(self, data_node, valid_subnode_data, schema_subnode):
         assert data_node.schema_node.subnode == schema_subnode
@@ -417,8 +430,8 @@ class TestList:
         data_node_foreign.append(valid_subnode_data)
         data_node.load_from(data_node_foreign)
         assert len(data_node) == 2
-        assert np.all(data_node[0].value == valid_subnode_data)
-        assert np.all(data_node[1].value == valid_subnode_data)
+        assert compare_values(data_node[0].value, valid_subnode_data)
+        assert compare_values(data_node[1].value, valid_subnode_data)
 
     def test_load_from_incompatible(self, data_node, foreign_backend,
                                     schema_subnode, valid_subnode_data):
@@ -431,12 +444,8 @@ class TestList:
 
     def test_replace(self, data_node, valid_subnode_data):
         data_node.replace([valid_subnode_data, valid_subnode_data])
-        if isinstance(valid_subnode_data, np.ndarray):
-            assert np.all(data_node[0].value == valid_subnode_data)
-            assert np.all(data_node[1].value == valid_subnode_data)
-        else:
-            assert data_node[0].value == valid_subnode_data
-            assert data_node[1].value == valid_subnode_data
+        assert compare_values(data_node[0].value, valid_subnode_data)
+        assert compare_values(data_node[1].value, valid_subnode_data)
 
     def test_replace_compilation_in_list(self, backend, schema_subnode,
                                          valid_subnode_data):
@@ -446,12 +455,8 @@ class TestList:
                                         new_params=backend.new_params)
         data_node.replace([{'spam': valid_subnode_data},
                            {'spam': valid_subnode_data}])
-        if isinstance(valid_subnode_data, np.ndarray):
-            assert np.all(data_node[0].spam.value == valid_subnode_data)
-            assert np.all(data_node[1].spam.value == valid_subnode_data)
-        else:
-            assert data_node[0].spam.value == valid_subnode_data
-            assert data_node[1].spam.value == valid_subnode_data
+        assert compare_values(data_node[0].spam.value, valid_subnode_data)
+        assert compare_values(data_node[1].spam.value, valid_subnode_data)
 
     def test_replace_list_in_list(self, backend, schema_subnode,
                                   valid_subnode_data):
@@ -460,12 +465,8 @@ class TestList:
                                         parent=None,
                                         new_params=backend.new_params)
         data_node.replace([[valid_subnode_data, valid_subnode_data]])
-        if isinstance(valid_subnode_data, np.ndarray):
-            assert np.all(data_node[0][0].value == valid_subnode_data)
-            assert np.all(data_node[0][1].value == valid_subnode_data)
-        else:
-            assert data_node[0][0].value == valid_subnode_data
-            assert data_node[0][1].value == valid_subnode_data
+        assert compare_values(data_node[0][0].value, valid_subnode_data)
+        assert compare_values(data_node[0][1].value, valid_subnode_data)
 
     def test_setitem(self, data_node, valid_subnode_data):
         with pytest.raises(exceptions.ResetSubnodeError):
