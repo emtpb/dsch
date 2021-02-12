@@ -138,7 +138,7 @@ class Bytes(_ItemNode):
         Returns:
             Node data.
         """
-        return self._storage[()].tostring()
+        return self._storage[()].tobytes()
 
 
 class Bool(_ItemNode):
