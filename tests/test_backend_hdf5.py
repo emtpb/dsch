@@ -159,10 +159,10 @@ class TestStorage:
                                                         sort_keys=True)
         assert 'spam' in file_
         assert file_['spam'].dtype == 'bool'
-        assert file_['spam'].value
+        assert file_['spam'][()]
         assert 'eggs' in file_
         assert file_['eggs'].dtype == 'bool'
-        assert not file_['eggs'].value
+        assert not file_['eggs'][()]
 
     def test_save_item(self, tmpdir):
         schema_node = schema.Bool()
@@ -179,7 +179,7 @@ class TestStorage:
                                                         sort_keys=True)
         assert 'dsch_data' in file_
         assert file_['dsch_data'].dtype == 'bool'
-        assert file_['dsch_data'].value
+        assert file_['dsch_data'][()]
 
     def test_save_list(self, tmpdir):
         schema_node = schema.List(schema.Bool())
@@ -196,7 +196,7 @@ class TestStorage:
         assert 'dsch_data' in file_
         assert 'item_0' in file_['dsch_data']
         assert file_['dsch_data']['item_0'].dtype == 'bool'
-        assert file_['dsch_data']['item_0'].value
+        assert file_['dsch_data']['item_0'][()]
         assert 'item_1' in file_['dsch_data']
         assert file_['dsch_data']['item_1'].dtype == 'bool'
-        assert not file_['dsch_data']['item_1'].value
+        assert not file_['dsch_data']['item_1'][()]

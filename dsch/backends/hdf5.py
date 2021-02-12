@@ -110,7 +110,7 @@ class Array(data.Array, _ItemNode):
         Returns:
             Node data.
         """
-        return self._storage.value
+        return self._storage[()]
 
 
 class Bytes(_ItemNode):
@@ -138,7 +138,7 @@ class Bytes(_ItemNode):
         Returns:
             Node data.
         """
-        return self._storage.value.tostring()
+        return self._storage[()].tostring()
 
 
 class Bool(_ItemNode):
@@ -166,7 +166,7 @@ class Bool(_ItemNode):
         Returns:
             Node data.
         """
-        return bool(self._storage.value)
+        return bool(self._storage[()])
 
 
 class Compilation(data.Compilation):
@@ -240,7 +240,7 @@ class Date(data.Date, _ItemNode):
         Returns:
             Node data.
         """
-        return datetime.date(*self._storage.value.tolist())
+        return datetime.date(*self._storage[()].tolist())
 
 
 class DateTime(data.DateTime, _ItemNode):
@@ -268,7 +268,7 @@ class DateTime(data.DateTime, _ItemNode):
         Returns:
             Node data.
         """
-        return datetime.datetime(*self._storage.value.tolist())
+        return datetime.datetime(*self._storage[()].tolist())
 
 
 class List(data.List):
@@ -351,7 +351,7 @@ class Scalar(data.Scalar, _ItemNode):
         Returns:
             Node data.
         """
-        return self._storage.value
+        return self._storage[()]
 
 
 class Storage(storage.FileStorage):
@@ -433,7 +433,7 @@ class String(_ItemNode):
         Returns:
             Node data.
         """
-        return self._storage.value
+        return self._storage[()]
 
 
 class Time(data.Time, _ItemNode):
@@ -460,4 +460,4 @@ class Time(data.Time, _ItemNode):
         Returns:
             Node data.
         """
-        return datetime.time(*self._storage.value.tolist())
+        return datetime.time(*self._storage[()].tolist())
