@@ -11,7 +11,7 @@ from dsch.backends import hdf5
 
 @pytest.fixture()
 def hdf5file(tmpdir):
-    return h5py.File(str(tmpdir.join('hdf5test.h5')))
+    return h5py.File(str(tmpdir.join('hdf5test.h5')), 'x')
 
 
 @pytest.mark.parametrize('schema_node,valid_data', (
@@ -94,7 +94,7 @@ class TestStorage:
                                           'eggs': schema.Bool()})
         schema_data = json.dumps(schema_node.to_dict(), sort_keys=True)
         file_name = str(tmpdir.join('test_load_compilation.hdf5'))
-        raw_file = h5py.File(file_name)
+        raw_file = h5py.File(file_name, 'x')
         raw_file.attrs['dsch_schema'] = schema_data
         raw_file.create_dataset('spam', data=True)
         raw_file.create_dataset('eggs', data=False)
@@ -114,7 +114,7 @@ class TestStorage:
         schema_node = schema.Bool()
         schema_data = json.dumps(schema_node.to_dict(), sort_keys=True)
         file_name = str(tmpdir.join('test_load_item.hdf5'))
-        raw_file = h5py.File(file_name)
+        raw_file = h5py.File(file_name, 'x')
         raw_file.attrs['dsch_schema'] = schema_data
         raw_file.create_dataset('dsch_data', data=True)
         raw_file.flush()
@@ -129,7 +129,7 @@ class TestStorage:
         schema_node = schema.List(schema.Bool())
         schema_data = json.dumps(schema_node.to_dict(), sort_keys=True)
         file_name = str(tmpdir.join('test_load_list.hdf5'))
-        raw_file = h5py.File(file_name)
+        raw_file = h5py.File(file_name, 'x')
         raw_file.attrs['dsch_schema'] = schema_data
         data = raw_file.create_group('dsch_data')
         data.create_dataset('item_0', data=True)

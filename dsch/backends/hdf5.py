@@ -369,7 +369,7 @@ class Storage(storage.FileStorage):
 
     def _load(self):
         """Load an existing file from :attr:`storage_path`."""
-        self._storage = h5py.File(self.storage_path)
+        self._storage = h5py.File(self.storage_path, 'r+')
         self.schema_node = schema.node_from_json(
             self._storage.attrs['dsch_schema'])
         if isinstance(self.schema_node, schema.Compilation):
