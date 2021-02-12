@@ -12,6 +12,11 @@ This project follows the guidelines of `Keep a changelog`_ and adheres to
 `Unreleased`_
 =============
 
+Added
+-----
+* New ``data_tree`` method for exporting data as nested `dict`/`list`
+  structures.
+
 Changed
 -------
 * Improve documentation.
