@@ -9,8 +9,8 @@ This project follows the guidelines of `Keep a changelog`_ and adheres to
 .. _Semantic versioning: https://semver.org/
 
 
-`Unreleased`_
-=============
+`0.3.0`_ - 2021-02-12
+=====================
 
 Added
 -----
@@ -20,6 +20,10 @@ Added
 Changed
 -------
 * Improve documentation.
+* Improve tests
+
+Fixed
+-----
 * Minor updates to handle ``h5py`` deprecations.
 
 
@@ -103,6 +107,7 @@ Added
 
 
 .. _Unreleased: https://github.com/emtpb/dsch
+.. _0.3.0: https://github.com/emtpb/dsch/releases/tag/0.3.0
 .. _0.2.1: https://github.com/emtpb/dsch/releases/tag/0.2.1
 .. _0.2.0: https://github.com/emtpb/dsch/releases/tag/0.2.0
 .. _0.1.3: https://github.com/emtpb/dsch/releases/tag/0.1.3
