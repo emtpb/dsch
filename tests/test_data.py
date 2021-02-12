@@ -83,6 +83,11 @@ class ItemNodeTestBase:
         data_node.value = self.valid_data
         assert data_node.complete
 
+    def test_data_tree(self, data_node):
+        assert data_node.data_tree() is None
+        data_node.value = self.valid_data
+        assert compare_values(data_node.data_tree(), data_node.value)
+
     def test_empty(self, data_node):
         assert data_node.empty
         data_node.value = self.valid_data
@@ -232,6 +237,32 @@ class TestCompilation:
         assert not data_node.complete
         data_node.spam.value = valid_subnode_data
         assert data_node.complete
+
+    def test_data_tree(self, data_node, valid_subnode_data):
+        assert data_node.data_tree() == {}
+        data_node.spam.value = valid_subnode_data
+        tree = data_node.data_tree()
+        assert 'spam' in tree
+        assert 'eggs' not in tree
+        assert compare_values(tree['spam'], valid_subnode_data)
+        data_node.eggs.value = valid_subnode_data
+        tree = data_node.data_tree()
+        assert 'eggs' in tree
+        assert compare_values(tree['eggs'], valid_subnode_data)
+
+    def test_data_tree_include_empty(self, data_node, valid_subnode_data):
+        assert data_node.data_tree(include_empty=True) == {
+            'spam': None, 'eggs': None
+        }
+        data_node.spam.value = valid_subnode_data
+        tree = data_node.data_tree(include_empty=True)
+        assert 'spam' in tree
+        assert 'eggs' in tree
+        assert compare_values(tree['spam'], valid_subnode_data)
+        assert tree['eggs'] == None
+        data_node.eggs.value = valid_subnode_data
+        tree = data_node.data_tree(include_empty=True)
+        assert compare_values(tree['eggs'], valid_subnode_data)
 
     def test_empty(self, data_node, valid_subnode_data):
         assert data_node.empty
@@ -392,6 +423,22 @@ class TestList:
         assert not data_node.complete
         data_node[0].value = valid_subnode_data
         assert data_node.complete
+
+    def test_data_tree(self, data_node, valid_subnode_data):
+        assert data_node.data_tree() == []
+        data_node.append()
+        assert data_node.data_tree() == []
+        data_node[0].value = valid_subnode_data
+        assert compare_values(data_node.data_tree(), [valid_subnode_data],
+                              valid_subnode_data)
+
+    def test_data_tree_include_empty(self, data_node, valid_subnode_data):
+        assert data_node.data_tree(include_empty=True) == []
+        data_node.append()
+        assert data_node.data_tree(include_empty=True) == [None]
+        data_node[0].value = valid_subnode_data
+        assert compare_values(data_node.data_tree(include_empty=True),
+                        [valid_subnode_data], valid_subnode_data)
 
     def test_empty(self, data_node, valid_subnode_data):
         assert data_node.empty

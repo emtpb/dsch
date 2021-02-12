@@ -92,6 +92,26 @@ class ItemNode:
         """
         return not self.empty
 
+    def data_tree(self, include_empty=False):
+        """Return a recursive representation of the (sub)node data.
+
+        For usual schemas, this will be a nested dict structure, with
+        :class:`Compilation` represented by dicts, :class:`List` represented by
+        lists and regular data by their respective type.
+
+        Args:
+            include_empty (bool): If `True`, empty fields are included in the
+                resulting data structure, containing the value `None`.
+                Otherwise, they are simply omitted.
+
+        Returns:
+            Recursive representation of (sub)node data.
+        """
+        try:
+            return self.value
+        except exceptions.NodeEmptyError:
+            return None
+
     @property
     def empty(self):
         """Check whether the data node is currently empty.
@@ -378,6 +398,28 @@ class Compilation:
                 return False
         return True
 
+    def data_tree(self, include_empty=False):
+        """Return a recursive representation of the (sub)node data.
+
+        For usual schemas, this will be a nested dict structure, with
+        :class:`Compilation` represented by dicts, :class:`List` represented by
+        lists and regular data by their respective type.
+
+        Args:
+            include_empty (bool): If `True`, empty fields are included in the
+                resulting data structure, containing the value `None`.
+                Otherwise, they are simply omitted.
+
+        Returns:
+            dict: Tree structure of contained data.
+        """
+        tree = {}
+        for name, subnode in self._subnodes.items():
+            subnode_data =  subnode.data_tree(include_empty)
+            if subnode_data is not None or include_empty:
+                tree[name] = subnode_data
+        return tree
+
     def __dir__(self):
         """Include sub-nodes in :func:`dir`."""
         attrs = super().__dir__()
@@ -659,6 +701,28 @@ class List:
             if not node.complete:
                 return False
         return True
+
+    def data_tree(self, include_empty=False):
+        """Return a recursive representation of the (sub)node data.
+
+        For usual schemas, this will be a nested dict structure, with
+        :class:`Compilation` represented by dicts, :class:`List` represented by
+        lists and regular data by their respective type.
+
+        Args:
+            include_empty (bool): If `True`, empty fields are included in the
+                resulting data structure, containing the value `None`.
+                Otherwise, they are simply omitted.
+
+        Returns:
+            list: Tree structure of contained data.
+        """
+        data_list = []
+        for subnode in self._subnodes:
+            subnode_data = subnode.data_tree(include_empty)
+            if subnode_data is not None or include_empty:
+                data_list.append(subnode_data)
+        return data_list
 
     @property
     def empty(self):
