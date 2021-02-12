@@ -15,6 +15,7 @@ This project follows the guidelines of `Keep a changelog`_ and adheres to
 Changed
 -------
 * Improve documentation.
+* Minor updates to handle ``h5py`` deprecations.
 
 
 `0.2.1`_ - 2018-02-02
