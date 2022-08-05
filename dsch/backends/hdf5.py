@@ -433,7 +433,10 @@ class String(_ItemNode):
         Returns:
             Node data.
         """
-        return self._storage[()]
+        if int(h5py.version.version.split('.')[0]) >= 3:
+            return self._storage[()].decode('utf8')
+        else:
+            return self._storage[()]
 
 
 class Time(data.Time, _ItemNode):
