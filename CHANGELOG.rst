@@ -9,6 +9,20 @@ This project follows the guidelines of `Keep a changelog`_ and adheres to
 .. _Semantic versioning: https://semver.org/
 
 
+`0.3.2`_ - 2024-06-25
+=====================
+
+Fixed
+-----
+* Fix issue with h5py version 3 string handling
+
+
+0.3.1 - 2024-06-25
+=====================
+
+* (withdrawn)
+
+
 `0.3.0`_ - 2021-02-12
 =====================
 
@@ -107,6 +121,7 @@ Added
 
 
 .. _Unreleased: https://github.com/emtpb/dsch
+.. _0.3.2: https://github.com/emtpb/dsch/releases/tag/0.3.2
 .. _0.3.0: https://github.com/emtpb/dsch/releases/tag/0.3.0
 .. _0.2.1: https://github.com/emtpb/dsch/releases/tag/0.2.1
 .. _0.2.0: https://github.com/emtpb/dsch/releases/tag/0.2.0
